@@ -15,6 +15,7 @@ import {
   SidebarHeader,
   SidebarFooter,
   SidebarProvider,
+  SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { base44 } from "@/api/base44Client";
@@ -129,15 +130,19 @@ export default function Layout({ children, currentPageName }) {
       `}</style>
       <div className="min-h-screen flex w-full bg-white">
         <Sidebar className="border-r border-gray-200 bg-white">
+          <SidebarRail />
           <SidebarHeader className="border-b border-gray-200 p-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary shadow-lg">
-                <span className="text-primary-foreground font-bold text-lg">{orgInitials}</span>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary shadow-lg flex-shrink-0">
+                  <span className="text-primary-foreground font-bold text-lg">{orgInitials}</span>
+                </div>
+                <div className="min-w-0">
+                  <h2 className="font-bold text-gray-900 truncate">{orgName}</h2>
+                  <p className="text-xs text-gray-500 truncate">{orgTagline}</p>
+                </div>
               </div>
-              <div>
-                <h2 className="font-bold text-gray-900">{orgName}</h2>
-                <p className="text-xs text-gray-500">{orgTagline}</p>
-              </div>
+              <SidebarTrigger className="hidden md:inline-flex h-8 w-8 rounded-lg hover:bg-gray-100 flex-shrink-0" />
             </div>
           </SidebarHeader>
           
@@ -215,6 +220,9 @@ export default function Layout({ children, currentPageName }) {
         </Sidebar>
 
         <main className="flex-1 flex flex-col">
+          <div className="hidden md:block fixed top-4 left-4 z-30 peer-data-[state=expanded]:hidden">
+            <SidebarTrigger className="h-9 w-9 rounded-xl bg-white border border-gray-200 shadow-md hover:bg-gray-50" />
+          </div>
           <header className="bg-white border-b border-gray-200 px-6 py-4 md:hidden sticky top-0 z-10">
             <div className="flex items-center gap-4">
               <SidebarTrigger className="hover:bg-gray-100 p-2 rounded-lg transition-colors duration-200">
