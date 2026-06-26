@@ -12,6 +12,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Layout from './Layout.jsx';
 import BrandingLoader from './lib/BrandingLoader';
 import CompleteProfileSetup from '@/components/profile/CompleteProfileSetup';
+import { SUBSIDIARIES } from '@/lib/subsidiaries';
 
 // Pages
 import Dashboard from './pages/Dashboard';
@@ -56,8 +57,48 @@ import SageIntegration from './pages/SageIntegration';
 
 setupIframeMessaging();
 
+const AuthLanding = ({ onLogin, error }) => (
+  <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white flex items-center justify-center p-4">
+    <div className="w-full max-w-4xl grid md:grid-cols-[1.2fr_0.8fr] gap-6 items-stretch">
+      <div className="bg-white/10 border border-white/10 rounded-3xl p-8 shadow-2xl backdrop-blur">
+        <p className="text-sm uppercase tracking-[0.3em] text-white/50 mb-4">Phakathi Flow</p>
+        <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4">
+          One digital office for the Phakathi Holdings group.
+        </h1>
+        <p className="text-white/70 text-lg mb-8">
+          Sign in or register, then choose the company you belong to so your dashboard, team views, meetings, and colour defaults are set up correctly.
+        </p>
+        {error?.message && (
+          <div className="mb-5 rounded-xl border border-amber-300/30 bg-amber-400/10 p-3 text-sm text-amber-100">
+            {error.message}
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={onLogin}
+          className="inline-flex items-center justify-center rounded-xl bg-white text-gray-950 px-6 py-3 font-semibold shadow-lg hover:bg-gray-100 transition-colors"
+        >
+          Sign in / Register
+        </button>
+      </div>
+
+      <div className="bg-white rounded-3xl p-6 shadow-2xl text-gray-900">
+        <h2 className="font-bold text-xl mb-2">Supported subsidiaries</h2>
+        <p className="text-sm text-gray-500 mb-4">You will select one after authentication.</p>
+        <div className="space-y-2">
+          {SUBSIDIARIES.map((subsidiary) => (
+            <div key={subsidiary} className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm font-medium">
+              {subsidiary}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 const AuthenticatedApp = () => {
-  const { user, isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, checkUserAuth } = useAuth();
+  const { user, isAuthenticated, isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, checkUserAuth } = useAuth();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -69,7 +110,11 @@ const AuthenticatedApp = () => {
 
   if (authError) {
     if (authError.type === 'user_not_registered') return <UserNotRegisteredError />;
-    if (authError.type === 'auth_required') { navigateToLogin(); return null; }
+    return <AuthLanding onLogin={navigateToLogin} error={authError} />;
+  }
+
+  if (!isAuthenticated) {
+    return <AuthLanding onLogin={navigateToLogin} />;
   }
 
   if (user && !user.subsidiary) {
