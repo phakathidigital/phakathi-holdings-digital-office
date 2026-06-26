@@ -21,6 +21,7 @@ import {
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import phakathiLogoBlack from "@/assets/branding/phakathi-holdings/phakathi-holdings-black.svg";
 
 const navigationItems = [
   // HOME
@@ -90,7 +91,6 @@ export default function Layout({ children, currentPageName }) {
 
   const orgName = user?.branding?.orgName || "Phakathi Flow";
   const orgTagline = user?.branding?.orgTagline || "Employee Experience & Intelligence";
-  const orgInitials = orgName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 
   const handleLogout = () => {
     base44.auth.logout();
@@ -134,8 +134,8 @@ export default function Layout({ children, currentPageName }) {
           <SidebarHeader className="border-b border-gray-200 p-6">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary shadow-lg flex-shrink-0">
-                  <span className="text-primary-foreground font-bold text-lg">{orgInitials}</span>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-white border border-gray-100 shadow-sm flex-shrink-0 overflow-hidden">
+                  <img src={phakathiLogoBlack} alt="Phakathi Holdings" className="w-10 h-10 object-contain" />
                 </div>
                 <div className="min-w-0">
                   <h2 className="font-bold text-gray-900 truncate">{orgName}</h2>
@@ -228,6 +228,7 @@ export default function Layout({ children, currentPageName }) {
               <SidebarTrigger className="hover:bg-gray-100 p-2 rounded-lg transition-colors duration-200">
                 <Menu className="w-5 h-5" />
               </SidebarTrigger>
+              <img src={phakathiLogoBlack} alt="Phakathi Holdings" className="h-8 w-auto" />
               <h1 className="text-lg font-bold text-gray-900">Phakathi Holdings</h1>
             </div>
           </header>

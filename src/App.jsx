@@ -13,6 +13,7 @@ import Layout from './Layout.jsx';
 import BrandingLoader from './lib/BrandingLoader';
 import CompleteProfileSetup from '@/components/profile/CompleteProfileSetup';
 import { SUBSIDIARIES } from '@/lib/subsidiaries';
+import phakathiLogoFullColor from '@/assets/branding/phakathi-holdings/phakathi-holdings-fullcolor.svg';
 
 // Pages
 import Dashboard from './pages/Dashboard';
@@ -61,6 +62,11 @@ const AuthLanding = ({ onLogin, error }) => (
   <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white flex items-center justify-center p-4">
     <div className="w-full max-w-4xl grid md:grid-cols-[1.2fr_0.8fr] gap-6 items-stretch">
       <div className="bg-white/10 border border-white/10 rounded-3xl p-8 shadow-2xl backdrop-blur">
+        <img
+          src={phakathiLogoFullColor}
+          alt="Phakathi Holdings"
+          className="h-20 w-auto mb-8 opacity-95"
+        />
         <p className="text-sm uppercase tracking-[0.3em] text-white/50 mb-4">Phakathi Flow</p>
         <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4">
           One digital office for the Phakathi Holdings group.
