@@ -1,0 +1,101 @@
+{
+  "name": "Asset",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "subsidiary": {
+      "type": "string",
+      "enum": [
+        "Phakathi Holdings",
+        "Empoweryst",
+        "Micky Mouse School / Baby Geniuses",
+        "Phakathi Capital",
+        "Key Experts",
+        "Kaelo Education",
+        "Kaelo",
+        "Synergex Health"
+      ]
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "Hardware",
+        "Software License",
+        "Peripheral",
+        "Mobile Device",
+        "Vehicle",
+        "Other"
+      ]
+    },
+    "category": {
+      "type": "string"
+    },
+    "serial_number": {
+      "type": "string"
+    },
+    "license_key": {
+      "type": "string"
+    },
+    "vendor": {
+      "type": "string"
+    },
+    "purchase_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "purchase_cost": {
+      "type": "number"
+    },
+    "warranty_expiry": {
+      "type": "string",
+      "format": "date"
+    },
+    "renewal_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "assigned_to_email": {
+      "type": "string"
+    },
+    "assigned_to_name": {
+      "type": "string"
+    },
+    "assigned_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "available",
+        "assigned",
+        "maintenance",
+        "retired"
+      ],
+      "default": "available"
+    },
+    "condition": {
+      "type": "string",
+      "enum": [
+        "new",
+        "good",
+        "fair",
+        "poor"
+      ],
+      "default": "good"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "reminder_sent": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "name",
+    "type"
+  ]
+}

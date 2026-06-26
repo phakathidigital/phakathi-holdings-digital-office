@@ -1,0 +1,137 @@
+{
+  "name": "HRDocument",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Contract",
+        "Tax Form",
+        "Policy Handbook",
+        "NDA",
+        "Payslip",
+        "Certificate",
+        "ID Document",
+        "Template",
+        "Project Spec",
+        "Report",
+        "Other"
+      ],
+      "default": "Other"
+    },
+    "folder_id": {
+      "type": "string",
+      "description": "DocFolder ID"
+    },
+    "folder_path": {
+      "type": "string",
+      "description": "Denormalised path for display"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "file_name": {
+      "type": "string"
+    },
+    "file_size": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string",
+      "default": "1.0"
+    },
+    "version_notes": {
+      "type": "string"
+    },
+    "previous_version_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending_review",
+        "approved",
+        "rejected",
+        "archived"
+      ],
+      "default": "pending_review"
+    },
+    "access_level": {
+      "type": "string",
+      "enum": [
+        "public",
+        "employee_only",
+        "hr_only",
+        "management_only"
+      ],
+      "default": "employee_only"
+    },
+    "allowed_departments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Empty = all departments can access. Specific list restricts access."
+    },
+    "shared_with": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of email addresses this document is explicitly shared with"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "owner_email": {
+      "type": "string"
+    },
+    "owner_name": {
+      "type": "string"
+    },
+    "subsidiary": {
+      "type": "string",
+      "enum": [
+        "Phakathi Holdings",
+        "Empoweryst",
+        "Micky Mouse School / Baby Geniuses",
+        "Phakathi Capital",
+        "Key Experts",
+        "Kaelo Education",
+        "Kaelo",
+        "Synergex Health"
+      ]
+    },
+    "approved_by_email": {
+      "type": "string"
+    },
+    "approved_by_name": {
+      "type": "string"
+    },
+    "approved_date": {
+      "type": "string"
+    },
+    "rejection_reason": {
+      "type": "string"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "title",
+    "category",
+    "file_url",
+    "owner_email"
+  ]
+}

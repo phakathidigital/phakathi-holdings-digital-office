@@ -1,0 +1,86 @@
+{
+  "name": "KnowledgeBaseDocument",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "SOP",
+        "HR_Policy",
+        "DAM_Procedure",
+        "IT_Guide",
+        "Onboarding_Manual",
+        "Template",
+        "Meeting_Transcript",
+        "Announcement",
+        "Other"
+      ],
+      "default": "Other"
+    },
+    "content": {
+      "type": "string",
+      "description": "Full text content for AI indexing"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "document_vault",
+        "meeting_studio",
+        "announcement",
+        "policy"
+      ],
+      "default": "manual"
+    },
+    "linked_entity_id": {
+      "type": "string",
+      "description": "ID of the source entity record"
+    },
+    "linked_entity_type": {
+      "type": "string"
+    },
+    "embedding_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "indexed",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "indexed_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "access_level": {
+      "type": "string",
+      "enum": [
+        "all_staff",
+        "hr_only",
+        "management_only"
+      ],
+      "default": "all_staff"
+    },
+    "view_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "title",
+    "category"
+  ]
+}

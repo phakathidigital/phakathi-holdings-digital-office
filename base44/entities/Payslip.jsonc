@@ -1,0 +1,62 @@
+{
+  "name": "Payslip",
+  "type": "object",
+  "properties": {
+    "employee_email": {
+      "type": "string"
+    },
+    "employee_name": {
+      "type": "string"
+    },
+    "period_month": {
+      "type": "string",
+      "enum": [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ]
+    },
+    "period_year": {
+      "type": "number"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL to the payslip PDF"
+    },
+    "gross_amount": {
+      "type": "number"
+    },
+    "net_amount": {
+      "type": "number"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional notes or remarks about this payslip"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "published"
+      ],
+      "default": "draft"
+    }
+  },
+  "required": [
+    "employee_email",
+    "employee_name",
+    "period_month",
+    "period_year",
+    "file_url"
+  ]
+}

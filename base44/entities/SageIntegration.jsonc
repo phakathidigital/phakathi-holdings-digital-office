@@ -1,0 +1,78 @@
+{
+  "name": "SageIntegration",
+  "type": "object",
+  "properties": {
+    "connection_name": {
+      "type": "string"
+    },
+    "connection_status": {
+      "type": "string",
+      "enum": [
+        "disconnected",
+        "connecting",
+        "connected",
+        "error"
+      ],
+      "default": "disconnected"
+    },
+    "api_endpoint": {
+      "type": "string"
+    },
+    "last_sync_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sync_modules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "leave_balances, leave_requests, employee_profiles, departments, reporting_structures"
+    },
+    "sync_frequency": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "hourly",
+        "daily",
+        "weekly"
+      ],
+      "default": "daily"
+    },
+    "sync_status": {
+      "type": "string",
+      "enum": [
+        "idle",
+        "syncing",
+        "success",
+        "failed"
+      ],
+      "default": "idle"
+    },
+    "last_error": {
+      "type": "string"
+    },
+    "records_synced": {
+      "type": "number",
+      "default": 0
+    },
+    "sync_mode": {
+      "type": "string",
+      "enum": [
+        "api",
+        "csv_import",
+        "webhook"
+      ],
+      "default": "api"
+    },
+    "configured_by": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "connection_name"
+  ]
+}

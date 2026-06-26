@@ -1,0 +1,56 @@
+{
+  "name": "UserProfile",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "birthday": {
+      "type": "string",
+      "format": "date"
+    },
+    "job_title": {
+      "type": "string"
+    },
+    "subsidiary": {
+      "type": "string",
+      "enum": [
+        "Phakathi Holdings",
+        "Empoweryst",
+        "Micky Mouse School / Baby Geniuses",
+        "Phakathi Capital",
+        "Key Experts",
+        "Kaelo Education",
+        "Kaelo",
+        "Synergex Health"
+      ]
+    },
+    "phone": {
+      "type": "string"
+    },
+    "bio": {
+      "type": "string"
+    },
+    "birthday_celebrated": {
+      "type": "string",
+      "description": "Year last celebrated, e.g. '2026'"
+    },
+    "notification_email": {
+      "type": "string",
+      "description": "Email address where the user wants to receive notification emails"
+    },
+    "email_notifications_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the user has opted in to email delivery of birthday, holiday, and announcement alerts"
+    },
+    "push_notifications_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the user has opted in to browser push notifications"
+    }
+  },
+  "required": [
+    "user_email"
+  ]
+}

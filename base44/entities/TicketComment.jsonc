@@ -1,0 +1,27 @@
+{
+  "name": "TicketComment",
+  "type": "object",
+  "properties": {
+    "ticket_id": {
+      "type": "string"
+    },
+    "author_email": {
+      "type": "string"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "is_internal": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "ticket_id",
+    "author_email",
+    "content"
+  ]
+}

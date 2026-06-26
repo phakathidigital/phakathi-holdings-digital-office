@@ -1,0 +1,106 @@
+{
+  "name": "Ticket",
+  "type": "object",
+  "properties": {
+    "ticket_number": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "IT Support",
+        "HR Request",
+        "Payroll Query",
+        "Access & Permissions",
+        "Facilities",
+        "Onboarding",
+        "Other"
+      ],
+      "default": "IT Support"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "in_progress",
+        "pending_info",
+        "resolved",
+        "closed"
+      ],
+      "default": "open"
+    },
+    "submitter_email": {
+      "type": "string"
+    },
+    "submitter_name": {
+      "type": "string"
+    },
+    "subsidiary": {
+      "type": "string",
+      "enum": [
+        "Phakathi Holdings",
+        "Empoweryst",
+        "Micky Mouse School / Baby Geniuses",
+        "Phakathi Capital",
+        "Key Experts",
+        "Kaelo Education",
+        "Kaelo",
+        "Synergex Health"
+      ]
+    },
+    "assigned_to_email": {
+      "type": "string"
+    },
+    "assigned_to_name": {
+      "type": "string"
+    },
+    "queue": {
+      "type": "string",
+      "enum": [
+        "IT Queue",
+        "HR Queue",
+        "Finance Queue",
+        "General Queue"
+      ],
+      "default": "IT Queue"
+    },
+    "resolution_notes": {
+      "type": "string"
+    },
+    "resolved_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "attachment_url": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "title",
+    "description",
+    "category",
+    "priority"
+  ]
+}

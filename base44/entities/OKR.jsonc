@@ -1,0 +1,46 @@
+{
+  "name": "OKR",
+  "type": "object",
+  "properties": {
+    "review_id": {
+      "type": "string"
+    },
+    "employee_email": {
+      "type": "string"
+    },
+    "objective": {
+      "type": "string"
+    },
+    "key_results": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "progress": {
+      "type": "number",
+      "description": "Progress percentage 0-100"
+    },
+    "period": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "on_track",
+        "at_risk",
+        "completed",
+        "not_started"
+      ],
+      "default": "not_started"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "objective",
+    "employee_email",
+    "period"
+  ]
+}

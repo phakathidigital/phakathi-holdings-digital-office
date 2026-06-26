@@ -1,0 +1,54 @@
+{
+  "name": "KPI",
+  "type": "object",
+  "properties": {
+    "review_id": {
+      "type": "string"
+    },
+    "employee_email": {
+      "type": "string"
+    },
+    "period": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "target": {
+      "type": "string"
+    },
+    "actual": {
+      "type": "string"
+    },
+    "weight": {
+      "type": "number",
+      "description": "Weighting percentage 0-100"
+    },
+    "score": {
+      "type": "number",
+      "description": "Manager score 1-5"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "in_progress",
+        "achieved",
+        "not_achieved"
+      ],
+      "default": "not_started"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "review_id",
+    "employee_email",
+    "title",
+    "target"
+  ]
+}

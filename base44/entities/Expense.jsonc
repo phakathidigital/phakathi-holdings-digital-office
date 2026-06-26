@@ -1,0 +1,87 @@
+{
+  "name": "Expense",
+  "type": "object",
+  "properties": {
+    "employee_email": {
+      "type": "string"
+    },
+    "employee_name": {
+      "type": "string"
+    },
+    "subsidiary": {
+      "type": "string",
+      "enum": [
+        "Phakathi Holdings",
+        "Empoweryst",
+        "Micky Mouse School / Baby Geniuses",
+        "Phakathi Capital",
+        "Key Experts",
+        "Kaelo Education",
+        "Kaelo",
+        "Synergex Health"
+      ]
+    },
+    "department": {
+      "type": "string",
+      "enum": [
+        "Management",
+        "Finance",
+        "HR",
+        "IT",
+        "Operations",
+        "Empoweryst"
+      ]
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Travel",
+        "Meals",
+        "Accommodation",
+        "Office Supplies",
+        "Training",
+        "Client Entertainment",
+        "Other"
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "expense_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "receipt_url": {
+      "type": "string",
+      "description": "URL to uploaded receipt"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "rejection_reason": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "category",
+    "description",
+    "amount",
+    "expense_date",
+    "department"
+  ]
+}

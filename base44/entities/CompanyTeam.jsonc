@@ -1,0 +1,51 @@
+{
+  "name": "CompanyTeam",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Display name for this company team"
+    },
+    "subsidiary": {
+      "type": "string",
+      "enum": [
+        "Phakathi Holdings",
+        "Empoweryst",
+        "Micky Mouse School / Baby Geniuses",
+        "Phakathi Capital",
+        "Key Experts",
+        "Kaelo Education",
+        "Kaelo",
+        "Synergex Health"
+      ],
+      "description": "Canonical Phakathi Holdings subsidiary"
+    },
+    "member_names": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Placeholder or real team member names"
+    },
+    "member_emails": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "email"
+      },
+      "description": "Team member email addresses when available"
+    },
+    "default_branding": {
+      "type": "object",
+      "description": "Company-level default colours and identity shown before user overrides"
+    },
+    "weekly_meeting_day": {
+      "type": "string",
+      "default": "Monday"
+    }
+  },
+  "required": [
+    "name",
+    "subsidiary"
+  ]
+}

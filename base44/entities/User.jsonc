@@ -1,0 +1,48 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
+    "bio": {
+      "type": "string",
+      "description": "User biography"
+    },
+    "department": {
+      "type": "string",
+      "description": "Department or team"
+    },
+    "subsidiary": {
+      "type": "string",
+      "enum": [
+        "Phakathi Holdings",
+        "Empoweryst",
+        "Micky Mouse School / Baby Geniuses",
+        "Phakathi Capital",
+        "Key Experts",
+        "Kaelo Education",
+        "Kaelo",
+        "Synergex Health"
+      ],
+      "description": "Which subsidiary this user belongs to"
+    },
+    "profile_image_url": {
+      "type": "string",
+      "description": "Profile picture URL"
+    },
+    "cover_image_url": {
+      "type": "string",
+      "description": "Cover image URL"
+    },
+    "location": {
+      "type": "string",
+      "description": "Office location or city"
+    },
+    "job_title": {
+      "type": "string",
+      "description": "Job title or position"
+    }
+  }
+}

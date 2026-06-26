@@ -1,0 +1,73 @@
+{
+  "name": "MeetingNote",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "meeting_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "meeting_type": {
+      "type": "string",
+      "enum": [
+        "Management Meeting",
+        "Department Meeting",
+        "Project Review",
+        "Client Meeting",
+        "One-on-One",
+        "BBBEE Consultation",
+        "Other"
+      ]
+    },
+    "attendees": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "venue": {
+      "type": "string"
+    },
+    "agenda": {
+      "type": "string"
+    },
+    "minutes": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional high-level description or purpose of the meeting"
+    },
+    "action_items": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "department": {
+      "type": "string",
+      "enum": [
+        "Management",
+        "Finance",
+        "HR",
+        "IT",
+        "Operations",
+        "Empoweryst",
+        "Cross-Department"
+      ]
+    },
+    "is_confidential": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "title",
+    "meeting_date",
+    "meeting_type",
+    "minutes"
+  ]
+}

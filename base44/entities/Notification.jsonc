@@ -1,0 +1,99 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "general",
+        "hr_reminder",
+        "security_alert",
+        "executive_notice",
+        "it_downtime",
+        "dam_reminder",
+        "meeting_reminder",
+        "birthday_reminder"
+      ],
+      "default": "general"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium"
+    },
+    "target_departments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "target_users": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Specific user emails"
+    },
+    "created_by": {
+      "type": "string"
+    },
+    "scheduled_for": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_read_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Emails of users who have read"
+    },
+    "requires_acknowledgement": {
+      "type": "boolean",
+      "default": false
+    },
+    "acknowledged_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "delivery_channels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "in_app, browser_push, email"
+    },
+    "related_entity_type": {
+      "type": "string"
+    },
+    "related_entity_id": {
+      "type": "string"
+    },
+    "is_archived": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "title",
+    "message",
+    "type"
+  ]
+}

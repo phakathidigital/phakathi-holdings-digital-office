@@ -1,0 +1,100 @@
+{
+  "name": "MeetingStudio",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "meeting_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "meeting_type": {
+      "type": "string",
+      "enum": [
+        "Weekly Monday Alignment",
+        "Strategy Review",
+        "Team Standup",
+        "1-on-1",
+        "Board Meeting",
+        "Project Kickoff",
+        "Client Meeting",
+        "HR Review",
+        "Quarterly Business Review",
+        "Other"
+      ],
+      "description": "Meeting category, including the recurring weekly Monday group alignment"
+    },
+    "recurrence": {
+      "type": "string",
+      "description": "Human-readable recurrence rule such as Weekly on Monday"
+    },
+    "attendees": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Attendee emails or display names"
+    },
+    "transcript": {
+      "type": "string",
+      "description": "Raw transcript text"
+    },
+    "transcript_file_url": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string",
+      "description": "AI-generated summary"
+    },
+    "action_items": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "individual_summaries": {
+      "type": "object",
+      "description": "Per-person summaries keyed by email"
+    },
+    "structured_notes": {
+      "type": "string"
+    },
+    "subsidiary": {
+      "type": "string",
+      "enum": [
+        "Phakathi Holdings",
+        "Empoweryst",
+        "Micky Mouse School / Baby Geniuses",
+        "Phakathi Capital",
+        "Key Experts",
+        "Kaelo Education",
+        "Kaelo",
+        "Synergex Health"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "processing",
+        "completed"
+      ],
+      "default": "pending"
+    },
+    "emails_sent": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "title",
+    "meeting_date"
+  ]
+}

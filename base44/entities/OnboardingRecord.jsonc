@@ -1,0 +1,131 @@
+{
+  "name": "OnboardingRecord",
+  "type": "object",
+  "properties": {
+    "employee_email": {
+      "type": "string"
+    },
+    "employee_name": {
+      "type": "string"
+    },
+    "subsidiary": {
+      "type": "string",
+      "enum": [
+        "Phakathi Holdings",
+        "Empoweryst",
+        "Micky Mouse School / Baby Geniuses",
+        "Phakathi Capital",
+        "Key Experts",
+        "Kaelo Education",
+        "Kaelo",
+        "Synergex Health"
+      ]
+    },
+    "department": {
+      "type": "string",
+      "enum": [
+        "Management",
+        "Finance",
+        "HR",
+        "IT",
+        "Operations",
+        "Empoweryst"
+      ]
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "manager_email": {
+      "type": "string"
+    },
+    "manager_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "in_progress",
+        "completed"
+      ],
+      "default": "not_started"
+    },
+    "documents": {
+      "type": "object",
+      "properties": {
+        "id_document": {
+          "type": "boolean",
+          "default": false
+        },
+        "tax_form": {
+          "type": "boolean",
+          "default": false
+        },
+        "bank_details": {
+          "type": "boolean",
+          "default": false
+        },
+        "signed_contract": {
+          "type": "boolean",
+          "default": false
+        },
+        "nda": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "accounts": {
+      "type": "object",
+      "properties": {
+        "email_created": {
+          "type": "boolean",
+          "default": false
+        },
+        "slack_invited": {
+          "type": "boolean",
+          "default": false
+        },
+        "system_access": {
+          "type": "boolean",
+          "default": false
+        },
+        "hardware_assigned": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "training": {
+      "type": "object",
+      "properties": {
+        "company_orientation": {
+          "type": "boolean",
+          "default": false
+        },
+        "security_training": {
+          "type": "boolean",
+          "default": false
+        },
+        "role_specific": {
+          "type": "boolean",
+          "default": false
+        },
+        "bbbee_awareness": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "employee_email",
+    "employee_name",
+    "department",
+    "start_date"
+  ]
+}

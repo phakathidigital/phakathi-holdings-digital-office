@@ -1,17 +1,17 @@
 {
-  "name": "phakathi-holdings-digital-office",
+  "name": "base44-app",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "vite --configLoader runner",
+    "build": "vite build --configLoader runner",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@base44/sdk": "^0.8.30",
-    "@base44/vite-plugin": "^1.0.18",
+    "@base44/sdk": "^0.8.32",
+    "@base44/vite-plugin": "^1.0.23",
     "@hello-pangea/dnd": "^17.0.0",
     "@hookform/resolvers": "^4.1.2",
     "@radix-ui/react-accordion": "^1.2.3",
@@ -71,7 +71,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
-    "@flydotio/dockerfile": "^0.7.4",
+    "@flydotio/dockerfile": "^0.7.8",
     "@types/node": "^22.13.5",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",

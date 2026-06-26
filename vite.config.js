@@ -1,8 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import { fileURLToPath } from 'node:url'
 import { visualEditPlugin } from './vite-plugins/visual-edit-plugin.js'
 import { errorOverlayPlugin } from './vite-plugins/error-overlay-plugin.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -23,6 +27,7 @@ export default defineConfig(({ mode }) => {
         }
       }
     ].filter(Boolean),
+    cacheDir: './.vite-cache',
     server: {
       host: '0.0.0.0', // Bind to all interfaces for container access
       port: 5173,

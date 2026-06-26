@@ -1,0 +1,64 @@
+{
+  "name": "DAMComplianceRule",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "rule_type": {
+      "type": "string",
+      "enum": [
+        "unsigned_document",
+        "missing_upload",
+        "expiring_contract",
+        "overdue_approval",
+        "unclassified_document",
+        "missing_metadata",
+        "overdue_invoice"
+      ]
+    },
+    "target_departments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "weekly",
+        "monthly",
+        "on_trigger"
+      ],
+      "default": "weekly"
+    },
+    "trigger_conditions": {
+      "type": "string",
+      "description": "JSON or description of trigger logic"
+    },
+    "reminder_message": {
+      "type": "string"
+    },
+    "escalation_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "escalation_after_days": {
+      "type": "number",
+      "default": 7
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "last_triggered": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "title",
+    "rule_type"
+  ]
+}

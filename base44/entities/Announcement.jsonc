@@ -1,0 +1,51 @@
+{
+  "name": "Announcement",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "general",
+        "hr",
+        "finance",
+        "it",
+        "operations",
+        "urgent"
+      ],
+      "default": "general"
+    },
+    "target_audience": {
+      "type": "string",
+      "enum": [
+        "all",
+        "management",
+        "empoweryst",
+        "finance",
+        "hr"
+      ],
+      "default": "all"
+    },
+    "is_pinned": {
+      "type": "boolean",
+      "default": false
+    },
+    "attachment_url": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "title",
+    "content",
+    "category"
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "name": "Booking",
+  "type": "object",
+  "properties": {
+    "resource_id": {
+      "type": "string"
+    },
+    "resource_name": {
+      "type": "string"
+    },
+    "booker_email": {
+      "type": "string"
+    },
+    "booker_name": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "start_time": {
+      "type": "string"
+    },
+    "end_time": {
+      "type": "string"
+    },
+    "attendees_count": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "confirmed",
+        "cancelled"
+      ],
+      "default": "confirmed"
+    }
+  },
+  "required": [
+    "resource_id",
+    "resource_name",
+    "title",
+    "date",
+    "start_time",
+    "end_time"
+  ]
+}

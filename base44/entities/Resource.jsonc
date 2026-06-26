@@ -1,0 +1,38 @@
+{
+  "name": "Resource",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "Meeting Room",
+        "Projector",
+        "Laptop",
+        "Camera",
+        "Boardroom",
+        "Vehicle",
+        "Other"
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "capacity": {
+      "type": "number"
+    },
+    "location": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "type"
+  ]
+}

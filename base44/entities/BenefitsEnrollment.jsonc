@@ -1,0 +1,91 @@
+{
+  "name": "BenefitsEnrollment",
+  "type": "object",
+  "properties": {
+    "employee_email": {
+      "type": "string"
+    },
+    "employee_name": {
+      "type": "string"
+    },
+    "subsidiary": {
+      "type": "string",
+      "enum": [
+        "Phakathi Holdings",
+        "Empoweryst",
+        "Micky Mouse School / Baby Geniuses",
+        "Phakathi Capital",
+        "Key Experts",
+        "Kaelo Education",
+        "Kaelo",
+        "Synergex Health"
+      ]
+    },
+    "period_year": {
+      "type": "number"
+    },
+    "medical_aid": {
+      "type": "string",
+      "enum": [
+        "none",
+        "basic",
+        "standard",
+        "comprehensive"
+      ],
+      "default": "none"
+    },
+    "medical_aid_dependants": {
+      "type": "number",
+      "default": 0
+    },
+    "retirement_fund": {
+      "type": "boolean",
+      "default": false
+    },
+    "retirement_contribution_pct": {
+      "type": "number",
+      "default": 5
+    },
+    "group_life_cover": {
+      "type": "boolean",
+      "default": false
+    },
+    "disability_cover": {
+      "type": "boolean",
+      "default": false
+    },
+    "funeral_cover": {
+      "type": "boolean",
+      "default": false
+    },
+    "travel_allowance": {
+      "type": "boolean",
+      "default": false
+    },
+    "cell_phone_allowance": {
+      "type": "boolean",
+      "default": false
+    },
+    "annual_bonus_pct": {
+      "type": "number",
+      "default": 0,
+      "description": "% of annual salary"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "submitted",
+        "approved"
+      ],
+      "default": "draft"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "employee_email",
+    "period_year"
+  ]
+}

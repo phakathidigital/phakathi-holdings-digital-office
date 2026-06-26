@@ -1,0 +1,100 @@
+{
+  "name": "PerformanceReview",
+  "type": "object",
+  "properties": {
+    "employee_email": {
+      "type": "string"
+    },
+    "employee_name": {
+      "type": "string"
+    },
+    "subsidiary": {
+      "type": "string",
+      "enum": [
+        "Phakathi Holdings",
+        "Empoweryst",
+        "Micky Mouse School / Baby Geniuses",
+        "Phakathi Capital",
+        "Key Experts",
+        "Kaelo Education",
+        "Kaelo",
+        "Synergex Health"
+      ]
+    },
+    "manager_email": {
+      "type": "string"
+    },
+    "manager_name": {
+      "type": "string"
+    },
+    "department": {
+      "type": "string",
+      "enum": [
+        "Management",
+        "Finance",
+        "HR",
+        "IT",
+        "Operations",
+        "Empoweryst"
+      ]
+    },
+    "review_period": {
+      "type": "string",
+      "enum": [
+        "Q1 2025",
+        "Q2 2025",
+        "Q3 2025",
+        "Q4 2025",
+        "Q1 2026",
+        "Q2 2026",
+        "Q3 2026",
+        "Q4 2026"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "self_assessment_pending",
+        "manager_review_pending",
+        "completed"
+      ],
+      "default": "draft"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional overview or context for this review cycle"
+    },
+    "self_assessment": {
+      "type": "string"
+    },
+    "self_rating": {
+      "type": "number"
+    },
+    "manager_assessment": {
+      "type": "string"
+    },
+    "manager_rating": {
+      "type": "number"
+    },
+    "strengths": {
+      "type": "string"
+    },
+    "areas_for_improvement": {
+      "type": "string"
+    },
+    "development_goals": {
+      "type": "string"
+    },
+    "overall_comments": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "employee_email",
+    "employee_name",
+    "review_period",
+    "department"
+  ]
+}

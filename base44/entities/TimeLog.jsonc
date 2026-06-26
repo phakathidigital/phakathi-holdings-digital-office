@@ -1,0 +1,47 @@
+{
+  "name": "TimeLog",
+  "type": "object",
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "description": "ID of the task"
+    },
+    "task_title": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "project_name": {
+      "type": "string"
+    },
+    "employee_email": {
+      "type": "string"
+    },
+    "employee_name": {
+      "type": "string"
+    },
+    "hours": {
+      "type": "number",
+      "description": "Hours logged"
+    },
+    "log_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "description": {
+      "type": "string",
+      "description": "What was worked on"
+    },
+    "billable": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "task_id",
+    "employee_email",
+    "hours",
+    "log_date"
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "name": "LeaveRequest",
+  "type": "object",
+  "properties": {
+    "employee_email": {
+      "type": "string"
+    },
+    "employee_name": {
+      "type": "string"
+    },
+    "subsidiary": {
+      "type": "string",
+      "enum": [
+        "Phakathi Holdings",
+        "Empoweryst",
+        "Micky Mouse School / Baby Geniuses",
+        "Phakathi Capital",
+        "Key Experts",
+        "Kaelo Education",
+        "Kaelo",
+        "Synergex Health"
+      ]
+    },
+    "department": {
+      "type": "string",
+      "enum": [
+        "Management",
+        "Finance",
+        "HR",
+        "IT",
+        "Operations",
+        "Empoweryst"
+      ]
+    },
+    "leave_type": {
+      "type": "string",
+      "enum": [
+        "Annual Leave",
+        "Sick Leave",
+        "Family Responsibility",
+        "Study Leave",
+        "Unpaid Leave",
+        "Maternity Leave",
+        "Paternity Leave"
+      ]
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "days_requested": {
+      "type": "number"
+    },
+    "reason": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional additional details about the leave request"
+    },
+    "supporting_doc_url": {
+      "type": "string",
+      "description": "URL to uploaded supporting document"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "approved_date": {
+      "type": "string"
+    },
+    "rejection_reason": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "leave_type",
+    "start_date",
+    "end_date",
+    "reason",
+    "department"
+  ]
+}

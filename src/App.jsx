@@ -11,6 +11,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Layout from './Layout.jsx';
 import BrandingLoader from './lib/BrandingLoader';
+import CompleteProfileSetup from '@/components/profile/CompleteProfileSetup';
 
 // Pages
 import Dashboard from './pages/Dashboard';
@@ -40,11 +41,23 @@ import Integrations from './pages/Integrations';
 import Tickets from './pages/Tickets';
 import DocumentRepository from './pages/DocumentRepository';
 import TeamAttendance from './pages/TeamAttendance';
+import Notifications from './pages/Notifications';
+import HRHub from './pages/HRHub';
+import ExecutiveDashboard from './pages/ExecutiveDashboard';
+import CultureHub from './pages/CultureHub';
+import TimeTracking from './pages/TimeTracking';
+import GanttChart from './pages/GanttChart';
+import MyDay from './pages/MyDay';
+import Portfolios from './pages/Portfolios';
+import WorkloadPlanner from './pages/WorkloadPlanner';
+import Roadmaps from './pages/Roadmaps';
+import CompanyFeed from './pages/CompanyFeed';
+import SageIntegration from './pages/SageIntegration';
 
 setupIframeMessaging();
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { user, isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, checkUserAuth } = useAuth();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -57,6 +70,10 @@ const AuthenticatedApp = () => {
   if (authError) {
     if (authError.type === 'user_not_registered') return <UserNotRegisteredError />;
     if (authError.type === 'auth_required') { navigateToLogin(); return null; }
+  }
+
+  if (user && !user.subsidiary) {
+    return <CompleteProfileSetup user={user} onCompleted={checkUserAuth} />;
   }
 
   return (
@@ -90,6 +107,18 @@ const AuthenticatedApp = () => {
         <Route path="/Tickets" element={<Tickets />} />
         <Route path="/DocumentRepository" element={<DocumentRepository />} />
         <Route path="/TeamAttendance" element={<TeamAttendance />} />
+        <Route path="/Notifications" element={<Notifications />} />
+        <Route path="/HRHub" element={<HRHub />} />
+        <Route path="/ExecutiveDashboard" element={<ExecutiveDashboard />} />
+        <Route path="/CultureHub" element={<CultureHub />} />
+        <Route path="/TimeTracking" element={<TimeTracking />} />
+        <Route path="/GanttChart" element={<GanttChart />} />
+        <Route path="/MyDay" element={<MyDay />} />
+        <Route path="/Portfolios" element={<Portfolios />} />
+        <Route path="/WorkloadPlanner" element={<WorkloadPlanner />} />
+        <Route path="/Roadmaps" element={<Roadmaps />} />
+        <Route path="/CompanyFeed" element={<CompanyFeed />} />
+        <Route path="/SageIntegration" element={<SageIntegration />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </Layout>

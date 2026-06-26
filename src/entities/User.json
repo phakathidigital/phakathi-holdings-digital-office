@@ -1,0 +1,33 @@
+{
+  "properties": {
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
+    "bio": {
+      "type": "string",
+      "description": "User biography"
+    },
+    "department": {
+      "type": "string",
+      "description": "Department or team"
+    },
+    "profile_image_url": {
+      "type": "string",
+      "description": "Profile picture URL"
+    },
+    "cover_image_url": {
+      "type": "string",
+      "description": "Cover image URL"
+    },
+    "location": {
+      "type": "string",
+      "description": "Office location or city"
+    },
+    "job_title": {
+      "type": "string",
+      "description": "Job title or position"
+    }
+  },
+  "name": "User"
+}

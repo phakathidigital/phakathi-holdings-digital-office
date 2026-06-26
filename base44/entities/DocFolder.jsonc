@@ -1,0 +1,51 @@
+{
+  "name": "DocFolder",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "parent_id": {
+      "type": "string",
+      "description": "Parent folder ID, empty = root"
+    },
+    "color": {
+      "type": "string",
+      "default": "#6b7280"
+    },
+    "icon": {
+      "type": "string",
+      "default": "folder"
+    },
+    "access_level": {
+      "type": "string",
+      "enum": [
+        "public",
+        "employee_only",
+        "hr_only",
+        "management_only"
+      ],
+      "default": "employee_only"
+    },
+    "allowed_departments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Empty = all departments. Specific list = restricted."
+    },
+    "owner_email": {
+      "type": "string"
+    },
+    "path": {
+      "type": "string",
+      "description": "Full path e.g. /HR Policies/Leave"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

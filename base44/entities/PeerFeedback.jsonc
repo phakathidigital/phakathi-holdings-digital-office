@@ -1,0 +1,66 @@
+{
+  "name": "PeerFeedback",
+  "type": "object",
+  "properties": {
+    "review_id": {
+      "type": "string"
+    },
+    "employee_email": {
+      "type": "string"
+    },
+    "employee_name": {
+      "type": "string"
+    },
+    "reviewer_email": {
+      "type": "string"
+    },
+    "reviewer_name": {
+      "type": "string"
+    },
+    "relationship": {
+      "type": "string",
+      "enum": [
+        "peer",
+        "direct_report",
+        "cross_functional",
+        "external"
+      ],
+      "default": "peer"
+    },
+    "collaboration_rating": {
+      "type": "number"
+    },
+    "communication_rating": {
+      "type": "number"
+    },
+    "delivery_rating": {
+      "type": "number"
+    },
+    "leadership_rating": {
+      "type": "number"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional context or summary for this peer feedback submission"
+    },
+    "strengths": {
+      "type": "string"
+    },
+    "improvements": {
+      "type": "string"
+    },
+    "overall_comments": {
+      "type": "string"
+    },
+    "is_anonymous": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "review_id",
+    "employee_email",
+    "reviewer_email"
+  ]
+}

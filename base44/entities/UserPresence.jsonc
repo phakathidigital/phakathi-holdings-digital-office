@@ -1,0 +1,35 @@
+{
+  "name": "UserPresence",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "online",
+        "away",
+        "busy",
+        "offline"
+      ],
+      "default": "offline"
+    },
+    "last_seen": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "current_page": {
+      "type": "string"
+    },
+    "availability_message": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_email"
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "name": "Recognition",
+  "type": "object",
+  "properties": {
+    "sender_email": {
+      "type": "string"
+    },
+    "sender_name": {
+      "type": "string"
+    },
+    "recipient_email": {
+      "type": "string"
+    },
+    "recipient_name": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "badge_type": {
+      "type": "string",
+      "enum": [
+        "star_performer",
+        "team_player",
+        "innovator",
+        "above_and_beyond",
+        "leadership",
+        "customer_first",
+        "problem_solver",
+        "mentor"
+      ],
+      "default": "star_performer"
+    },
+    "is_public": {
+      "type": "boolean",
+      "default": true
+    },
+    "subsidiary": {
+      "type": "string"
+    },
+    "department": {
+      "type": "string"
+    },
+    "likes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "User emails who liked"
+    }
+  },
+  "required": [
+    "sender_email",
+    "recipient_email",
+    "message",
+    "badge_type"
+  ]
+}
