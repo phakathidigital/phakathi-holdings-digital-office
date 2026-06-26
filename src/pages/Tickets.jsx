@@ -15,6 +15,7 @@ import {
   User, ChevronDown, ChevronUp, Send, Filter, X, Zap
 } from "lucide-react";
 import { format } from "date-fns";
+import { hasGroupOverviewAccess, accessScopeLabel } from "@/lib/accessControl";
 
 const CATEGORIES = ["IT Support", "HR Request", "Payroll Query", "Access & Permissions", "Facilities", "Onboarding", "Other"];
 const PRIORITIES = ["low", "medium", "high", "critical"];
@@ -333,7 +334,7 @@ export default function Tickets() {
   const [selectedTicket, setSelectedTicket] = useState(null);
 
   const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => base44.auth.me() });
-  const isAdmin = user?.role === "admin";
+  const isAdmin = hasGroupOverviewAccess(user);
 
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["tickets"],
@@ -372,7 +373,7 @@ export default function Tickets() {
             <Ticket className="w-8 h-8 text-gray-900" />
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Support Tickets</h1>
-              <p className="text-gray-600 text-sm">IT, HR & general support requests</p>
+              <p className="text-gray-600 text-sm">IT, HR & general support requests · {accessScopeLabel(user)}</p>
             </div>
           </div>
           <Button onClick={() => setShowNew(true)} className="bg-gradient-to-r from-gray-900 to-gray-700 text-white shadow-lg gap-2">

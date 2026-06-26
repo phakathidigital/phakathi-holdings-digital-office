@@ -40,6 +40,19 @@ The setup stores:
 - `subsidiary`, `department`, `job_title`, and `full_name` on the Base44 auth user via `base44.auth.updateMe()`.
 - A matching `UserProfile` record keyed by `user_email`.
 
+## Group overview access
+
+The app computes whole-group overview access from the employee designation/role and department in `src/lib/accessControl.js`.
+
+These users can see and manage group-level overview areas regardless of their selected subsidiary:
+
+- Group CEO / Chief Executive Officer
+- Operations Manager
+- HR / Human Resources
+- Base44 `admin` role
+
+The designation is stored in the existing `job_title` field to preserve compatibility with the migrated Base44 app.
+
 ## Branding model
 
 Branding precedence is:

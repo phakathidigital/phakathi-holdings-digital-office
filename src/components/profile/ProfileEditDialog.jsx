@@ -92,7 +92,7 @@ export default function ProfileEditDialog({ open, onOpenChange, user, onSubmit, 
                   id="job_title"
                   value={formData.job_title}
                   onChange={(e) => setFormData({...formData, job_title: e.target.value})}
-                  placeholder="e.g. Project Manager, HR Lead, B-BBEE Analyst"
+                  placeholder="e.g. Group CEO, Operations Manager, HR, B-BBEE Analyst"
                 />
               </div>
 

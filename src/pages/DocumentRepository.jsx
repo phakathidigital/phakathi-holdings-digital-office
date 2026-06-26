@@ -19,6 +19,7 @@ import FolderDialog from "../components/vault/FolderDialog";
 import UploadDocDialog from "../components/vault/UploadDocDialog";
 import ShareDocDialog from "../components/vault/ShareDocDialog";
 import DocumentCard from "../components/vault/DocumentCard";
+import { hasGroupOverviewAccess, accessScopeLabel } from "@/lib/accessControl";
 
 const CATEGORIES = ["Contract","Tax Form","Policy Handbook","NDA","Payslip","Certificate","ID Document","Template","Project Spec","Report","Other"];
 
@@ -31,13 +32,13 @@ const STATUS_CONFIG = {
 
 function canAccess(doc, user) {
   if (!user) return false;
-  if (user.role === "admin") return true;
+  if (hasGroupOverviewAccess(user)) return true;
   if (doc.owner_email === user.email) return true;
   if (doc.shared_with?.includes(user.email)) return true;
   if (doc.access_level === "public") return true;
   if (doc.access_level === "employee_only") return true;
-  if (doc.access_level === "hr_only") return user.role === "admin";
-  if (doc.access_level === "management_only") return user.role === "admin";
+  if (doc.access_level === "hr_only") return hasGroupOverviewAccess(user);
+  if (doc.access_level === "management_only") return hasGroupOverviewAccess(user);
   return false;
 }
 
@@ -80,7 +81,7 @@ export default function DocumentRepository() {
 
   const queryClient = useQueryClient();
   const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => base44.auth.me() });
-  const isAdmin = user?.role === "admin";
+  const isAdmin = hasGroupOverviewAccess(user);
 
   const { data: documents = [], isLoading: docsLoading } = useQuery({
     queryKey: ["hr-documents"],
@@ -231,7 +232,7 @@ export default function DocumentRepository() {
             <FolderOpen className="w-6 h-6 text-gray-900" />
             <div>
               <h1 className="text-xl font-bold text-gray-900">Document Vault</h1>
-              <p className="text-xs text-gray-500 hidden md:block">Central repository · folder structure · granular permissions</p>
+              <p className="text-xs text-gray-500 hidden md:block">Central repository · folder structure · granular permissions · {accessScopeLabel(user)}</p>
             </div>
           </div>
           <Button onClick={() => setShowUpload(true)} className="bg-gray-900 hover:bg-gray-700 text-white gap-2">

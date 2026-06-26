@@ -16,6 +16,7 @@ import KPISection from "../components/performance/KPISection";
 import PeerFeedbackSection from "../components/performance/PeerFeedbackSection";
 import EvaluationReport from "../components/performance/EvaluationReport";
 import GrowthHistory from "../components/performance/GrowthHistory";
+import { hasGroupOverviewAccess, accessScopeLabel } from "@/lib/accessControl";
 
 const DEPARTMENTS = ["Management", "Finance", "HR", "IT", "Operations", "Empoweryst"];
 const PERIODS = ["Q1 2025", "Q2 2025", "Q3 2025", "Q4 2025", "Q1 2026", "Q2 2026", "Q3 2026", "Q4 2026"];
@@ -313,7 +314,7 @@ export default function PerformanceReviews() {
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => base44.auth.me() });
-  const isAdmin = user?.role === "admin";
+  const isAdmin = hasGroupOverviewAccess(user);
 
   const { data: reviews = [], isLoading } = useQuery({
     queryKey: ["reviews"],
@@ -369,7 +370,7 @@ export default function PerformanceReviews() {
             <Star className="w-8 h-8 text-gray-900" />
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Performance Reviews</h1>
-              <p className="text-gray-600 text-sm">Quarterly reviews, self-assessments, OKR tracking, and growth history</p>
+              <p className="text-gray-600 text-sm">Quarterly reviews, self-assessments, OKR tracking, and growth history · {accessScopeLabel(user)}</p>
             </div>
           </div>
           {isAdmin && (
