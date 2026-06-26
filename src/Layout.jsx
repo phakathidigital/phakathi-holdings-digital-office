@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { LayoutDashboard, FolderKanban, LogOut, Menu, User as UserIcon, Settings as SettingsIcon, Sparkles, CalendarOff, FileText, ClipboardList, Megaphone, BarChart2, Columns, Receipt, CalendarClock, Star, Wallet, Monitor, UserCheck, MessageCircle, Mic, CalendarDays, Calculator, GitBranch, Plug, Headphones, FolderOpen, Bell, Building2, TrendingUp, Heart, Timer, GanttChartSquare, Sun, Layers, BarChart, Map, Rss, Users, Link2, Briefcase, Target } from "lucide-react";
+import { LayoutDashboard, FolderKanban, LogOut, Menu, User as UserIcon, Settings as SettingsIcon, Sparkles, CalendarOff, FileText, ClipboardList, Megaphone, BarChart2, Columns, Receipt, CalendarClock, Star, Wallet, Monitor, UserCheck, MessageCircle, Mic, CalendarDays, Calculator, GitBranch, Plug, Headphones, FolderOpen, Bell, Building2, TrendingUp, Heart, Timer, GanttChartSquare, Sun, Layers, BarChart, Map, Rss, Users, Link2, Briefcase, Target, ChevronDown } from "lucide-react";
 import NotificationBell from "./components/notifications/NotificationBell";
 import PushNotificationManager from "./components/notifications/PushNotificationManager";
 import {
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/sidebar";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const navigationItems = [
   // HOME
@@ -67,6 +68,17 @@ const navigationItems = [
   { title: "Settings",          url: "/Settings",           icon: SettingsIcon,    group: "account" },
 ];
 
+const sidebarGroups = [
+  { key: 'home',          label: 'Home',          collapsible: false },
+  { key: 'work',          label: 'Work',          collapsible: true },
+  { key: 'collaboration', label: 'Collaboration', collapsible: true },
+  { key: 'people',        label: 'People',        collapsible: true },
+  { key: 'operations',    label: 'Operations',    collapsible: true },
+  { key: 'company',       label: 'Company',       collapsible: true },
+  { key: 'insights',      label: 'Insights',      collapsible: true },
+  { key: 'account',       label: 'Account',       collapsible: false },
+];
+
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const [user, setUser] = React.useState(null);
@@ -82,6 +94,24 @@ export default function Layout({ children, currentPageName }) {
   const handleLogout = () => {
     base44.auth.logout();
   };
+
+  const renderMenuItems = (key) => (
+    <SidebarMenu>
+      {navigationItems.filter(i => i.group === key).map((item) => {
+        const isActive = location.pathname === item.url || (item.url === '/Dashboard' && location.pathname === '/');
+        return (
+          <SidebarMenuItem key={item.title}>
+            <SidebarMenuButton asChild className={`rounded-lg mb-0.5 transition-all duration-200 ${isActive ? 'bg-gradient-to-r from-gray-100 to-gray-50 text-gray-900 font-semibold shadow-sm border border-gray-200' : 'hover:bg-gray-50'}`}>
+              <Link to={item.url} className="flex items-center gap-3 px-3 py-2">
+                <item.icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-gray-900' : 'text-gray-500'}`} />
+                <span className="text-sm">{item.title}</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        );
+      })}
+    </SidebarMenu>
+  );
 
   return (
     <SidebarProvider>
@@ -112,37 +142,33 @@ export default function Layout({ children, currentPageName }) {
           </SidebarHeader>
           
           <SidebarContent className="p-3 overflow-y-auto">
-            {[
-              { key: 'home',          label: 'Home' },
-              { key: 'work',          label: 'Work' },
-              { key: 'collaboration', label: 'Collaboration' },
-              { key: 'people',        label: 'People' },
-              { key: 'operations',    label: 'Operations' },
-              { key: 'company',       label: 'Company' },
-              { key: 'insights',      label: 'Insights' },
-              { key: 'account',       label: 'Account' },
-            ].map(({ key, label }) => (
-              <SidebarGroup key={key}>
-                <SidebarGroupContent>
-                  <p className="text-xs font-semibold text-gray-400 uppercase px-3 pt-3 pb-1 tracking-wider">{label}</p>
-                  <SidebarMenu>
-                    {navigationItems.filter(i => i.group === key).map((item) => {
-                      const isActive = location.pathname === item.url || (item.url === '/Dashboard' && location.pathname === '/');
-                      return (
-                        <SidebarMenuItem key={item.title}>
-                          <SidebarMenuButton asChild className={`rounded-lg mb-0.5 transition-all duration-200 ${isActive ? 'bg-gradient-to-r from-gray-100 to-gray-50 text-gray-900 font-semibold shadow-sm border border-gray-200' : 'hover:bg-gray-50'}`}>
-                            <Link to={item.url} className="flex items-center gap-3 px-3 py-2">
-                              <item.icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-gray-900' : 'text-gray-500'}`} />
-                              <span className="text-sm">{item.title}</span>
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            ))}
+            {sidebarGroups.map(({ key, label, collapsible }) => {
+              const groupItems = navigationItems.filter(i => i.group === key);
+              const hasActiveItem = groupItems.some(item => location.pathname === item.url || (item.url === '/Dashboard' && location.pathname === '/'));
+
+              return (
+                <SidebarGroup key={key}>
+                  <SidebarGroupContent>
+                    {collapsible ? (
+                      <Collapsible defaultOpen={hasActiveItem} className="group/collapsible">
+                        <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg px-3 pt-3 pb-1 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors">
+                          <span>{label}</span>
+                          <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="pt-1">
+                          {renderMenuItems(key)}
+                        </CollapsibleContent>
+                      </Collapsible>
+                    ) : (
+                      <>
+                        <p className="text-xs font-semibold text-gray-400 uppercase px-3 pt-3 pb-1 tracking-wider">{label}</p>
+                        {renderMenuItems(key)}
+                      </>
+                    )}
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              );
+            })}
           </SidebarContent>
 
           <SidebarFooter className="border-t border-gray-100 p-4">
