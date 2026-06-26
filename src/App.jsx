@@ -14,6 +14,7 @@ import BrandingLoader from './lib/BrandingLoader';
 import CompleteProfileSetup from '@/components/profile/CompleteProfileSetup';
 import { SUBSIDIARIES } from '@/lib/subsidiaries';
 import phakathiLogoFullColor from '@/assets/branding/phakathi-holdings/phakathi-holdings-fullcolor.svg';
+import portfolioCompaniesImage from '@/assets/branding/phakathi-holdings/images/our-portfolio-of-companies.png';
 
 // Pages
 import Dashboard from './pages/Dashboard';
@@ -88,7 +89,14 @@ const AuthLanding = ({ onLogin, error }) => (
         </button>
       </div>
 
-      <div className="bg-white rounded-3xl p-6 shadow-2xl text-gray-900">
+      <div className="bg-white rounded-3xl overflow-hidden shadow-2xl text-gray-900">
+        <div
+          className="h-44 bg-cover bg-center"
+          style={{ backgroundImage: `url(${portfolioCompaniesImage})` }}
+          role="img"
+          aria-label="Phakathi Holdings portfolio of companies"
+        />
+        <div className="p-6">
         <h2 className="font-bold text-xl mb-2">Supported subsidiaries</h2>
         <p className="text-sm text-gray-500 mb-4">You will select one after authentication.</p>
         <div className="space-y-2">
@@ -97,6 +105,7 @@ const AuthLanding = ({ onLogin, error }) => (
               {subsidiary}
             </div>
           ))}
+        </div>
         </div>
       </div>
     </div>

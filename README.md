@@ -36,6 +36,10 @@ Initial team placeholders are documented in `src/lib/subsidiaries.js` and `MIGRA
 
 Company-level colour defaults are applied first. User-selected branding from Settings -> Branding still overrides company defaults and persists through `base44.auth.updateMe({ branding })`.
 
+Phakathi Holdings web logos, cover imagery, and reusable icon assets are stored locally in `src/assets/branding/phakathi-holdings/`. Public browser/app icons live in `public/brand/`. The source brand guide is preserved in `docs/brand/phakathi-holdings-group-brand-guide.docx`.
+
+The app uses the Phakathi Holdings logo in the auth landing screen, sidebar, mobile header, and browser favicon. The auth landing screen uses the portfolio-of-companies image, and the dashboard hero uses the company profile cover image to reflect the group focus areas: education, health, mining, energy, and shared services.
+
 ### Weekly Monday alignment meetings
 
 The meeting scheduler and AI Meeting Studio include a weekly Monday alignment template based on the March/April 2026 meeting notes. The template includes group strategy alignment, subsidiary updates, performance/project-management blockers, and action-item follow-up.

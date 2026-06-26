@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { BarChart3, ArrowRight, Activity, FolderKanban, CheckCircle2, Users } from "lucide-react";
+import companyProfileImage from "@/assets/branding/phakathi-holdings/images/phakathi-holdings-company-profile.png";
 
 export default function HeroBanner({ user, stats }) {
   const metrics = [
@@ -19,6 +20,11 @@ export default function HeroBanner({ user, stats }) {
     >
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-35"
+          style={{ backgroundImage: `url(${companyProfileImage})` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-950/85 to-gray-950/45" />
         <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-10 bg-white" />
         <div className="absolute bottom-0 left-1/3 w-96 h-32 opacity-5 bg-gradient-to-t from-white" />
         <div className="absolute top-1/2 right-8 w-24 h-24 rounded-full opacity-5 bg-white" />
@@ -32,10 +38,10 @@ export default function HeroBanner({ user, stats }) {
             <span className="text-white/50 text-sm font-medium tracking-wide uppercase">Operations Overview</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
-            Team Dashboard
+            Group Execution Dashboard
           </h1>
           <p className="text-white/60 text-sm md:text-base max-w-md">
-            Real-time visibility into projects, tasks, and team productivity across the organisation.
+            Real-time visibility into projects, tasks, and team productivity across education, health, mining, energy, and shared services.
           </p>
 
           {/* Live metrics */}
