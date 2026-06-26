@@ -47,7 +47,7 @@ export default function CompleteProfileSetup({ user, onCompleted }) {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2"><Label>Full name</Label><Input value={form.full_name} onChange={(event) => set("full_name", event.target.value)} placeholder="Your name" /></div>
-              <div className="space-y-2"><Label>Job title</Label><Input value={form.job_title} onChange={(event) => set("job_title", event.target.value)} placeholder="e.g. Project Manager" /></div>
+              <div className="space-y-2"><Label>Designation / Role</Label><Input value={form.job_title} onChange={(event) => set("job_title", event.target.value)} placeholder="e.g. Project Manager, HR Lead, B-BBEE Analyst" /></div>
               <div className="space-y-2"><Label>Department / team</Label><Input value={form.department} onChange={(event) => set("department", event.target.value)} placeholder="e.g. HR, Finance, Operations" /></div>
               <div className="space-y-2">
                 <Label>Company / subsidiary *</Label>

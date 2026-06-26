@@ -10,7 +10,8 @@
       "format": "date"
     },
     "job_title": {
-      "type": "string"
+      "type": "string",
+      "description": "Employee designation, role, job title, or position"
     },
     "subsidiary": {
       "type": "string",

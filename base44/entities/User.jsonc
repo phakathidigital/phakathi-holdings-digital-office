@@ -42,7 +42,7 @@
     },
     "job_title": {
       "type": "string",
-      "description": "Job title or position"
+      "description": "Employee designation, role, job title, or position"
     }
   }
 }

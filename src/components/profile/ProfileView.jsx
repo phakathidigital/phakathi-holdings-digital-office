@@ -21,7 +21,7 @@ export default function ProfileView({ user }) {
     },
     {
       icon: Briefcase,
-      label: "Job Title",
+      label: "Designation / Role",
       value: user?.job_title || "Not set",
       show: true,
     },

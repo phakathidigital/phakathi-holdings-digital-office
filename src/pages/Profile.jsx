@@ -157,7 +157,7 @@ export default function Profile() {
                   <h2 className="text-2xl font-bold text-gray-900 mb-1">
                     {user?.full_name || "No name set"}
                   </h2>
-                  <p className="text-gray-500 mb-3">{user?.job_title || "No job title"}</p>
+                  <p className="text-gray-500 mb-3">{user?.job_title || "No designation / role"}</p>
                   <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                     {user?.email && (
                       <div className="flex items-center gap-1.5">
