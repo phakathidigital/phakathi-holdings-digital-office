@@ -27,6 +27,7 @@ export default function NotificationSettings({ user, onUpdate, isLoading }) {
     holiday_notifications_enabled: true,
     break_reminders_enabled: true,
     did_you_know_enabled: true,
+    dam_usage_notifications_enabled: true,
   });
   const [showSuccess, setShowSuccess] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -55,6 +56,7 @@ export default function NotificationSettings({ user, onUpdate, isLoading }) {
         holiday_notifications_enabled: profile[0].holiday_notifications_enabled ?? true,
         break_reminders_enabled: profile[0].break_reminders_enabled ?? true,
         did_you_know_enabled: profile[0].did_you_know_enabled ?? true,
+        dam_usage_notifications_enabled: profile[0].dam_usage_notifications_enabled ?? true,
       });
     } else if (user?.email) {
       setProfilePrefs(prev => ({ ...prev, notification_email: user.email }));
@@ -218,6 +220,7 @@ export default function NotificationSettings({ user, onUpdate, isLoading }) {
                 ["holiday_notifications_enabled", "Public holiday notices"],
                 ["break_reminders_enabled", "Taking-a-break motivations"],
                 ["did_you_know_enabled", "Funny, interesting quotes and Did You Know facts"],
+                ["dam_usage_notifications_enabled", "DAM usage reminders"],
               ].map(([key, label]) => (
                 <div key={key} className="flex items-center justify-between gap-4">
                   <Label className="text-sm text-gray-700">{label}</Label>

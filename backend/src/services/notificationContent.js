@@ -88,6 +88,23 @@ export function dailyWellnessNotifications(db, date = new Date()) {
   ];
 }
 
+export function damUsageNotifications(db, date = new Date()) {
+  const day = date.getDay();
+  // Monday and Thursday reminders reinforce regular DAM hygiene without spamming users daily.
+  if (![1, 4].includes(day)) return [];
+
+  return [{
+    title: "📁 DAM usage reminder",
+    message: "Please upload, tag, review, or approve outstanding documents in the Document Vault so everyone works from the latest files.",
+    type: "dam_reminder",
+    priority: "low",
+    delivery_channels: ["in_app", "browser_push"],
+    target_users: usersWithPreference(db, "dam_usage_notifications_enabled"),
+    preference_key: "dam_usage_notifications_enabled",
+    schedule_key: `dam-usage-${date.toISOString().slice(0, 10)}`,
+  }];
+}
+
 export function holidayNotifications(db, date = new Date()) {
   const holiday = getTodaysHoliday(date);
   if (!holiday) return [];

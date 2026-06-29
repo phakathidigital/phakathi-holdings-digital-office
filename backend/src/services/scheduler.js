@@ -1,5 +1,5 @@
 import { nowStamped, readDb, writeDb } from "../config/database.js";
-import { birthdayNotifications, dailyWellnessNotifications, holidayNotifications } from "./notificationContent.js";
+import { birthdayNotifications, dailyWellnessNotifications, holidayNotifications, damUsageNotifications } from "./notificationContent.js";
 import { deliverNotification } from "./pushService.js";
 
 function alreadyExists(notifications, scheduleKey) {
@@ -13,6 +13,7 @@ export async function runNotificationScan(date = new Date()) {
   const candidates = [
     ...holidayNotifications(db, date),
     ...birthdayNotifications(db, date),
+    ...damUsageNotifications(db, date),
     ...dailyWellnessNotifications(db, date),
   ];
 

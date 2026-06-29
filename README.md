@@ -102,6 +102,9 @@ Phakathi Flow now includes browser/device push notification support for logged-i
 - Backend VAPID/web-push delivery through `/api/push`.
 - Scheduled notification scan for birthdays, South African holidays/special days, break reminders, and “Did You Know?” facts.
 - User preferences in Settings for birthdays, public holidays, break motivations, and funny/interesting “Did You Know” facts.
+- All notification records default to both app popups and browser/device push unless a workflow explicitly changes `delivery_channels`.
+- Automatic assignment/status notifications are generated for common workflows such as task assignment, asset assignment, project team membership, tickets, and Document Vault/DAM sharing or review updates.
+- DAM usage reminders are scheduled on Monday and Thursday to encourage document upload, tagging, review, and approval discipline.
 
 For stable push subscriptions, generate persistent VAPID keys once and place them in `.env.local`:
 

@@ -4,6 +4,7 @@ import path from "node:path";
 import { entitySchemaDir } from "../config/paths.js";
 import { nowStamped, readDb, writeDb } from "../config/database.js";
 import { deliverNotification } from "../services/pushService.js";
+import { handleEntityCreated, handleEntityUpdated, normalizeNotification } from "../services/notificationHooks.js";
 
 const router = express.Router({ mergeParams: true });
 
@@ -62,20 +63,24 @@ router.get("/:entityName", async (req, res) => {
 
 router.post("/:entityName", async (req, res) => {
   const { db, records } = await getEntityStore(req);
-  const created = nowStamped(req.body);
+  const body = req.params.entityName === "Notification" ? normalizeNotification(req.body) : req.body;
+  const created = nowStamped(body);
   records.push(created);
   await writeDb(db);
   if (req.params.entityName === "Notification") await deliverNotification(db, created);
+  else await handleEntityCreated(db, req.params.entityName, created);
   res.status(201).json(created);
 });
 
 router.post("/:entityName/bulk", async (req, res) => {
   const { db, records } = await getEntityStore(req);
-  const created = (req.body.items || []).map((item) => nowStamped(item));
+  const created = (req.body.items || []).map((item) => nowStamped(req.params.entityName === "Notification" ? normalizeNotification(item) : item));
   records.push(...created);
   await writeDb(db);
   if (req.params.entityName === "Notification") {
     for (const item of created) await deliverNotification(db, item);
+  } else {
+    for (const item of created) await handleEntityCreated(db, req.params.entityName, item);
   }
   res.status(201).json(created);
 });
@@ -127,8 +132,10 @@ router.patch("/:entityName/:id", async (req, res) => {
   const { db, records } = await getEntityStore(req);
   const index = records.findIndex((item) => item.id === req.params.id);
   if (index === -1) return res.status(404).json({ message: `${req.params.entityName} not found` });
+  const previous = { ...records[index] };
   records[index] = nowStamped(req.body, records[index]);
   await writeDb(db);
+  await handleEntityUpdated(db, req.params.entityName, previous, records[index]);
   res.json(records[index]);
 });
 

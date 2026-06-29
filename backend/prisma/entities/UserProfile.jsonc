@@ -65,6 +65,10 @@
     "did_you_know_enabled": {
       "type": "boolean",
       "default": true
+    },
+    "dam_usage_notifications_enabled": {
+      "type": "boolean",
+      "default": true
     }
   },
   "required": [
