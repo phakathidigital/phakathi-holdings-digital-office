@@ -15,7 +15,6 @@ import {
   SidebarHeader,
   SidebarFooter,
   SidebarProvider,
-  SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { api } from "@/api/apiClient";
@@ -130,19 +129,18 @@ export default function Layout({ children, currentPageName }) {
       `}</style>
       <div className="min-h-screen flex w-full bg-white">
         <Sidebar className="border-r border-gray-200 bg-white">
-          <SidebarRail />
-          <SidebarHeader className="border-b border-gray-200 p-6">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
+          <SidebarHeader className="border-b border-gray-200 px-4 py-4">
+            <div className="flex items-center gap-3">
+              <Link to="/Dashboard" className="flex items-center gap-3 min-w-0 flex-1">
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-white border border-gray-100 shadow-sm flex-shrink-0 overflow-hidden">
-                  <img src={phakathiLogoBlack} alt="Phakathi Holdings" className="w-10 h-10 object-contain" />
+                  <img src={phakathiLogoBlack} alt="Phakathi Holdings" className="w-11 h-11 object-contain" />
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <h2 className="font-bold text-gray-900 truncate">{orgName}</h2>
                   <p className="text-xs text-gray-500 truncate">{orgTagline}</p>
                 </div>
-              </div>
-              <SidebarTrigger className="hidden md:inline-flex h-8 w-8 rounded-lg hover:bg-gray-100 flex-shrink-0" />
+              </Link>
+              <SidebarTrigger className="hidden md:inline-flex h-9 w-9 rounded-lg border border-gray-100 bg-white shadow-sm hover:bg-gray-50 flex-shrink-0" />
             </div>
           </SidebarHeader>
           
