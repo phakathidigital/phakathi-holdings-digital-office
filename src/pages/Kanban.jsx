@@ -6,10 +6,14 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import { Columns, Circle, Clock, CheckCircle2, Calendar, UserPlus, X, AlertTriangle, Link2, Timer } from "lucide-react";
+import { Columns, Circle, Clock, CheckCircle2, Calendar, UserPlus, X, AlertTriangle, Link2, Timer, Plus, Pencil, Trash2 } from "lucide-react";
 import TimeLogDialog from "@/components/kanban/TimeLogDialog";
 import { format, parseISO } from "date-fns";
 import DependencyPath from "@/components/kanban/DependencyPath";
@@ -25,6 +29,18 @@ const PRIORITY_COLORS = {
   medium:   "bg-yellow-100 text-yellow-700",
   high:     "bg-orange-100 text-orange-700",
   critical: "bg-red-100 text-red-700",
+};
+
+const EMPTY_TASK_FORM = {
+  title: "",
+  description: "",
+  project_id: "",
+  status: "todo",
+  priority: "medium",
+  assigned_to: "",
+  due_date: "",
+  estimated_hours: "",
+  tags: "",
 };
 
 function hasIncompleteBlockers(task, allTasks) {
@@ -48,7 +64,136 @@ function UserAvatar({ email, name, size = "sm" }) {
   );
 }
 
-function TaskCard({ task, user, users, allTasks, onStatusChange, onAssign, onUnassign, onLogTime, index }) {
+function TaskEditorDialog({ open, onOpenChange, task, projects, defaultProjectId, defaultStatus = "todo", users, onSubmit, isSaving }) {
+  const [form, setForm] = useState(EMPTY_TASK_FORM);
+
+  React.useEffect(() => {
+    if (task) {
+      setForm({
+        title: task.title || "",
+        description: task.description || "",
+        project_id: task.project_id || "",
+        status: task.status || "todo",
+        priority: task.priority || "medium",
+        assigned_to: task.assigned_to || "",
+        due_date: task.due_date || "",
+        estimated_hours: task.estimated_hours ?? "",
+        tags: task.tags?.join(", ") || "",
+      });
+    } else {
+      setForm({ ...EMPTY_TASK_FORM, project_id: defaultProjectId || "", status: defaultStatus });
+    }
+  }, [task, defaultProjectId, defaultStatus, open]);
+
+  const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    onSubmit({
+      ...form,
+      project_id: form.project_id === "__none__" ? "" : form.project_id,
+      estimated_hours: form.estimated_hours ? Number(form.estimated_hours) : undefined,
+      tags: form.tags ? form.tags.split(",").map((tag) => tag.trim()).filter(Boolean) : [],
+    });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{task ? "Edit Task" : "Create Task"}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label>Task title *</Label>
+            <Input value={form.title} onChange={(event) => set("title", event.target.value)} placeholder="What needs to be done?" required />
+          </div>
+          <div className="space-y-2">
+            <Label>Description</Label>
+            <Textarea value={form.description} onChange={(event) => set("description", event.target.value)} placeholder="Add context, outcome, or instructions..." rows={3} />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Project</Label>
+              <Select value={form.project_id || "__none__"} onValueChange={(value) => set("project_id", value)}>
+                <SelectTrigger><SelectValue placeholder="Select project" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">No project / General task</SelectItem>
+                  {projects.map((project) => (
+                    <SelectItem key={project.id} value={project.id}>{project.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Assign to</Label>
+              <Select value={form.assigned_to || "__unassigned__"} onValueChange={(value) => set("assigned_to", value === "__unassigned__" ? "" : value)}>
+                <SelectTrigger><SelectValue placeholder="Assign team member" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__unassigned__">Unassigned</SelectItem>
+                  {users.map((person) => (
+                    <SelectItem key={person.id || person.email} value={person.email}>{person.full_name || person.email}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={form.status} onValueChange={(value) => set("status", value)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todo">To Do</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="completed">Done</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Priority</Label>
+              <Select value={form.priority} onValueChange={(value) => set("priority", value)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="critical">Critical</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Due date</Label>
+              <Input type="date" value={form.due_date} onChange={(event) => set("due_date", event.target.value)} />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Estimated hours</Label>
+              <Input type="number" min="0" step="0.25" value={form.estimated_hours} onChange={(event) => set("estimated_hours", event.target.value)} placeholder="e.g. 2.5" />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Tags</Label>
+            <Input value={form.tags} onChange={(event) => set("tags", event.target.value)} placeholder="finance, report, urgent" />
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="submit" disabled={isSaving || !form.title.trim()} className="bg-gray-900 hover:bg-gray-800 text-white">
+              {isSaving ? "Saving..." : task ? "Update Task" : "Create Task"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function TaskCard({ task, user, users, allTasks, onAssign, onUnassign, onLogTime, onEdit, onDelete, index }) {
   const [showAssign, setShowAssign] = useState(false);
   const assignedUser = users.find(u => u.email === task.assigned_to);
   const isAssignedToMe = task.assigned_to === user?.email;
@@ -63,6 +208,14 @@ function TaskCard({ task, user, users, allTasks, onStatusChange, onAssign, onUna
             <CardContent className="p-4 space-y-2">
               <div className="flex items-start gap-2">
                 <p className="font-semibold text-gray-900 text-sm leading-snug flex-1">{task.title}</p>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => onEdit(task)} className="text-gray-300 hover:text-gray-700 transition-colors" title="Edit task">
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  <button onClick={() => onDelete(task)} className="text-gray-300 hover:text-red-500 transition-colors" title="Delete task">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
                 {blocked && (
                   <TooltipProvider>
                     <Tooltip>
@@ -192,6 +345,8 @@ function TaskCard({ task, user, users, allTasks, onStatusChange, onAssign, onUna
 export default function Kanban() {
   const [selectedProject, setSelectedProject] = useState("all");
   const [timeLogTask, setTimeLogTask] = useState(null);
+  const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => api.auth.me() });
@@ -209,6 +364,37 @@ export default function Kanban() {
     },
     onError: (_, __, ctx) => queryClient.setQueryData(["tasks"], ctx.prev),
     onSettled: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
+  });
+
+  const createTask = useMutation({
+    mutationFn: (data) => api.entities.Task.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("Task created");
+      setTaskDialogOpen(false);
+      setEditingTask(null);
+    },
+    onError: (error) => toast.error(error?.message || "Could not create task"),
+  });
+
+  const saveTask = useMutation({
+    mutationFn: ({ id, ...data }) => id ? api.entities.Task.update(id, data) : api.entities.Task.create(data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success(variables.id ? "Task updated" : "Task created");
+      setTaskDialogOpen(false);
+      setEditingTask(null);
+    },
+    onError: (error) => toast.error(error?.message || "Could not save task"),
+  });
+
+  const deleteTask = useMutation({
+    mutationFn: (id) => api.entities.Task.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("Task deleted");
+    },
+    onError: (error) => toast.error(error?.message || "Could not delete task"),
   });
 
   const handleAssign = async (task, email, fullName) => {
@@ -250,6 +436,31 @@ export default function Kanban() {
   };
 
   const handleLogTime = (task) => setTimeLogTask(task);
+  const defaultProjectId = selectedProject !== "all" ? selectedProject : "";
+
+  const openCreateTask = (status = "todo") => {
+    setEditingTask({ ...EMPTY_TASK_FORM, status, project_id: defaultProjectId, __new: true });
+    setTaskDialogOpen(true);
+  };
+
+  const openEditTask = (task) => {
+    setEditingTask(task);
+    setTaskDialogOpen(true);
+  };
+
+  const handleSaveTask = (data) => {
+    if (editingTask?.__new) {
+      createTask.mutate(data);
+    } else {
+      saveTask.mutate({ id: editingTask.id, ...data });
+    }
+  };
+
+  const handleDeleteTask = (task) => {
+    const confirmed = window.confirm(`Delete task "${task.title}"? This cannot be undone.`);
+    if (!confirmed) return;
+    deleteTask.mutate(task.id);
+  };
 
   const filteredTasks = selectedProject === "all" ? tasks : tasks.filter((t) => t.project_id === selectedProject);
   const getColumnTasks = (colId) =>
@@ -267,15 +478,20 @@ export default function Kanban() {
               <p className="text-gray-600 text-sm">Drag tasks between columns · Assign team members · Track dependencies</p>
             </div>
           </div>
-          <Select value={selectedProject} onValueChange={setSelectedProject}>
-            <SelectTrigger className="w-56 bg-white shadow-sm">
-              <SelectValue placeholder="Filter by project" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Projects</SelectItem>
-              {projects.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div className="flex flex-wrap gap-3">
+            <Button onClick={() => openCreateTask("todo")} className="bg-gray-900 hover:bg-gray-800 text-white gap-2">
+              <Plus className="w-4 h-4" /> New Task
+            </Button>
+            <Select value={selectedProject} onValueChange={setSelectedProject}>
+              <SelectTrigger className="w-56 bg-white shadow-sm">
+                <SelectValue placeholder="Filter by project" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Projects</SelectItem>
+                {projects.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
         </motion.div>
 
         {isLoading ? (
@@ -313,13 +529,17 @@ export default function Kanban() {
                               onAssign={handleAssign}
                               onUnassign={handleUnassign}
                               onLogTime={handleLogTime}
-                              onStatusChange={(id, status) => updateTask.mutate({ id, status })}
+                              onEdit={openEditTask}
+                              onDelete={handleDeleteTask}
                             />
                           ))}
                           {provided.placeholder}
                           {colTasks.length === 0 && !snapshot.isDraggingOver && (
-                            <div className="h-24 flex items-center justify-center border-2 border-dashed border-gray-200 rounded-xl">
+                            <div className="h-28 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-xl">
                               <p className="text-xs text-gray-400">Drop tasks here</p>
+                              <button onClick={() => openCreateTask(col.id)} className="text-xs font-medium text-gray-500 hover:text-gray-900">
+                                + Add task
+                              </button>
                             </div>
                           )}
                         </div>
@@ -340,6 +560,20 @@ export default function Kanban() {
           user={user}
         />
       )}
+      <TaskEditorDialog
+        open={taskDialogOpen}
+        onOpenChange={(open) => {
+          setTaskDialogOpen(open);
+          if (!open) setEditingTask(null);
+        }}
+        task={editingTask?.__new ? null : editingTask}
+        projects={projects}
+        defaultProjectId={editingTask?.project_id || defaultProjectId}
+        defaultStatus={editingTask?.status || "todo"}
+        users={users}
+        onSubmit={handleSaveTask}
+        isSaving={createTask.isPending || saveTask.isPending}
+      />
     </div>
   );
 }
