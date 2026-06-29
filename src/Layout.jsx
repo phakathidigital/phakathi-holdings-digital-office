@@ -218,9 +218,6 @@ export default function Layout({ children, currentPageName }) {
         </Sidebar>
 
         <main className="flex-1 flex flex-col">
-          <div className="hidden md:block fixed top-4 left-4 z-30 peer-data-[state=expanded]:hidden">
-            <SidebarTrigger className="h-9 w-9 rounded-xl bg-white border border-gray-200 shadow-md hover:bg-gray-50" />
-          </div>
           <header className="bg-white border-b border-gray-200 px-6 py-4 md:hidden sticky top-0 z-10">
             <div className="flex items-center gap-4">
               <SidebarTrigger className="hover:bg-gray-100 p-2 rounded-lg transition-colors duration-200">
