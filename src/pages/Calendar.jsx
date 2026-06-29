@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronLeft, ChevronRight, Calendar as CalIcon, Filter,
-  FolderKanban, CalendarOff, Users, ClipboardList, Clock, X, Layers
+  FolderKanban, CalendarOff, Users, ClipboardList, Clock, X, Layers, Flag
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,8 +15,9 @@ import {
 } from "@/components/ui/select";
 import {
   format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
-  addDays, addMonths, subMonths, isSameMonth, isSameDay, parseISO, isValid
+  addDays, addMonths, subMonths, isSameMonth, isSameDay, parseISO, isValid, startOfDay
 } from "date-fns";
+import { getHolidaysInRange } from "@/lib/saHolidays";
 
 
 const EVENT_TYPES = {
@@ -25,6 +26,7 @@ const EVENT_TYPES = {
   leave:     { label: "Leave",            color: "bg-amber-500",  text: "text-amber-700",  bg: "bg-amber-50",  icon: CalendarOff },
   meeting:   { label: "Meeting",          color: "bg-blue-500",   text: "text-blue-700",   bg: "bg-blue-50",   icon: ClipboardList },
   onboarding:{ label: "New Hire",         color: "bg-green-500",  text: "text-green-700",  bg: "bg-green-50",  icon: Users },
+  holiday:   { label: "SA Holidays",      color: "bg-yellow-500", text: "text-yellow-800", bg: "bg-yellow-50", icon: Flag },
 };
 
 function safeParse(str) {
@@ -147,6 +149,11 @@ export default function CalendarPage() {
   const { data: meetings = [] } = useQuery({ queryKey: ["cal-meetings"], queryFn: () => api.entities.MeetingNote.list() });
   const { data: onboardings = [] } = useQuery({ queryKey: ["cal-onboarding"], queryFn: () => api.entities.OnboardingRecord.list() });
 
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 });
+  const gridEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
+
   // Build unified event list
   const allEvents = useMemo(() => {
     const evs = [];
@@ -185,20 +192,25 @@ export default function CalendarPage() {
       if (o.start_date) evs.push({ type: "onboarding", title: `👋 ${o.employee_name} joins`, date: o.start_date, subsidiary: o.subsidiary, person: o.employee_email, status: o.status });
     });
 
+    // SA public, recognised, and special holidays for the visible calendar range
+    getHolidaysInRange(gridStart, gridEnd).forEach(h => {
+      evs.push({
+        type: "holiday",
+        title: `${h.emoji} ${h.name}`,
+        date: h.dateKey,
+        description: `${h.type === "public" ? "South African public holiday" : "Recognised/special day"}${h.observed ? ` · observed from ${h.originalDate}` : ""}. ${h.message}`,
+        status: h.type === "public" ? "Public Holiday" : "Special Day",
+      });
+    });
+
     return evs.filter(e => e.date);
-  }, [projects, tasks, leaves, meetings, onboardings]);
+  }, [projects, tasks, leaves, meetings, onboardings, gridStart, gridEnd]);
 
   const filteredEvents = useMemo(() => allEvents.filter(e => {
     const subOk = subsidiaryFilter === "All" || !e.subsidiary || e.subsidiary === subsidiaryFilter;
     const typeOk = typeFilter === "all" || e.type === typeFilter;
     return subOk && typeOk;
   }), [allEvents, subsidiaryFilter, typeFilter]);
-
-  // Build calendar grid
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(currentDate);
-  const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-  const gridEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
 
   const days = [];
   let d = gridStart;
@@ -215,11 +227,12 @@ export default function CalendarPage() {
   }, [filteredEvents]);
 
   const today = new Date();
+  const todayStart = startOfDay(today);
   const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   // Upcoming events for sidebar
   const upcoming = filteredEvents
-    .filter(e => safeParse(e.date) >= today)
+    .filter(e => safeParse(e.date) >= todayStart)
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 10);
 
