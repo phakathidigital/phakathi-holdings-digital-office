@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { entitySchemaDir } from "../config/paths.js";
 import { nowStamped, readDb, writeDb } from "../config/database.js";
+import { deliverNotification } from "../services/pushService.js";
 
 const router = express.Router({ mergeParams: true });
 
@@ -64,6 +65,7 @@ router.post("/:entityName", async (req, res) => {
   const created = nowStamped(req.body);
   records.push(created);
   await writeDb(db);
+  if (req.params.entityName === "Notification") await deliverNotification(db, created);
   res.status(201).json(created);
 });
 
@@ -72,6 +74,9 @@ router.post("/:entityName/bulk", async (req, res) => {
   const created = (req.body.items || []).map((item) => nowStamped(item));
   records.push(...created);
   await writeDb(db);
+  if (req.params.entityName === "Notification") {
+    for (const item of created) await deliverNotification(db, item);
+  }
   res.status(201).json(created);
 });
 

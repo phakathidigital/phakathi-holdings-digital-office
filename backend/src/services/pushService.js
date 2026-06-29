@@ -12,6 +12,8 @@ function userAllowsNotification(profile, notification) {
 }
 
 export async function deliverNotification(db, notification) {
+  if (Array.isArray(notification.delivery_channels) && !notification.delivery_channels.includes("browser_push")) return;
+
   db.entities.PushSubscription ||= [];
   db.entities.NotificationDelivery ||= [];
   db.entities.UserProfile ||= [];

@@ -12,8 +12,16 @@ self.addEventListener("push", (event) => {
     icon: payload.icon || "/brand/phakathi-holdings-icon.svg",
     badge: payload.badge || "/brand/phakathi-holdings-icon.svg",
     tag: payload.tag,
+    renotify: true,
+    requireInteraction: false,
+    silent: false,
+    timestamp: Date.now(),
     data: payload.data || { url: payload.url || "/Notifications" },
     vibrate: [100, 50, 100],
+    actions: [
+      { action: "open", title: "Open" },
+      { action: "dismiss", title: "Dismiss" },
+    ],
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
@@ -21,6 +29,7 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+  if (event.action === "dismiss") return;
   const targetUrl = event.notification.data?.url || "/Notifications";
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { X, Bell } from 'lucide-react';
 
 const PRIORITY_STYLES = {
@@ -11,7 +11,7 @@ const PRIORITY_STYLES = {
 
 export default function NotificationToast({ notification, onDismiss }) {
   const timerRef = useRef(null);
-  const duration = notification?.priority === 'critical' ? null : 5000;
+  const duration = notification?.priority === 'critical' ? null : 10000;
 
   useEffect(() => {
     if (duration) {
@@ -27,8 +27,7 @@ export default function NotificationToast({ notification, onDismiss }) {
       initial={{ x: 80, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 80, opacity: 0 }}
-      className={`flex items-start gap-3 p-4 rounded-xl shadow-lg border-l-4 min-w-72 max-w-sm ${PRIORITY_STYLES[notification.priority]}`}
-      style={{ border: '1px solid #e5e7eb' }}
+      className={`pointer-events-auto flex items-start gap-3 p-4 rounded-xl shadow-2xl border border-gray-200 border-l-4 min-w-72 max-w-sm ${PRIORITY_STYLES[notification.priority] || PRIORITY_STYLES.medium}`}
     >
       <Bell className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
       <div className="flex-1 min-w-0">
