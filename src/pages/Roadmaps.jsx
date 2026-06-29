@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { Map, Plus, CheckCircle2, AlertTriangle, Calendar, Flag, Circle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,15 +30,15 @@ export default function Roadmaps() {
   const qc = useQueryClient();
   const today = new Date();
 
-  const { data: milestones = [], isLoading } = useQuery({ queryKey: ['milestones'], queryFn: () => base44.entities.Milestone.list('due_date') });
-  const { data: projects = [] } = useQuery({ queryKey: ['projects'], queryFn: () => base44.entities.Project.list() });
+  const { data: milestones = [], isLoading } = useQuery({ queryKey: ['milestones'], queryFn: () => api.entities.Milestone.list('due_date') });
+  const { data: projects = [] } = useQuery({ queryKey: ['projects'], queryFn: () => api.entities.Project.list() });
 
   const create = useMutation({
-    mutationFn: d => base44.entities.Milestone.create(d),
+    mutationFn: d => api.entities.Milestone.create(d),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['milestones'] }); setShowCreate(false); setForm(EMPTY); toast.success('Milestone added'); },
   });
   const updateM = useMutation({
-    mutationFn: ({ id, ...d }) => base44.entities.Milestone.update(id, d),
+    mutationFn: ({ id, ...d }) => api.entities.Milestone.update(id, d),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['milestones'] }),
   });
 

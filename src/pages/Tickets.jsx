@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -101,14 +101,14 @@ function TicketDetail({ ticket, user, isAdmin, onClose }) {
 
   const { data: comments = [] } = useQuery({
     queryKey: ["ticket-comments", ticket?.id],
-    queryFn: () => base44.entities.TicketComment.filter({ ticket_id: ticket?.id }),
+    queryFn: () => api.entities.TicketComment.filter({ ticket_id: ticket?.id }),
     enabled: !!ticket?.id,
   });
 
   const addComment = useMutation({
     mutationFn: async (data) => {
-      const me = await base44.auth.me();
-      return base44.entities.TicketComment.create({
+      const me = await api.auth.me();
+      return api.entities.TicketComment.create({
         ...data,
         ticket_id: ticket.id,
         author_email: me.email,
@@ -122,12 +122,12 @@ function TicketDetail({ ticket, user, isAdmin, onClose }) {
   });
 
   const updateTicket = useMutation({
-    mutationFn: (data) => base44.entities.Ticket.update(ticket.id, data),
+    mutationFn: (data) => api.entities.Ticket.update(ticket.id, data),
     onSuccess: async (updated) => {
       queryClient.invalidateQueries({ queryKey: ["tickets"] });
       // Notify submitter on resolution
       if (updated.status === "resolved" && ticket.submitter_email) {
-        await base44.integrations.Core.SendEmail({
+        await api.integrations.Core.SendEmail({
           to: ticket.submitter_email,
           subject: `Your ticket ${ticket.ticket_number} has been resolved`,
           body: `Hi ${ticket.submitter_name || "there"},\n\nYour support ticket "${ticket.title}" (${ticket.ticket_number}) has been marked as Resolved.\n\n${updated.resolution_notes ? `Resolution: ${updated.resolution_notes}` : ""}\n\nIf you need further assistance, please submit a new ticket.\n\nPhakathi Holdings Support Team`,
@@ -246,10 +246,10 @@ function NewTicketDialog({ open, onClose, user }) {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      const me = await base44.auth.me();
+      const me = await api.auth.me();
       const queue = QUEUE_MAP[data.category] || "General Queue";
       const queueInfo = QUEUE_DESCRIPTIONS[queue];
-      const ticket = await base44.entities.Ticket.create({
+      const ticket = await api.entities.Ticket.create({
         ...data,
         ticket_number: genTicketNumber(),
         queue,
@@ -258,7 +258,7 @@ function NewTicketDialog({ open, onClose, user }) {
         status: "open",
       });
       // Confirmation to submitter
-      await base44.integrations.Core.SendEmail({
+      await api.integrations.Core.SendEmail({
         to: me.email,
         subject: `${queueInfo?.emoji || "📋"} Ticket ${ticket.ticket_number} submitted — ${data.category}`,
         body: `Hi ${me.full_name || "there"},\n\nYour support ticket has been submitted and automatically routed to the ${queueInfo?.desc || queue}.\n\n━━━━━━━━━━━━━━━━━━━━━━\nTicket Number: ${ticket.ticket_number}\nTitle: ${data.title}\nCategory: ${data.category}\nPriority: ${data.priority.toUpperCase()}\nRouted to: ${queueInfo?.desc || queue}\nExpected Response: ${queueInfo?.sla || "2 business days"}\n━━━━━━━━━━━━━━━━━━━━━━\n\nYou will receive an email notification when your ticket status changes.\n\nPhakathi Holdings Support`,
@@ -333,12 +333,12 @@ export default function Tickets() {
   const [showNew, setShowNew] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
 
-  const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => base44.auth.me() });
+  const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => api.auth.me() });
   const isAdmin = hasGroupOverviewAccess(user);
 
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["tickets"],
-    queryFn: () => base44.entities.Ticket.list("-created_date", 300),
+    queryFn: () => api.entities.Ticket.list("-created_date", 300),
   });
 
   const myTickets = tickets.filter(t => t.submitter_email === user?.email);

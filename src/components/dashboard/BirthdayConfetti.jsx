@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Gift, X } from "lucide-react";
 
 // Simple canvas confetti
@@ -65,7 +65,7 @@ export default function BirthdayConfetti({ user }) {
     const checkBirthday = async () => {
       try {
         // Check if today is user's own birthday
-        const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+        const profiles = await api.entities.UserProfile.filter({ user_email: user.email });
         const profile = profiles?.[0];
         if (!profile?.birthday) return;
 
@@ -78,7 +78,7 @@ export default function BirthdayConfetti({ user }) {
           setBirthdayPerson({ name: user.full_name || user.email, isSelf: true });
           setShow(true);
           // Mark as celebrated
-          await base44.entities.UserProfile.update(profile.id, { birthday_celebrated: currentYear });
+          await api.entities.UserProfile.update(profile.id, { birthday_celebrated: currentYear });
         }
       } catch (e) {}
     };

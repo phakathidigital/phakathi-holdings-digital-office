@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery } from "@tanstack/react-query";
 import { isOverdue } from "@/lib/taskUtils";
 
@@ -16,25 +16,25 @@ import TeamBirthdays from "@/components/dashboard/TeamBirthdays";
 export default function Dashboard() {
   const { data: projects, isLoading: projectsLoading } = useQuery({
     queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list("-updated_date"),
+    queryFn: () => api.entities.Project.list("-updated_date"),
     initialData: [],
   });
 
   const { data: tasks, isLoading: tasksLoading } = useQuery({
     queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list("-updated_date"),
+    queryFn: () => api.entities.Task.list("-updated_date"),
     initialData: [],
   });
 
   const { data: users } = useQuery({
     queryKey: ['users'],
-    queryFn: () => base44.entities.User.list(),
+    queryFn: () => api.entities.User.list(),
     initialData: [],
   });
 
   const [user, setUser] = useState(null);
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    api.auth.me().then(setUser).catch(() => {});
   }, []);
 
   const stats = {

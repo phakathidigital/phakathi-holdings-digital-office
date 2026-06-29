@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { GitBranch, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RefreshCw, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -44,11 +44,11 @@ export default function GanttChart() {
   const queryClient = useQueryClient();
   const today = startOfDay(new Date());
 
-  const { data: projects = [] } = useQuery({ queryKey: ['projects'], queryFn: () => base44.entities.Project.list() });
-  const { data: rawTasks = [], isLoading } = useQuery({ queryKey: ['tasks'], queryFn: () => base44.entities.Task.list('-created_date', 200) });
+  const { data: projects = [] } = useQuery({ queryKey: ['projects'], queryFn: () => api.entities.Project.list() });
+  const { data: rawTasks = [], isLoading } = useQuery({ queryKey: ['tasks'], queryFn: () => api.entities.Task.list('-created_date', 200) });
 
   const updateTask = useMutation({
-    mutationFn: ({ id, ...data }) => base44.entities.Task.update(id, data),
+    mutationFn: ({ id, ...data }) => api.entities.Task.update(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
     onError: () => toast.error('Failed to save changes'),
   });

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { format } from 'date-fns';
 import { getTodayStr, getOverdueTasks, getTodaysTasks, getPendingTasks, getInProgressTasks } from '@/lib/taskUtils';
 import DailyReminders from '@/components/dashboard/DailyReminders';
@@ -14,22 +14,22 @@ export default function MyDay() {
   const now = new Date();
   const todayStr = format(now, 'yyyy-MM-dd');
 
-  useEffect(() => { base44.auth.me().then(setUser).catch(() => {}); }, []);
+  useEffect(() => { api.auth.me().then(setUser).catch(() => {}); }, []);
 
   // Personal view: only fetch the current user's assigned tasks
   const { data: tasks = [] } = useQuery({
     queryKey: ['tasks', user?.email],
-    queryFn: () => base44.entities.Task.filter({ assigned_to: user.email }, '-created_date', 150),
+    queryFn: () => api.entities.Task.filter({ assigned_to: user.email }, '-created_date', 150),
     enabled: !!user?.email,
   });
-  const { data: meetings = [] } = useQuery({ queryKey: ['meetings'], queryFn: () => base44.entities.MeetingStudio.list('-meeting_date', 15) });
-  const { data: notifications = [] } = useQuery({ queryKey: ['notifications'], queryFn: () => base44.entities.Notification.list('-created_date', 20) });
-  const { data: announcements = [] } = useQuery({ queryKey: ['announcements'], queryFn: () => base44.entities.Announcement.list('-created_date', 4) });
-  const { data: presences = [] } = useQuery({ queryKey: ['presences'], queryFn: () => base44.entities.UserPresence.list('-last_seen', 12) });
-  const { data: leaveRequests = [] } = useQuery({ queryKey: ['leave'], queryFn: () => base44.entities.LeaveRequest.filter({ status: 'pending' }) });
-  const { data: recognitions = [] } = useQuery({ queryKey: ['recognitions'], queryFn: () => base44.entities.Recognition.list('-created_date', 5) });
-  const { data: feedPosts = [] } = useQuery({ queryKey: ['feedPosts'], queryFn: () => base44.entities.CompanyFeedPost.list('-created_date', 5) });
-  const { data: bookings = [] } = useQuery({ queryKey: ['bookings'], queryFn: () => base44.entities.Booking.list('-date', 30) });
+  const { data: meetings = [] } = useQuery({ queryKey: ['meetings'], queryFn: () => api.entities.MeetingStudio.list('-meeting_date', 15) });
+  const { data: notifications = [] } = useQuery({ queryKey: ['notifications'], queryFn: () => api.entities.Notification.list('-created_date', 20) });
+  const { data: announcements = [] } = useQuery({ queryKey: ['announcements'], queryFn: () => api.entities.Announcement.list('-created_date', 4) });
+  const { data: presences = [] } = useQuery({ queryKey: ['presences'], queryFn: () => api.entities.UserPresence.list('-last_seen', 12) });
+  const { data: leaveRequests = [] } = useQuery({ queryKey: ['leave'], queryFn: () => api.entities.LeaveRequest.filter({ status: 'pending' }) });
+  const { data: recognitions = [] } = useQuery({ queryKey: ['recognitions'], queryFn: () => api.entities.Recognition.list('-created_date', 5) });
+  const { data: feedPosts = [] } = useQuery({ queryKey: ['feedPosts'], queryFn: () => api.entities.CompanyFeedPost.list('-created_date', 5) });
+  const { data: bookings = [] } = useQuery({ queryKey: ['bookings'], queryFn: () => api.entities.Booking.list('-date', 30) });
 
   const todayTasks = getTodaysTasks(tasks, todayStr);
   const overdueTasks = getOverdueTasks(tasks, todayStr);

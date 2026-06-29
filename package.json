@@ -1,17 +1,17 @@
 {
-  "name": "base44-app",
+  "name": "phakathi-flow",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --configLoader runner",
+    "dev": "node scripts/dev.mjs",
+    "dev:frontend": "vite --configLoader runner",
+    "dev:backend": "node server/index.mjs",
     "build": "vite build --configLoader runner",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@base44/sdk": "^0.8.32",
-    "@base44/vite-plugin": "^1.0.23",
     "@hello-pangea/dnd": "^17.0.0",
     "@hookform/resolvers": "^4.1.2",
     "@radix-ui/react-accordion": "^1.2.3",

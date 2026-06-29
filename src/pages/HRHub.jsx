@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { Building2, Megaphone, FileText, Calendar, BookOpen, Plus, Pin, Download, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,18 +23,18 @@ export default function HRHub() {
   const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
 
-  const { data: user } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
+  const { data: user } = useQuery({ queryKey: ['me'], queryFn: () => api.auth.me() });
   const { data: announcements = [], isLoading } = useQuery({
     queryKey: ['announcements-hrhub'],
-    queryFn: () => base44.entities.Announcement.list('-created_date', 50),
+    queryFn: () => api.entities.Announcement.list('-created_date', 50),
   });
   const { data: documents = [] } = useQuery({
     queryKey: ['hr-policies'],
-    queryFn: () => base44.entities.HRDocument.filter({ category: 'Policy Handbook', status: 'approved' }),
+    queryFn: () => api.entities.HRDocument.filter({ category: 'Policy Handbook', status: 'approved' }),
   });
   const { data: events = [] } = useQuery({
     queryKey: ['hr-events'],
-    queryFn: () => base44.entities.MeetingNote.list('-meeting_date', 10),
+    queryFn: () => api.entities.MeetingNote.list('-meeting_date', 10),
   });
 
   let filtered = announcements.filter(a =>

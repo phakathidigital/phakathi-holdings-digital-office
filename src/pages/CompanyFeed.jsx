@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { Rss, Heart, MessageCircle, Plus, ChevronDown, ChevronUp, Megaphone, Award, Users, Image, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,20 +26,20 @@ export default function CompanyFeed() {
   const [filterType, setFilterType] = useState('all');
   const qc = useQueryClient();
 
-  useEffect(() => { base44.auth.me().then(setUser).catch(() => {}); }, []);
+  useEffect(() => { api.auth.me().then(setUser).catch(() => {}); }, []);
 
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ['company_feed'],
-    queryFn: () => base44.entities.CompanyFeedPost.list('-created_date', 50),
+    queryFn: () => api.entities.CompanyFeedPost.list('-created_date', 50),
   });
-  const { data: recognitions = [] } = useQuery({ queryKey: ['recognitions'], queryFn: () => base44.entities.Recognition.list('-created_date', 10) });
+  const { data: recognitions = [] } = useQuery({ queryKey: ['recognitions'], queryFn: () => api.entities.Recognition.list('-created_date', 10) });
 
   const create = useMutation({
-    mutationFn: d => base44.entities.CompanyFeedPost.create(d),
+    mutationFn: d => api.entities.CompanyFeedPost.create(d),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['company_feed'] }); setPostText(''); setCompose(false); toast.success('Posted!'); },
   });
   const like = useMutation({
-    mutationFn: ({ id, likes }) => base44.entities.CompanyFeedPost.update(id, { likes }),
+    mutationFn: ({ id, likes }) => api.entities.CompanyFeedPost.update(id, { likes }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['company_feed'] }),
   });
 

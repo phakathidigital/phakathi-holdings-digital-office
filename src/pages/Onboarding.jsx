@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -46,7 +46,7 @@ function OnboardingCard({ record, isAdmin, onUpdate, onSendReminder }) {
     // Milestone notification when a section hits 100%
     if (secPct === 100 && record.manager_email) {
       const section = checklist.find(s => s.key === sectionKey);
-      await base44.integrations.Core.SendEmail({
+      await api.integrations.Core.SendEmail({
         to: record.manager_email,
         subject: `Onboarding Milestone: ${section?.milestoneLabel} — ${record.employee_name}`,
         body: `Hi ${record.manager_name || "Manager"},\n\nGreat news! The "${section?.label}" section of ${record.employee_name}'s onboarding has been completed (100%).\n\nOverall progress: ${prog}%\n\nLog in to view the full onboarding checklist.\n\nPhakathi Holdings HR`,
@@ -55,7 +55,7 @@ function OnboardingCard({ record, isAdmin, onUpdate, onSendReminder }) {
 
     // Full completion notification
     if (prog === 100 && record.employee_email) {
-      await base44.integrations.Core.SendEmail({
+      await api.integrations.Core.SendEmail({
         to: record.employee_email,
         subject: `🎉 Onboarding Complete — Welcome to the team, ${record.employee_name}!`,
         body: `Hi ${record.employee_name},\n\nCongratulations! Your onboarding is now 100% complete. All documents, accounts, training, and facilities have been set up.\n\nYou're all set to hit the ground running. Welcome to ${record.subsidiary || "Phakathi Holdings"}!\n\nHR Team`,
@@ -182,19 +182,19 @@ export default function Onboarding() {
   };
 
   const queryClient = useQueryClient();
-  const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => base44.auth.me() });
+  const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => api.auth.me() });
   const isAdmin = user?.role === "admin";
 
   const { data: records = [], isLoading } = useQuery({
     queryKey: ["onboarding"],
-    queryFn: () => base44.entities.OnboardingRecord.list("-created_date", 100),
+    queryFn: () => api.entities.OnboardingRecord.list("-created_date", 100),
   });
 
   const createMutation = useMutation({
     mutationFn: (data) => {
       const checklist = buildChecklist(data.department, data.subsidiary);
       const emptyChecks = buildEmptyChecklist(checklist);
-      return base44.entities.OnboardingRecord.create({
+      return api.entities.OnboardingRecord.create({
         ...data,
         status: "not_started",
         ...emptyChecks,
@@ -205,7 +205,7 @@ export default function Onboarding() {
       setShowCreate(false);
       // Welcome email
       if (form.employee_email) {
-        await base44.integrations.Core.SendEmail({
+        await api.integrations.Core.SendEmail({
           to: form.employee_email,
           subject: `Welcome to ${form.subsidiary || "Phakathi Holdings"}, ${form.employee_name}! 🎉`,
           body: `Hi ${form.employee_name},\n\nWelcome to ${form.subsidiary || "Phakathi Holdings"}! We're excited to have you joining us on ${form.start_date}.\n\nYour personalised onboarding checklist has been set up covering document collection, IT account provisioning, training, and facilities.\n\nYour HR team will be in touch shortly with next steps.\n\n${form.manager_name ? `Your manager ${form.manager_name} will also be reaching out.` : ""}\n\nWe look forward to seeing you!\n\nPhakathi Holdings HR Team`,
@@ -215,7 +215,7 @@ export default function Onboarding() {
       if (form.manager_email) {
         const checklist = buildChecklist(form.department, form.subsidiary);
         const totalTasks = checklist.reduce((s, sec) => s + sec.items.length, 0);
-        await base44.integrations.Core.SendEmail({
+        await api.integrations.Core.SendEmail({
           to: form.manager_email,
           subject: `New Hire Onboarding Started: ${form.employee_name} (${form.department})`,
           body: `Hi ${form.manager_name || "Manager"},\n\nAn onboarding record has been created for ${form.employee_name} (${form.employee_email}) joining ${form.subsidiary || "Phakathi Holdings"} in the ${form.department} department on ${form.start_date}.\n\nA personalised ${totalTasks}-task checklist has been generated covering IT, HR, and Facilities tasks specific to the ${form.department} department.\n\nPlease log in to complete the onboarding checklist. You will receive milestone notifications as each section is completed.\n\nHR Team`,
@@ -226,7 +226,7 @@ export default function Onboarding() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.OnboardingRecord.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.OnboardingRecord.update(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["onboarding"] }),
   });
 
@@ -237,14 +237,14 @@ export default function Onboarding() {
       s.items.filter(i => !record[s.key]?.[i.key]).map(i => `• ${i.label} (${s.label})`)
     );
     if (record.employee_email) {
-      await base44.integrations.Core.SendEmail({
+      await api.integrations.Core.SendEmail({
         to: record.employee_email,
         subject: `Onboarding Reminder – ${pct}% Complete`,
         body: `Hi ${record.employee_name},\n\nYour onboarding is currently ${pct}% complete. The following items are still outstanding:\n\n${incomplete.join("\n")}\n\nPlease work with your manager to complete these as soon as possible.\n\nPhakathi Holdings HR`,
       }).catch(() => {});
     }
     if (record.manager_email) {
-      await base44.integrations.Core.SendEmail({
+      await api.integrations.Core.SendEmail({
         to: record.manager_email,
         subject: `Onboarding Reminder: ${record.employee_name} – ${pct}% Complete`,
         body: `Hi ${record.manager_name || "Manager"},\n\nOnboarding for ${record.employee_name} is ${pct}% complete. Outstanding items:\n\n${incomplete.join("\n")}\n\nLog in to the portal to update the checklist.\n\nHR Team`,

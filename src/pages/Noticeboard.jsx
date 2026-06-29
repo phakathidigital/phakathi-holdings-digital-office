@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Pin, Bell, Megaphone, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,25 +24,25 @@ export default function Noticeboard() {
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => api.auth.me(),
   });
 
   const { data: announcements, isLoading } = useQuery({
     queryKey: ['announcements'],
-    queryFn: () => base44.entities.Announcement.list("-created_date"),
+    queryFn: () => api.entities.Announcement.list("-created_date"),
     initialData: [],
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Announcement.create(data),
+    mutationFn: (data) => api.entities.Announcement.create(data),
     onSuccess: async (created, data) => {
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
       setShowForm(false);
       // Notify all users about the new announcement
-      const users = await base44.entities.User.list().catch(() => []);
+      const users = await api.entities.User.list().catch(() => []);
       users.forEach((u) => {
         if (!u.email) return;
-        base44.integrations.Core.SendEmail({
+        api.integrations.Core.SendEmail({
           to: u.email,
           subject: `New Announcement: ${data.title} — Phakathi Holdings`,
           body: `Dear ${u.full_name || u.email},\n\nA new announcement has been posted on the Company Noticeboard:\n\n<strong>${data.title}</strong>\n\n${data.content}\n\nLog in to the Phakathi Holdings Digital Office to view it.\n\nRegards,\nPhakathi Holdings`,
@@ -52,12 +52,12 @@ export default function Noticeboard() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Announcement.delete(id),
+    mutationFn: (id) => api.entities.Announcement.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['announcements'] }),
   });
 
   const togglePinMutation = useMutation({
-    mutationFn: ({ id, pinned }) => base44.entities.Announcement.update(id, { is_pinned: !pinned }),
+    mutationFn: ({ id, pinned }) => api.entities.Announcement.update(id, { is_pinned: !pinned }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['announcements'] }),
   });
 

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -25,18 +25,18 @@ export default function Projects() {
 
   const { data: projects, isLoading } = useQuery({
     queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list("-updated_date"),
+    queryFn: () => api.entities.Project.list("-updated_date"),
     initialData: [],
   });
 
   const { data: tasks } = useQuery({
     queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list(),
+    queryFn: () => api.entities.Task.list(),
     initialData: [],
   });
 
   const createProjectMutation = useMutation({
-    mutationFn: (projectData) => base44.entities.Project.create(projectData),
+    mutationFn: (projectData) => api.entities.Project.create(projectData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       setShowDialog(false);
@@ -45,7 +45,7 @@ export default function Projects() {
   });
 
   const updateProjectMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Project.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Project.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       setShowDialog(false);
@@ -54,7 +54,7 @@ export default function Projects() {
   });
 
   const deleteProjectMutation = useMutation({
-    mutationFn: (id) => base44.entities.Project.delete(id),
+    mutationFn: (id) => api.entities.Project.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
     },

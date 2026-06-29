@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -54,7 +54,7 @@ function ExpenseForm({ onSubmit, isLoading, onCancel }) {
     let receipt_url = "";
     if (receipt) {
       setUploading(true);
-      const res = await base44.integrations.Core.UploadFile({ file: receipt });
+      const res = await api.integrations.Core.UploadFile({ file: receipt });
       receipt_url = res.file_url;
       setUploading(false);
     } else if (form._prefilled_receipt) {
@@ -223,7 +223,7 @@ export default function Expenses() {
 
   const { data: user } = useQuery({
     queryKey: ["currentUser"],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => api.auth.me(),
   });
 
   const isAdmin = user?.role === "admin";
@@ -232,15 +232,15 @@ export default function Expenses() {
     queryKey: ["expenses", user?.email],
     queryFn: () =>
       isAdmin
-        ? base44.entities.Expense.list("-created_date", 100)
-        : base44.entities.Expense.filter({ created_by: user?.email }, "-created_date"),
+        ? api.entities.Expense.list("-created_date", 100)
+        : api.entities.Expense.filter({ created_by: user?.email }, "-created_date"),
     enabled: !!user,
   });
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      const me = await base44.auth.me();
-      return base44.entities.Expense.create({
+      const me = await api.auth.me();
+      return api.entities.Expense.create({
         ...data,
         employee_email: me.email,
         employee_name: me.full_name || me.email,
@@ -254,9 +254,9 @@ export default function Expenses() {
 
   const approveMutation = useMutation({
     mutationFn: async (expense) => {
-      const me = await base44.auth.me();
-      await base44.entities.Expense.update(expense.id, { status: "approved", approved_by: me.email });
-      await base44.integrations.Core.SendEmail({
+      const me = await api.auth.me();
+      await api.entities.Expense.update(expense.id, { status: "approved", approved_by: me.email });
+      await api.integrations.Core.SendEmail({
         to: expense.employee_email || expense.created_by,
         subject: "Your Expense Has Been Approved",
         body: `Hi ${expense.employee_name || ""},\n\nYour expense claim of R${Number(expense.amount).toFixed(2)} for "${expense.description}" has been approved.\n\nThank you,\nPhakathi Holdings`,
@@ -267,11 +267,11 @@ export default function Expenses() {
 
   const rejectMutation = useMutation({
     mutationFn: async ({ expense, reason }) => {
-      await base44.entities.Expense.update(expense.id, {
+      await api.entities.Expense.update(expense.id, {
         status: "rejected",
         rejection_reason: reason || "No reason provided",
       });
-      await base44.integrations.Core.SendEmail({
+      await api.integrations.Core.SendEmail({
         to: expense.employee_email || expense.created_by,
         subject: "Your Expense Claim Was Not Approved",
         body: `Hi ${expense.employee_name || ""},\n\nUnfortunately your expense claim of R${Number(expense.amount).toFixed(2)} for "${expense.description}" has been rejected.\n\nReason: ${reason || "No reason provided"}\n\nPlease contact HR if you have questions.\n\nPhakathi Holdings`,

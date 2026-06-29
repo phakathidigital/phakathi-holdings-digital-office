@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { motion } from 'framer-motion';
 import { Cake, Gift } from 'lucide-react';
 import { format, parseISO, isSameDay, addDays, differenceInDays } from 'date-fns';
@@ -16,7 +16,7 @@ function getDaysUntilBirthday(birthdayStr) {
 export default function BirthdayWall() {
   const { data: profiles = [] } = useQuery({
     queryKey: ['user-profiles-birthdays'],
-    queryFn: () => base44.entities.UserProfile.list(),
+    queryFn: () => api.entities.UserProfile.list(),
   });
 
   const upcoming = profiles

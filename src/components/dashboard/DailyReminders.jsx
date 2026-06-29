@@ -1,7 +1,7 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Calendar, Cake, Lightbulb, FileCheck, Mail } from "lucide-react";
 import { getTodaysHoliday, getUpcomingHolidays } from "@/lib/saHolidays";
 import { getDailyFunFact } from "@/lib/funFacts";
@@ -14,7 +14,7 @@ export default function DailyReminders() {
 
   const { data: profiles = [] } = useQuery({
     queryKey: ['userProfiles'],
-    queryFn: () => base44.entities.UserProfile.list(),
+    queryFn: () => api.entities.UserProfile.list(),
   });
 
   // Upcoming birthdays (next 14 days)

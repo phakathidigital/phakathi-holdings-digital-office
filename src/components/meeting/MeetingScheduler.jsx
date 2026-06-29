@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +28,7 @@ export default function MeetingScheduler({ open, onClose, onScheduled }) {
     mutationFn: async (data) => {
       const attendees = data.attendees_raw.split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
       const attendeeEmails = attendees.filter(a => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a));
-      const record = await base44.entities.MeetingStudio.create({
+      const record = await api.entities.MeetingStudio.create({
         title: data.title,
         meeting_date: data.meeting_date,
         subsidiary: data.subsidiary,
@@ -42,7 +42,7 @@ export default function MeetingScheduler({ open, onClose, onScheduled }) {
       // Send calendar invites to attendees
       if (attendeeEmails.length > 0 && data.agenda) {
         for (const email of attendeeEmails) {
-          await base44.integrations.Core.SendEmail({
+          await api.integrations.Core.SendEmail({
             to: email,
             subject: `Meeting Invitation: ${data.title} — ${data.meeting_date}`,
             body: `You have been invited to the following meeting:\n\n📅 ${data.title}\n🗓 Date: ${data.meeting_date}\n🕐 Time: ${data.start_time} – ${data.end_time}\n🏢 Organisation: ${data.subsidiary || "Phakathi Holdings"}\n👥 Attendees: ${attendees.join(", ")}\n\n📋 Agenda:\n${data.agenda}\n\nPlease add this to your calendar.\n\nPhakathi Holdings Digital Office`,

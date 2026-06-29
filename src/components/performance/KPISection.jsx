@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,21 +24,21 @@ export default function KPISection({ reviewId, employeeEmail, period, canEdit })
 
   const { data: kpis = [] } = useQuery({
     queryKey: ["kpis", reviewId],
-    queryFn: () => base44.entities.KPI.filter({ review_id: reviewId }),
+    queryFn: () => api.entities.KPI.filter({ review_id: reviewId }),
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.KPI.create({ ...data, review_id: reviewId, employee_email: employeeEmail, period }),
+    mutationFn: (data) => api.entities.KPI.create({ ...data, review_id: reviewId, employee_email: employeeEmail, period }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["kpis", reviewId] }); setShowForm(false); setForm(EMPTY_KPI); },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, ...data }) => base44.entities.KPI.update(id, data),
+    mutationFn: ({ id, ...data }) => api.entities.KPI.update(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["kpis", reviewId] }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.KPI.delete(id),
+    mutationFn: (id) => api.entities.KPI.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["kpis", reviewId] }),
   });
 

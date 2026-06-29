@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { TrendingUp, Users, ShieldCheck, Ticket, Star, CalendarOff, FolderOpen, Layers } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ExecutiveSummaryCards from '../components/executive/ExecutiveSummaryCards';
@@ -8,13 +8,13 @@ import DepartmentPerformanceChart from '../components/executive/DepartmentPerfor
 import DAMHealthWidget from '../components/dam/DAMHealthWidget';
 
 export default function ExecutiveDashboard() {
-  const { data: user } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
-  const { data: tasks = [] } = useQuery({ queryKey: ['exec-tasks-count'], queryFn: () => base44.entities.Task.list() });
-  const { data: tickets = [] } = useQuery({ queryKey: ['exec-tickets-count'], queryFn: () => base44.entities.Ticket.list() });
-  const { data: projects = [] } = useQuery({ queryKey: ['exec-projects-count'], queryFn: () => base44.entities.Project.list() });
-  const { data: leaves = [] } = useQuery({ queryKey: ['exec-leaves-count'], queryFn: () => base44.entities.LeaveRequest.list() });
-  const { data: reviews = [] } = useQuery({ queryKey: ['exec-reviews-count'], queryFn: () => base44.entities.PerformanceReview.list() });
-  const { data: documents = [] } = useQuery({ queryKey: ['exec-docs-count'], queryFn: () => base44.entities.HRDocument.list() });
+  const { data: user } = useQuery({ queryKey: ['me'], queryFn: () => api.auth.me() });
+  const { data: tasks = [] } = useQuery({ queryKey: ['exec-tasks-count'], queryFn: () => api.entities.Task.list() });
+  const { data: tickets = [] } = useQuery({ queryKey: ['exec-tickets-count'], queryFn: () => api.entities.Ticket.list() });
+  const { data: projects = [] } = useQuery({ queryKey: ['exec-projects-count'], queryFn: () => api.entities.Project.list() });
+  const { data: leaves = [] } = useQuery({ queryKey: ['exec-leaves-count'], queryFn: () => api.entities.LeaveRequest.list() });
+  const { data: reviews = [] } = useQuery({ queryKey: ['exec-reviews-count'], queryFn: () => api.entities.PerformanceReview.list() });
+  const { data: documents = [] } = useQuery({ queryKey: ['exec-docs-count'], queryFn: () => api.entities.HRDocument.list() });
 
   if (user?.role !== 'admin') {
     return (

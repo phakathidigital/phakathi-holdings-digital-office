@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, X, RotateCcw, Check, Upload, Loader2, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 
 /**
  * CameraScanner — mobile-friendly camera/upload with AI OCR extraction.
@@ -80,7 +80,7 @@ export default function CameraScanner({ mode = "expense", onExtracted, onClose }
     setPhase("processing");
     try {
       // Upload image first
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: capturedImage.file });
+      const { file_url } = await api.integrations.Core.UploadFile({ file: capturedImage.file });
 
       const prompt = mode === "expense"
         ? `You are extracting data from a receipt or invoice image.
@@ -102,7 +102,7 @@ Return JSON with these exact keys:
 - start_date: employment start date in YYYY-MM-DD if visible (string)
 - notes: any other relevant details (string)`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await api.integrations.Core.InvokeLLM({
         prompt,
         file_urls: [file_url],
         response_json_schema: {

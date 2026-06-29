@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -74,7 +74,7 @@ export default function BrandingSettings({ user }) {
   const [saved2, setSaved2] = useState(false);
 
   const mutation = useMutation({
-    mutationFn: (data) => base44.auth.updateMe({ branding: data }),
+    mutationFn: (data) => api.auth.updateMe({ branding: data }),
     onSuccess: (_, data) => {
       queryClient.invalidateQueries({ queryKey: ["currentUser"] });
       applyBranding(data);

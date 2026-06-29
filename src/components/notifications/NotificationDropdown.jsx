@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { Bell, CheckCheck, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
@@ -31,7 +31,7 @@ export default function NotificationDropdown({ notifications, userEmail, onClose
       const notif = notifications.find(n => n.id === id);
       const already = notif?.is_read_by || [];
       if (already.includes(userEmail)) return Promise.resolve();
-      return base44.entities.Notification.update(id, { is_read_by: [...already, userEmail] });
+      return api.entities.Notification.update(id, { is_read_by: [...already, userEmail] });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications-bell'] }),
   });
@@ -40,7 +40,7 @@ export default function NotificationDropdown({ notifications, userEmail, onClose
     mutationFn: () => {
       const unread = notifications.filter(n => !n.is_read_by?.includes(userEmail));
       return Promise.all(unread.map(n =>
-        base44.entities.Notification.update(n.id, { is_read_by: [...(n.is_read_by || []), userEmail] })
+        api.entities.Notification.update(n.id, { is_read_by: [...(n.is_read_by || []), userEmail] })
       ));
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications-bell'] }),

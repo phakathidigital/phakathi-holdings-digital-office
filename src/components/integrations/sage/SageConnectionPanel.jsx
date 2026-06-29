@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RefreshCw, CheckCircle, AlertCircle, Settings, Upload } from 'lucide-react';
@@ -22,25 +22,25 @@ export default function SageConnectionPanel({ user }) {
 
   const { data: connections = [] } = useQuery({
     queryKey: ['sage-connections'],
-    queryFn: () => base44.entities.SageIntegration.list(),
+    queryFn: () => api.entities.SageIntegration.list(),
   });
 
   const activeConn = connections[0];
 
   const save = useMutation({
     mutationFn: (data) => activeConn
-      ? base44.entities.SageIntegration.update(activeConn.id, data)
-      : base44.entities.SageIntegration.create({ ...data, configured_by: user?.email }),
+      ? api.entities.SageIntegration.update(activeConn.id, data)
+      : api.entities.SageIntegration.create({ ...data, configured_by: user?.email }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['sage-connections'] }); setShowConfig(false); },
   });
 
   const sync = useMutation({
-    mutationFn: () => base44.entities.SageIntegration.update(activeConn.id, {
+    mutationFn: () => api.entities.SageIntegration.update(activeConn.id, {
       sync_status: 'syncing', last_sync_date: new Date().toISOString()
     }),
     onSuccess: () => {
       setTimeout(() => {
-        base44.entities.SageIntegration.update(activeConn.id, { sync_status: 'success', records_synced: (activeConn.records_synced || 0) + 12 });
+        api.entities.SageIntegration.update(activeConn.id, { sync_status: 'success', records_synced: (activeConn.records_synced || 0) + 12 });
         qc.invalidateQueries({ queryKey: ['sage-connections'] });
       }, 2000);
     },

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery } from "@tanstack/react-query";
 import { Sparkles, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,18 +18,18 @@ export default function AIAssistant() {
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => api.auth.me(),
   });
 
   const { data: projects, isLoading: projectsLoading } = useQuery({
     queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list("-updated_date"),
+    queryFn: () => api.entities.Project.list("-updated_date"),
     initialData: [],
   });
 
   const { data: tasks, isLoading: tasksLoading } = useQuery({
     queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list("-updated_date"),
+    queryFn: () => api.entities.Task.list("-updated_date"),
     initialData: [],
   });
 

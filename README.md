@@ -1,20 +1,41 @@
-# Base44 Preview Template for MicroVM sandbox
+# Phakathi Flow
 
-This template is used by the server to preview user-apps.
+Phakathi Flow is the local/self-hosted digital office for the Phakathi Holdings group. It supports shared services and subsidiary teams in one React/Vite app, with a local Node API backend for auth, profiles, entity data, uploads, email placeholders, and AI placeholders.
 
-## user files
-server creates the user-app files in the __components__, __pages__ folders
+## Local development
 
-## server injected data
-server injects app related data to __app.config.js__, which is used by App.jsx to render the components in the files.
+```bash
+npm install
+npm run dev
+```
 
----
+`npm run dev` starts:
 
-## 2026 Base44 Local Migration Addendum
+- API backend: `http://127.0.0.1:4000/api`
+- Vite frontend: `http://127.0.0.1:5173`
 
-### Multi-company group-user feature
+Production build check:
 
-Phakathi Flow now uses one canonical subsidiary list across runtime dropdowns and Base44 entity schemas:
+```bash
+npm run build
+```
+
+## Backend
+
+The backend lives in `server/` and stores local development data in `.local-data/db.json`. That folder is intentionally git-ignored.
+
+Implemented backend capabilities:
+
+- Local sign-in/register by email.
+- Current user profile read/update.
+- Generic entity CRUD for all migrated entity schemas in `server/schemas/entities/`.
+- Seed users for Phakathi Holdings and Empoweryst.
+- Local file upload storage under `.local-data/uploads`.
+- Email/SMS/AI placeholder endpoints so workflows remain usable without external provider keys.
+
+## Multi-company group-user feature
+
+The canonical subsidiary list is shared from `src/lib/subsidiaries.js`:
 
 1. Phakathi Holdings
 2. Empoweryst
@@ -25,41 +46,33 @@ Phakathi Flow now uses one canonical subsidiary list across runtime dropdowns an
 7. Kaelo
 8. Synergex Health
 
-New authenticated users who do not yet have a subsidiary are stopped at a first-login company setup screen before they can enter the main app. This preserves Base44-hosted authentication while ensuring each user is assigned to the correct company/team.
+New users sign in/register locally, then must complete first-login profile setup before entering the app. That setup captures company/subsidiary and designation/role.
 
-Initial team placeholders are documented in `src/lib/subsidiaries.js` and `MIGRATION.md`:
+Initial team placeholders:
 
 - Phakathi Holdings: Lorraine, Meriam, Phathu, Thuli, Percity
 - Empoweryst: Sarah, Lesedi, Molato
 
-### Branding behaviour
+## Branding
 
-Company-level colour defaults are applied first. User-selected branding from Settings -> Branding still overrides company defaults and persists through `base44.auth.updateMe({ branding })`.
+Phakathi Holdings web logos, cover imagery, icon assets, and brand guide are stored locally:
 
-Phakathi Holdings web logos, cover imagery, and reusable icon assets are stored locally in `src/assets/branding/phakathi-holdings/`. Public browser/app icons live in `public/brand/`. The source brand guide is preserved in `docs/brand/phakathi-holdings-group-brand-guide.docx`.
+- `src/assets/branding/phakathi-holdings/`
+- `public/brand/`
+- `docs/brand/phakathi-holdings-group-brand-guide.docx`
 
-The app uses the Phakathi Holdings logo in the auth landing screen, sidebar, mobile header, and browser favicon. The auth landing screen uses the portfolio-of-companies image, and the dashboard hero uses the company profile cover image to reflect the group focus areas: education, health, mining, energy, and shared services.
+The app uses the Phakathi Holdings logo in the auth landing screen, sidebar, mobile header, and favicon. The auth landing screen uses the portfolio-of-companies image, and the dashboard hero uses the company profile cover image to reflect the group focus areas: education, health, mining, energy, and shared services.
 
-### Weekly Monday alignment meetings
+## Weekly Monday alignment meetings
 
 The meeting scheduler and AI Meeting Studio include a weekly Monday alignment template based on the March/April 2026 meeting notes. The template includes group strategy alignment, subsidiary updates, performance/project-management blockers, and action-item follow-up.
 
-### Local commands
+## Environment
+
+Copy `.env.example` to `.env.local` if you need to override defaults.
 
 ```bash
-npm install
-npm run build
-npm run dev
+VITE_API_BASE_URL=http://127.0.0.1:4000/api
 ```
 
-The Vite config now uses an ESM-safe `__dirname` equivalent and `./.vite-cache` to avoid the previous `node_modules/.vite-temp` permission failure.
-
-### Verification checklist
-
-- [ ] New user without subsidiary is forced through company setup.
-- [ ] Empoweryst users can be assigned to Empoweryst.
-- [ ] Phakathi Holdings users can be assigned to Phakathi Holdings.
-- [ ] All active subsidiary dropdowns use the canonical list.
-- [ ] User branding persists and overrides company defaults.
-- [ ] Weekly Monday alignment template creates a usable meeting record.
-- [ ] `npm install`, `npm run build`, and `npm run dev` work locally.
+Provider keys such as `OPENAI_API_KEY`, SMTP, SMS, and future `DATABASE_URL` values are optional until the production backend is hardened.

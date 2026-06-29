@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,27 +36,27 @@ export default function PayrollDashboard() {
   const [sending, setSending] = useState(false);
   const [sentCount, setSentCount] = useState(null);
 
-  const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => base44.auth.me() });
+  const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => api.auth.me() });
   const isAdmin = user?.role === "admin";
 
   const { data: payslips = [] } = useQuery({
     queryKey: ["payslips"],
-    queryFn: () => base44.entities.Payslip.list("-created_date", 500),
+    queryFn: () => api.entities.Payslip.list("-created_date", 500),
   });
 
   const { data: leaves = [] } = useQuery({
     queryKey: ["allLeaves"],
-    queryFn: () => base44.entities.LeaveRequest.list("-created_date", 500),
+    queryFn: () => api.entities.LeaveRequest.list("-created_date", 500),
   });
 
   const { data: expenses = [] } = useQuery({
     queryKey: ["expenses"],
-    queryFn: () => base44.entities.Expense.list("-created_date", 500),
+    queryFn: () => api.entities.Expense.list("-created_date", 500),
   });
 
   const { data: users = [] } = useQuery({
     queryKey: ["users"],
-    queryFn: () => base44.entities.User.list(),
+    queryFn: () => api.entities.User.list(),
   });
 
   // Filter payslips for selected period
@@ -112,7 +112,7 @@ export default function PayrollDashboard() {
     let count = 0;
     for (const ps of periodPayslips) {
       if (!ps.employee_email) continue;
-      await base44.integrations.Core.SendEmail({
+      await api.integrations.Core.SendEmail({
         to: ps.employee_email,
         subject: `Your ${selectedMonth} ${selectedYear} Payslip is Available – Phakathi Holdings`,
         body: `Dear ${ps.employee_name || ps.employee_email},\n\nYour payslip for ${selectedMonth} ${selectedYear} is now available on the Phakathi Holdings Digital Office portal.\n\n💼 Gross Pay: R${(ps.gross_amount || 0).toLocaleString()}\n💵 Net Pay: R${(ps.net_amount || 0).toLocaleString()}\n\nPlease log in to download your payslip document.\n\nKind regards,\nPhakathi Holdings Payroll Team`,

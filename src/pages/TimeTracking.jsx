@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { Timer, TrendingDown, Users, BarChart2, Calendar, DollarSign } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -17,9 +17,9 @@ export default function TimeTracking() {
   const [selectedProject, setSelectedProject] = useState('all');
   const [period, setPeriod] = useState('30');
 
-  const { data: projects = [] } = useQuery({ queryKey: ['projects'], queryFn: () => base44.entities.Project.list() });
-  const { data: tasks = [] } = useQuery({ queryKey: ['tasks'], queryFn: () => base44.entities.Task.list() });
-  const { data: logs = [], isLoading } = useQuery({ queryKey: ['timelogs'], queryFn: () => base44.entities.TimeLog.list('-log_date', 500) });
+  const { data: projects = [] } = useQuery({ queryKey: ['projects'], queryFn: () => api.entities.Project.list() });
+  const { data: tasks = [] } = useQuery({ queryKey: ['tasks'], queryFn: () => api.entities.Task.list() });
+  const { data: logs = [], isLoading } = useQuery({ queryKey: ['timelogs'], queryFn: () => api.entities.TimeLog.list('-log_date', 500) });
 
   const days = PERIOD_DAYS[period] || 30;
   const cutoff = subDays(new Date(), days);

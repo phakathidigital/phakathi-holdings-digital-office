@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, FileText, Users, Lock, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -29,17 +29,17 @@ export default function MeetingNotes() {
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => api.auth.me(),
   });
 
   const { data: notes, isLoading } = useQuery({
     queryKey: ['meetingNotes'],
-    queryFn: () => base44.entities.MeetingNote.list("-meeting_date"),
+    queryFn: () => api.entities.MeetingNote.list("-meeting_date"),
     initialData: [],
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.MeetingNote.create(data),
+    mutationFn: (data) => api.entities.MeetingNote.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meetingNotes'] });
       setShowForm(false);
@@ -47,7 +47,7 @@ export default function MeetingNotes() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.MeetingNote.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.MeetingNote.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meetingNotes'] });
       setEditingNote(null);
@@ -56,7 +56,7 @@ export default function MeetingNotes() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.MeetingNote.delete(id),
+    mutationFn: (id) => api.entities.MeetingNote.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['meetingNotes'] }),
   });
 

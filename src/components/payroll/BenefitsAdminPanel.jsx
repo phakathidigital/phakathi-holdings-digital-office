@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,13 +31,13 @@ export default function BenefitsAdminPanel() {
 
   const { data: enrollments = [] } = useQuery({
     queryKey: ["benefits-all"],
-    queryFn: () => base44.entities.BenefitsEnrollment.filter({ period_year: currentYear }),
+    queryFn: () => api.entities.BenefitsEnrollment.filter({ period_year: currentYear }),
   });
 
   const approveMutation = useMutation({
     mutationFn: async ({ id, email, name }) => {
-      const updated = await base44.entities.BenefitsEnrollment.update(id, { status: "approved" });
-      await base44.integrations.Core.SendEmail({
+      const updated = await api.entities.BenefitsEnrollment.update(id, { status: "approved" });
+      await api.integrations.Core.SendEmail({
         to: email,
         subject: `Benefits Enrollment Approved — ${currentYear}`,
         body: `Hi ${name},\n\nYour benefits enrollment for ${currentYear} has been approved by HR.\n\nYour selected benefits are now active. Please log in to view details.\n\nPhakathi Holdings HR`,
@@ -49,11 +49,11 @@ export default function BenefitsAdminPanel() {
 
   const sendReminders = async () => {
     setSending(true);
-    const { data: allUsers } = await base44.entities.User.list().then(u => ({ data: u })).catch(() => ({ data: [] }));
+    const { data: allUsers } = await api.entities.User.list().then(u => ({ data: u })).catch(() => ({ data: [] }));
     const enrolled = new Set(enrollments.map(e => e.employee_email));
     const unenrolled = (allUsers || []).filter(u => !enrolled.has(u.email) && u.email);
     for (const u of unenrolled) {
-      await base44.integrations.Core.SendEmail({
+      await api.integrations.Core.SendEmail({
         to: u.email,
         subject: `Reminder: Benefits Enrollment Closing Soon — ${currentYear}`,
         body: `Hi ${u.full_name || "there"},\n\nThis is a reminder that you have not yet enrolled in your benefits for ${currentYear}.\n\nBenefits enrollment closes at the end of January. Please log in to the Phakathi Holdings Digital Office and complete your enrollment under "My Pay & Benefits".\n\nPhakathi Holdings HR`,

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { format } from "date-fns";
 import { Zap, Loader2, ArrowRight, AlertTriangle, CheckCircle2, Clock, Sparkles } from "lucide-react";
 
@@ -36,7 +36,7 @@ export default function AIBriefingCard({ user, tasks, leaveRequests }) {
       `- ${a.employee_name}: ${a.leave_type} from ${a.start_date} to ${a.end_date}`
     ).join('\n');
 
-    base44.integrations.Core.InvokeLLM({
+    api.integrations.Core.InvokeLLM({
       prompt: `You are a smart workplace AI assistant. Today is ${format(new Date(), 'EEEE, MMMM d yyyy')}.
 Employee: ${user.full_name || user.email}.
 

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -80,43 +80,43 @@ export default function DocumentRepository() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const queryClient = useQueryClient();
-  const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => base44.auth.me() });
+  const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => api.auth.me() });
   const isAdmin = hasGroupOverviewAccess(user);
 
   const { data: documents = [], isLoading: docsLoading } = useQuery({
     queryKey: ["hr-documents"],
-    queryFn: () => base44.entities.HRDocument.list("-created_date", 300),
+    queryFn: () => api.entities.HRDocument.list("-created_date", 300),
   });
 
   const { data: folders = [], isLoading: foldersLoading } = useQuery({
     queryKey: ["doc-folders"],
-    queryFn: () => base44.entities.DocFolder.list("name", 200),
+    queryFn: () => api.entities.DocFolder.list("name", 200),
   });
 
   // Folder CRUD
   const createFolder = useMutation({
     mutationFn: async (data) => {
-      const me = await base44.auth.me();
-      return base44.entities.DocFolder.create({ ...data, owner_email: me.email });
+      const me = await api.auth.me();
+      return api.entities.DocFolder.create({ ...data, owner_email: me.email });
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["doc-folders"] }); setShowFolderDialog(false); setEditingFolder(null); },
   });
 
   const updateFolder = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.DocFolder.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.DocFolder.update(id, data),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["doc-folders"] }); setShowFolderDialog(false); setEditingFolder(null); },
   });
 
   const deleteFolder = useMutation({
-    mutationFn: (id) => base44.entities.DocFolder.delete(id),
+    mutationFn: (id) => api.entities.DocFolder.delete(id),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["doc-folders"] }); if (selectedFolderId === deleteFolder._id) setSelectedFolderId(null); },
   });
 
   // Document mutations
   const approveMutation = useMutation({
     mutationFn: async ({ doc, newStatus }) => {
-      const me = await base44.auth.me();
-      return base44.entities.HRDocument.update(doc.id, {
+      const me = await api.auth.me();
+      return api.entities.HRDocument.update(doc.id, {
         status: newStatus || "approved",
         approved_by_email: me.email,
         approved_by_name: me.full_name || me.email,
@@ -126,7 +126,7 @@ export default function DocumentRepository() {
     onSuccess: async (updated, { doc }) => {
       queryClient.invalidateQueries({ queryKey: ["hr-documents"] });
       if (updated.status === "approved" && doc.owner_email) {
-        await base44.integrations.Core.SendEmail({
+        await api.integrations.Core.SendEmail({
           to: doc.owner_email,
           subject: `✅ Document Approved: ${doc.title}`,
           body: `Hi ${doc.owner_name},\n\nYour document "${doc.title}" has been approved and is now available in the Document Vault.\n\nPhakathi Holdings`,
@@ -137,8 +137,8 @@ export default function DocumentRepository() {
 
   const rejectMutation = useMutation({
     mutationFn: async ({ doc, reason }) => {
-      const me = await base44.auth.me();
-      return base44.entities.HRDocument.update(doc.id, {
+      const me = await api.auth.me();
+      return api.entities.HRDocument.update(doc.id, {
         status: "rejected", rejection_reason: reason,
         approved_by_email: me.email, approved_by_name: me.full_name || me.email,
       });
@@ -147,7 +147,7 @@ export default function DocumentRepository() {
       queryClient.invalidateQueries({ queryKey: ["hr-documents"] });
       setRejectingDoc(null);
       if (doc.owner_email) {
-        await base44.integrations.Core.SendEmail({
+        await api.integrations.Core.SendEmail({
           to: doc.owner_email,
           subject: `Document Rejected: ${doc.title}`,
           body: `Hi ${doc.owner_name},\n\nYour document "${doc.title}" was rejected.\n\nReason: ${reason}\n\nPlease re-upload a corrected version.\n\nPhakathi Holdings`,
@@ -157,14 +157,14 @@ export default function DocumentRepository() {
   });
 
   const shareMutation = useMutation({
-    mutationFn: ({ doc, data }) => base44.entities.HRDocument.update(doc.id, data),
+    mutationFn: ({ doc, data }) => api.entities.HRDocument.update(doc.id, data),
     onSuccess: async (updated, { doc, data }) => {
       queryClient.invalidateQueries({ queryKey: ["hr-documents"] });
       setSharingDoc(null);
       // Notify newly shared people
       const newEmails = data.shared_with?.filter(e => !doc.shared_with?.includes(e)) || [];
       for (const email of newEmails) {
-        await base44.integrations.Core.SendEmail({
+        await api.integrations.Core.SendEmail({
           to: email,
           subject: `📄 A document has been shared with you: ${doc.title}`,
           body: `Hi,\n\n${doc.owner_name} has shared a document with you:\n\n📋 ${doc.title}\nCategory: ${doc.category}\n\nLog in to the Phakathi Holdings Document Vault to view it.\n\nPhakathi Holdings`,
@@ -174,7 +174,7 @@ export default function DocumentRepository() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.HRDocument.delete(id),
+    mutationFn: (id) => api.entities.HRDocument.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["hr-documents"] }),
   });
 

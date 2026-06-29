@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { Layers, Plus, CheckCircle, AlertTriangle, Clock, TrendingUp, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,19 +30,19 @@ export default function Portfolios() {
   const [form, setForm] = useState(EMPTY_FORM);
   const qc = useQueryClient();
 
-  const { data: portfolios = [], isLoading } = useQuery({ queryKey: ['portfolios'], queryFn: () => base44.entities.Portfolio.list('-created_date') });
-  const { data: projects = [] } = useQuery({ queryKey: ['projects'], queryFn: () => base44.entities.Project.list() });
+  const { data: portfolios = [], isLoading } = useQuery({ queryKey: ['portfolios'], queryFn: () => api.entities.Portfolio.list('-created_date') });
+  const { data: projects = [] } = useQuery({ queryKey: ['projects'], queryFn: () => api.entities.Project.list() });
 
   const create = useMutation({
-    mutationFn: d => base44.entities.Portfolio.create(d),
+    mutationFn: d => api.entities.Portfolio.create(d),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['portfolios'] }); setShowCreate(false); setForm(EMPTY_FORM); toast.success('Portfolio created'); },
   });
   const remove = useMutation({
-    mutationFn: id => base44.entities.Portfolio.delete(id),
+    mutationFn: id => api.entities.Portfolio.delete(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['portfolios'] }); toast.success('Portfolio deleted'); },
   });
   const update = useMutation({
-    mutationFn: ({ id, ...d }) => base44.entities.Portfolio.update(id, d),
+    mutationFn: ({ id, ...d }) => api.entities.Portfolio.update(id, d),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['portfolios'] }),
   });
 

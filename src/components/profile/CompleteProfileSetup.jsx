@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,11 +23,11 @@ export default function CompleteProfileSetup({ user, onCompleted }) {
     setIsSaving(true); setError("");
     try {
       const userPayload = { full_name: form.full_name, job_title: form.job_title, department: form.department, subsidiary: form.subsidiary };
-      await base44.auth.updateMe(userPayload);
-      const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+      await api.auth.updateMe(userPayload);
+      const profiles = await api.entities.UserProfile.filter({ user_email: user.email });
       const profilePayload = { user_email: user.email, job_title: form.job_title, subsidiary: form.subsidiary };
-      if (profiles?.[0]?.id) await base44.entities.UserProfile.update(profiles[0].id, profilePayload);
-      else await base44.entities.UserProfile.create(profilePayload);
+      if (profiles?.[0]?.id) await api.entities.UserProfile.update(profiles[0].id, profilePayload);
+      else await api.entities.UserProfile.create(profilePayload);
       if (!user?.branding) applyBranding(companyBranding);
       await onCompleted?.();
     } catch (err) {

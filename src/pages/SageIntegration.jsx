@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { Link2, RefreshCw, CheckCircle, AlertTriangle, Users, Calendar, Building2, Loader2, Database, Clock, Settings, BookOpen } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,15 +19,15 @@ export default function SageIntegration() {
   const [syncing, setSyncing] = useState(null);
   const qc = useQueryClient();
 
-  const { data: connections = [], isLoading } = useQuery({ queryKey: ['sage'], queryFn: () => base44.entities.SageIntegration.list() });
-  const { data: leaveRequests = [] } = useQuery({ queryKey: ['leave'], queryFn: () => base44.entities.LeaveRequest.list('-created_date', 20) });
+  const { data: connections = [], isLoading } = useQuery({ queryKey: ['sage'], queryFn: () => api.entities.SageIntegration.list() });
+  const { data: leaveRequests = [] } = useQuery({ queryKey: ['leave'], queryFn: () => api.entities.LeaveRequest.list('-created_date', 20) });
 
   const create = useMutation({
-    mutationFn: d => base44.entities.SageIntegration.create(d),
+    mutationFn: d => api.entities.SageIntegration.create(d),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['sage'] }); toast.success('Sage connection saved'); },
   });
   const update = useMutation({
-    mutationFn: ({ id, ...d }) => base44.entities.SageIntegration.update(id, d),
+    mutationFn: ({ id, ...d }) => api.entities.SageIntegration.update(id, d),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['sage'] }),
   });
 

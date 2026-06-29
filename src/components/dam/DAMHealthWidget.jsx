@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { ShieldCheck, AlertTriangle, FileX, Clock } from 'lucide-react';
 import { differenceInDays, parseISO } from 'date-fns';
 
 export default function DAMHealthWidget() {
   const { data: documents = [] } = useQuery({
     queryKey: ['hr-docs-health'],
-    queryFn: () => base44.entities.HRDocument.list(),
+    queryFn: () => api.entities.HRDocument.list(),
   });
 
   const today = new Date();

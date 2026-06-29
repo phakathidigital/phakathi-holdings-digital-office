@@ -1,6 +1,6 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { motion } from "framer-motion";
 import { Cake, Sparkles, Calendar } from "lucide-react";
 import { format } from "date-fns";
@@ -10,12 +10,12 @@ export default function TeamBirthdays() {
 
   const { data: profiles = [] } = useQuery({
     queryKey: ['userProfiles-birthdays'],
-    queryFn: () => base44.entities.UserProfile.list(),
+    queryFn: () => api.entities.UserProfile.list(),
   });
 
   const { data: users = [] } = useQuery({
     queryKey: ['users-bd'],
-    queryFn: () => base44.entities.User.list(),
+    queryFn: () => api.entities.User.list(),
   });
 
   const userMap = {};

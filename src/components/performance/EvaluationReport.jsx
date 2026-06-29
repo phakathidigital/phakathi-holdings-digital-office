@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,19 +24,19 @@ export default function EvaluationReport({ review, open, onClose }) {
 
   const { data: kpis = [] } = useQuery({
     queryKey: ["kpis", review?.id],
-    queryFn: () => base44.entities.KPI.filter({ review_id: review?.id }),
+    queryFn: () => api.entities.KPI.filter({ review_id: review?.id }),
     enabled: !!review?.id,
   });
 
   const { data: okrs = [] } = useQuery({
     queryKey: ["okrs"],
-    queryFn: () => base44.entities.OKR.list("-created_date", 500),
+    queryFn: () => api.entities.OKR.list("-created_date", 500),
     enabled: !!review?.id,
   });
 
   const { data: feedbacks = [] } = useQuery({
     queryKey: ["peer-feedback", review?.id],
-    queryFn: () => base44.entities.PeerFeedback.filter({ review_id: review?.id }),
+    queryFn: () => api.entities.PeerFeedback.filter({ review_id: review?.id }),
     enabled: !!review?.id,
   });
 

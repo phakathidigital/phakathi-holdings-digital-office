@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,23 +47,23 @@ export default function Assets() {
   const [sendingReminders, setSendingReminders] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => base44.auth.me() });
+  const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => api.auth.me() });
   const isAdmin = user?.role === "admin";
 
   const { data: assets = [], isLoading } = useQuery({
     queryKey: ["assets"],
-    queryFn: () => base44.entities.Asset.list("-created_date", 300),
+    queryFn: () => api.entities.Asset.list("-created_date", 300),
   });
 
   const { data: users = [] } = useQuery({
     queryKey: ["users"],
-    queryFn: () => base44.entities.User.list(),
+    queryFn: () => api.entities.User.list(),
   });
 
   const saveMutation = useMutation({
     mutationFn: (data) => editingAsset
-      ? base44.entities.Asset.update(editingAsset.id, data)
-      : base44.entities.Asset.create(data),
+      ? api.entities.Asset.update(editingAsset.id, data)
+      : api.entities.Asset.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["assets"] });
       setShowForm(false);
@@ -73,7 +73,7 @@ export default function Assets() {
   });
 
   const assignMutation = useMutation({
-    mutationFn: ({ id, email, name }) => base44.entities.Asset.update(id, {
+    mutationFn: ({ id, email, name }) => api.entities.Asset.update(id, {
       assigned_to_email: email, assigned_to_name: name,
       assigned_date: format(new Date(), "yyyy-MM-dd"), status: "assigned",
     }),
@@ -81,7 +81,7 @@ export default function Assets() {
       queryClient.invalidateQueries({ queryKey: ["assets"] });
       setShowAssign(null);
       if (email) {
-        await base44.integrations.Core.SendEmail({
+        await api.integrations.Core.SendEmail({
           to: email,
           subject: `Asset Assigned to You – ${assetName}`,
           body: `Hi ${name || email},\n\nThe following asset has been assigned to you:\n\n📦 ${assetName}\n📅 Date: ${format(new Date(), "d MMMM yyyy")}\n\nPlease log in to the Phakathi Holdings Digital Office to confirm receipt.\n\nIT Team`,
@@ -91,12 +91,12 @@ export default function Assets() {
   });
 
   const unassignMutation = useMutation({
-    mutationFn: (id) => base44.entities.Asset.update(id, { assigned_to_email: "", assigned_to_name: "", assigned_date: "", status: "available" }),
+    mutationFn: (id) => api.entities.Asset.update(id, { assigned_to_email: "", assigned_to_name: "", assigned_date: "", status: "available" }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["assets"] }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Asset.delete(id),
+    mutationFn: (id) => api.entities.Asset.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["assets"] }),
   });
 
@@ -109,7 +109,7 @@ export default function Assets() {
     for (const asset of toRemind) {
       const days = getDaysUntil(asset.renewal_date) ?? getDaysUntil(asset.warranty_expiry);
       const type = asset.renewal_date ? "renewal" : "warranty expiry";
-      await base44.integrations.Core.SendEmail({
+      await api.integrations.Core.SendEmail({
         to: asset.assigned_to_email,
         subject: `Reminder: Asset ${type} in ${days} day(s) – ${asset.name}`,
         body: `Hi ${asset.assigned_to_name || asset.assigned_to_email},\n\nThis is a reminder that your asset "${asset.name}" has a ${type} coming up in ${days} day(s).\n\nPlease contact IT to arrange renewal or replacement.\n\nIT Team – Phakathi Holdings`,
@@ -117,7 +117,7 @@ export default function Assets() {
     }
     // Also notify admin
     if (toRemind.length > 0 && user?.email) {
-      await base44.integrations.Core.SendEmail({
+      await api.integrations.Core.SendEmail({
         to: user.email,
         subject: `Asset Reminder Summary – ${toRemind.length} item(s) expiring soon`,
         body: `Hi,\n\nThe following assets are expiring within 30 days:\n\n${toRemind.map(a => `• ${a.name} (assigned to ${a.assigned_to_name || a.assigned_to_email})`).join("\n")}\n\nLog in to the Asset Management page to take action.\n\nPhakathi Holdings`,

@@ -1,7 +1,7 @@
 import { AlertTriangle, Clock, FileX, Tag, CheckCircle, X } from 'lucide-react';
 import { differenceInDays, parseISO, format } from 'date-fns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 
 const ISSUE_CONFIG = {
   pending_review: { icon: Clock, label: 'Pending Review', color: 'text-orange-600 bg-orange-50 border-orange-200' },
@@ -16,7 +16,7 @@ export default function ComplianceReminderCard({ document, issueType }) {
   const Icon = config.icon;
 
   const approve = useMutation({
-    mutationFn: () => base44.entities.HRDocument.update(document.id, { status: 'approved', approved_date: new Date().toISOString() }),
+    mutationFn: () => api.entities.HRDocument.update(document.id, { status: 'approved', approved_date: new Date().toISOString() }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['hr-docs-health'] }),
   });
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -36,7 +36,7 @@ export default function NotificationSettings({ user, onUpdate, isLoading }) {
 
   const { data: profile } = useQuery({
     queryKey: ['userProfile-notif', user?.email],
-    queryFn: () => base44.entities.UserProfile.filter({ user_email: user.email }),
+    queryFn: () => api.entities.UserProfile.filter({ user_email: user.email }),
     enabled: !!user?.email,
   });
 
@@ -75,9 +75,9 @@ export default function NotificationSettings({ user, onUpdate, isLoading }) {
     try {
       const existing = profile?.[0];
       if (existing) {
-        await base44.entities.UserProfile.update(existing.id, profilePrefs);
+        await api.entities.UserProfile.update(existing.id, profilePrefs);
       } else if (user?.email) {
-        await base44.entities.UserProfile.create({
+        await api.entities.UserProfile.create({
           user_email: user.email,
           ...profilePrefs,
         });

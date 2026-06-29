@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -88,7 +88,7 @@ function MeetingDetailModal({ meeting, onClose }) {
       const summaries = meeting.individual_summaries || {};
       for (const email of attendeeEmails) {
         const personalSummary = summaries[email] || meeting.summary || "";
-        await base44.integrations.Core.SendEmail({
+        await api.integrations.Core.SendEmail({
           to: email,
           subject: `Meeting Notes: ${meeting.title} — ${meeting.meeting_date}`,
           body: `
@@ -110,7 +110,7 @@ ${personalSummary ? `<h3>🎯 Your Personal Summary</h3><p>${personalSummary}</p
           `,
         });
       }
-      await base44.entities.MeetingStudio.update(meeting.id, { emails_sent: true });
+      await api.entities.MeetingStudio.update(meeting.id, { emails_sent: true });
     },
     onSuccess: () => {
       setEmailsSent(true);
@@ -229,11 +229,11 @@ export default function MeetingStudioPage() {
     subsidiary: "", attendees_raw: "", transcript: "",
   });
 
-  React.useEffect(() => { base44.auth.me().then(setUser).catch(() => {}); }, []);
+  React.useEffect(() => { api.auth.me().then(setUser).catch(() => {}); }, []);
 
   const { data: meetings = [], isLoading } = useQuery({
     queryKey: ["meeting-studios"],
-    queryFn: () => base44.entities.MeetingStudio.list("-meeting_date"),
+    queryFn: () => api.entities.MeetingStudio.list("-meeting_date"),
   });
 
   const handleFileUpload = (e) => {
@@ -258,7 +258,7 @@ export default function MeetingStudioPage() {
       .filter(Boolean);
 
     // Create record first
-    const record = await base44.entities.MeetingStudio.create({
+    const record = await api.entities.MeetingStudio.create({
       title: form.title,
       meeting_date: form.meeting_date,
       subsidiary: form.subsidiary,
@@ -273,7 +273,7 @@ export default function MeetingStudioPage() {
         ? `Attendees: ${attendees.join(", ")}`
         : "";
 
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await api.integrations.Core.InvokeLLM({
         prompt: `You are an expert corporate meeting analyst for Phakathi Holdings, a diversified South African investment group.
 
 Analyse the following meeting transcript and produce comprehensive, professional meeting documentation.
@@ -318,7 +318,7 @@ Return a JSON object with these exact keys:
         model: "claude_sonnet_4_6",
       });
 
-      await base44.entities.MeetingStudio.update(record.id, {
+      await api.entities.MeetingStudio.update(record.id, {
         summary: result.summary,
         decisions: result.decisions,
         action_items: result.action_items,
@@ -335,7 +335,7 @@ Return a JSON object with these exact keys:
       setSelectedMeeting(updated);
       setView("list");
     } catch (err) {
-      await base44.entities.MeetingStudio.update(record.id, { status: "pending" });
+      await api.entities.MeetingStudio.update(record.id, { status: "pending" });
     } finally {
       setProcessing(false);
       setForm({ title: "", meeting_date: new Date().toISOString().split("T")[0], subsidiary: "", attendees_raw: "", transcript: "" });

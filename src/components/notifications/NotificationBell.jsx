@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bell } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import NotificationDropdown from './NotificationDropdown';
 
@@ -12,14 +12,14 @@ export default function NotificationBell({ user }) {
 
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications-bell', user?.email],
-    queryFn: () => base44.entities.Notification.list('-created_date', 50),
+    queryFn: () => api.entities.Notification.list('-created_date', 50),
     enabled: !!user?.email,
     refetchInterval: 20000,
   });
 
   useEffect(() => {
     if (!user?.email) return;
-    const unsubscribe = base44.entities.Notification.subscribe(() => {
+    const unsubscribe = api.entities.Notification.subscribe(() => {
       queryClient.invalidateQueries({ queryKey: ['notifications-bell'] });
     });
     return unsubscribe;

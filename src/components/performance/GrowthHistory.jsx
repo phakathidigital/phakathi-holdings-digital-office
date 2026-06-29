@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Minus, Award } from "lucide-react";
@@ -31,19 +31,19 @@ const CustomDot = (props) => {
 export default function GrowthHistory({ employeeEmail, employeeName }) {
   const { data: reviews = [] } = useQuery({
     queryKey: ["reviews-history", employeeEmail],
-    queryFn: () => base44.entities.PerformanceReview.filter({ employee_email: employeeEmail }),
+    queryFn: () => api.entities.PerformanceReview.filter({ employee_email: employeeEmail }),
     enabled: !!employeeEmail,
   });
 
   const { data: allKpis = [] } = useQuery({
     queryKey: ["kpis-history", employeeEmail],
-    queryFn: () => base44.entities.KPI.filter({ employee_email: employeeEmail }),
+    queryFn: () => api.entities.KPI.filter({ employee_email: employeeEmail }),
     enabled: !!employeeEmail,
   });
 
   const { data: allFeedbacks = [] } = useQuery({
     queryKey: ["peer-history", employeeEmail],
-    queryFn: () => base44.entities.PeerFeedback.filter({ employee_email: employeeEmail }),
+    queryFn: () => api.entities.PeerFeedback.filter({ employee_email: employeeEmail }),
     enabled: !!employeeEmail,
   });
 

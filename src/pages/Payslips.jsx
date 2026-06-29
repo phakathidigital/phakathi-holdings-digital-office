@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Download, Upload, FileText, Plus, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ export default function Payslips() {
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => api.auth.me(),
   });
 
   const isAdmin = user?.role === 'admin';
@@ -24,20 +24,20 @@ export default function Payslips() {
     queryKey: ['payslips', user?.email],
     queryFn: () =>
       isAdmin
-        ? base44.entities.Payslip.list("-period_year", 50)
-        : base44.entities.Payslip.filter({ employee_email: user?.email, status: "published" }, "-period_year"),
+        ? api.entities.Payslip.list("-period_year", 50)
+        : api.entities.Payslip.filter({ employee_email: user?.email, status: "published" }, "-period_year"),
     enabled: !!user,
     initialData: [],
   });
 
   const uploadMutation = useMutation({
-    mutationFn: (data) => base44.entities.Payslip.create(data),
+    mutationFn: (data) => api.entities.Payslip.create(data),
     onSuccess: (_, data) => {
       queryClient.invalidateQueries({ queryKey: ['payslips'] });
       setShowUpload(false);
       // Notify the employee
       if (data.employee_email) {
-        base44.integrations.Core.SendEmail({
+        api.integrations.Core.SendEmail({
           to: data.employee_email,
           subject: `Your ${data.period_month} ${data.period_year} Payslip is Ready — Phakathi Holdings`,
           body: `Dear ${data.employee_name || data.employee_email},\n\nYour payslip for <strong>${data.period_month} ${data.period_year}</strong> has been uploaded and is now available in the Phakathi Holdings Digital Office portal.\n\nPlease log in to view and download your payslip.\n\nRegards,\nPhakathi Holdings HR`,
@@ -47,7 +47,7 @@ export default function Payslips() {
   });
 
   const publishMutation = useMutation({
-    mutationFn: ({ id }) => base44.entities.Payslip.update(id, { status: "published" }),
+    mutationFn: ({ id }) => api.entities.Payslip.update(id, { status: "published" }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['payslips'] }),
   });
 

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -50,10 +50,10 @@ export default function UploadDocDialog({ open, onClose, user, folders = [], def
   const removeTag = (tag) => setForm(f => ({ ...f, tags: f.tags.filter(t => t !== tag) }));
 
   const createMutation = useMutation({
-    mutationFn: async (data) => base44.entities.HRDocument.create(data),
+    mutationFn: async (data) => api.entities.HRDocument.create(data),
     onSuccess: async (doc) => {
       queryClient.invalidateQueries({ queryKey: ["hr-documents"] });
-      await base44.integrations.Core.SendEmail({
+      await api.integrations.Core.SendEmail({
         to: user.email,
         subject: `Document submitted for review: ${form.title}`,
         body: `Your document "${form.title}" has been submitted and is pending review.\n\nPhakathi Holdings`,
@@ -67,7 +67,7 @@ export default function UploadDocDialog({ open, onClose, user, folders = [], def
   const handleUpload = async () => {
     if (!file || !form.title) return;
     setUploading(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    const { file_url } = await api.integrations.Core.UploadFile({ file });
     setUploading(false);
     const folder = folders.find(f => f.id === form.folder_id);
     await createMutation.mutateAsync({

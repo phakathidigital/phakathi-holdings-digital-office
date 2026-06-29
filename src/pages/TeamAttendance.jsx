@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery } from "@tanstack/react-query";
 import {
   startOfWeek, endOfWeek, startOfMonth, endOfMonth,
@@ -203,9 +203,9 @@ export default function TeamAttendance() {
   const [viewMode, setViewMode] = useState("week");
   const [anchor, setAnchor] = useState(new Date());
 
-  const { data: users = [] } = useQuery({ queryKey: ["users"], queryFn: () => base44.entities.User.list() });
-  const { data: leaveRequests = [] } = useQuery({ queryKey: ["leaveRequests"], queryFn: () => base44.entities.LeaveRequest.list("-start_date", 200) });
-  const { data: meetings = [] } = useQuery({ queryKey: ["meetingStudio"], queryFn: () => base44.entities.MeetingStudio.list("-meeting_date", 200) });
+  const { data: users = [] } = useQuery({ queryKey: ["users"], queryFn: () => api.entities.User.list() });
+  const { data: leaveRequests = [] } = useQuery({ queryKey: ["leaveRequests"], queryFn: () => api.entities.LeaveRequest.list("-start_date", 200) });
+  const { data: meetings = [] } = useQuery({ queryKey: ["meetingStudio"], queryFn: () => api.entities.MeetingStudio.list("-meeting_date", 200) });
 
   const approvedLeave = leaveRequests.filter((l) => l.status === "approved");
 

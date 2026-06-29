@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 
 /**
  * Manages browser push notifications.
@@ -15,7 +15,7 @@ import { base44 } from '@/api/base44Client';
 export default function PushNotificationManager({ user }) {
   const { data: profile } = useQuery({
     queryKey: ['userProfile-push', user?.email],
-    queryFn: () => base44.entities.UserProfile.filter({ user_email: user.email }),
+    queryFn: () => api.entities.UserProfile.filter({ user_email: user.email }),
     enabled: !!user?.email,
   });
 
@@ -36,7 +36,7 @@ export default function PushNotificationManager({ user }) {
       if (Notification.permission !== 'granted') return;
 
       // Subscribe to real-time notification creates
-      unsubscribe = base44.entities.Notification.subscribe((event) => {
+      unsubscribe = api.entities.Notification.subscribe((event) => {
         if (event.type !== 'create') return;
         const notif = event.data;
         if (!notif) return;

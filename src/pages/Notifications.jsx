@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { Bell, Plus, Filter, CheckCheck, Archive, AlertTriangle, Info, Calendar, Shield, Server, FolderOpen, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -40,10 +40,10 @@ export default function Notifications() {
   const [showComposer, setShowComposer] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
 
-  const { data: user } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
+  const { data: user } = useQuery({ queryKey: ['me'], queryFn: () => api.auth.me() });
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ['notifications', filter],
-    queryFn: () => base44.entities.Notification.list('-created_date', 100),
+    queryFn: () => api.entities.Notification.list('-created_date', 100),
   });
 
   const markRead = useMutation({
@@ -51,7 +51,7 @@ export default function Notifications() {
       const n = notifications.find(x => x.id === id);
       const already = n?.is_read_by || [];
       if (already.includes(user?.email)) return Promise.resolve();
-      return base44.entities.Notification.update(id, { is_read_by: [...already, user?.email] });
+      return api.entities.Notification.update(id, { is_read_by: [...already, user?.email] });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
   });
@@ -60,19 +60,19 @@ export default function Notifications() {
     mutationFn: () => {
       const unread = notifications.filter(n => !n.is_read_by?.includes(user?.email));
       return Promise.all(unread.map(n =>
-        base44.entities.Notification.update(n.id, { is_read_by: [...(n.is_read_by || []), user?.email] })
+        api.entities.Notification.update(n.id, { is_read_by: [...(n.is_read_by || []), user?.email] })
       ));
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
   });
 
   const archive = useMutation({
-    mutationFn: (id) => base44.entities.Notification.update(id, { is_archived: true }),
+    mutationFn: (id) => api.entities.Notification.update(id, { is_archived: true }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
   });
 
   const acknowledge = useMutation({
-    mutationFn: ({ id, acked }) => base44.entities.Notification.update(id, { acknowledged_by: [...acked, user?.email] }),
+    mutationFn: ({ id, acked }) => api.entities.Notification.update(id, { acknowledged_by: [...acked, user?.email] }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
   });
 

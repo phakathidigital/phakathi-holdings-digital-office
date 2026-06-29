@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   Bell, 
@@ -23,23 +23,23 @@ export default function Settings() {
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => api.auth.me(),
   });
 
   const { data: projects } = useQuery({
     queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list(),
+    queryFn: () => api.entities.Project.list(),
     initialData: [],
   });
 
   const { data: tasks } = useQuery({
     queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list(),
+    queryFn: () => api.entities.Task.list(),
     initialData: [],
   });
 
   const updateUserMutation = useMutation({
-    mutationFn: (userData) => base44.auth.updateMe(userData),
+    mutationFn: (userData) => api.auth.updateMe(userData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
     },

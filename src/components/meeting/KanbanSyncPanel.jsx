@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,7 @@ const PRIORITY_COLORS = {
 
 function TaskRow({ task, index, onChange, onRemove }) {
   const [editing, setEditing] = useState(false);
-  const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => base44.entities.Project.list("-created_date", 50) });
+  const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => api.entities.Project.list("-created_date", 50) });
 
   if (editing) {
     return (
@@ -108,7 +108,7 @@ export default function KanbanSyncPanel({ meeting, onSynced }) {
   const [syncing, setSyncing] = useState(false);
   const [synced, setSynced] = useState(!!meeting.tasks_synced);
 
-  const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => base44.entities.Project.list("-created_date", 50) });
+  const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => api.entities.Project.list("-created_date", 50) });
 
   const handleChange = (index, updated) => {
     setTasks(prev => prev.map((t, i) => i === index ? updated : t));
@@ -132,7 +132,7 @@ export default function KanbanSyncPanel({ meeting, onSynced }) {
       for (const t of tasks) {
         const projectId = t.project_id || defaultProjectId;
         if (!projectId) continue; // Task requires a project_id (required field)
-        await base44.entities.Task.create({
+        await api.entities.Task.create({
           title: t.title,
           description: t.description || `Action item from meeting: ${meeting.title}`,
           assigned_to: t.assigned_to || "",
@@ -144,7 +144,7 @@ export default function KanbanSyncPanel({ meeting, onSynced }) {
         });
       }
 
-      await base44.entities.MeetingStudio.update(meeting.id, { tasks_synced: true });
+      await api.entities.MeetingStudio.update(meeting.id, { tasks_synced: true });
       qc.invalidateQueries({ queryKey: ["tasks"] });
       qc.invalidateQueries({ queryKey: ["meeting-studios"] });
       setSynced(true);

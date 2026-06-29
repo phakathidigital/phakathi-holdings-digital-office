@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Camera, Edit, Mail, Phone, MapPin, Briefcase, Building, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,11 +20,11 @@ export default function Profile() {
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => api.auth.me(),
   });
 
   const updateUserMutation = useMutation({
-    mutationFn: (userData) => base44.auth.updateMe(userData),
+    mutationFn: (userData) => api.auth.updateMe(userData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       setShowEditDialog(false);
@@ -33,8 +33,8 @@ export default function Profile() {
 
   const uploadImageMutation = useMutation({
     mutationFn: async (file) => {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      return base44.auth.updateMe({ profile_image_url: file_url });
+      const { file_url } = await api.integrations.Core.UploadFile({ file });
+      return api.auth.updateMe({ profile_image_url: file_url });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
@@ -44,8 +44,8 @@ export default function Profile() {
 
   const uploadCoverMutation = useMutation({
     mutationFn: async (file) => {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      return base44.auth.updateMe({ cover_image_url: file_url });
+      const { file_url } = await api.integrations.Core.UploadFile({ file });
+      return api.auth.updateMe({ cover_image_url: file_url });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });

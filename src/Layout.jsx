@@ -18,7 +18,7 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import phakathiLogoBlack from "@/assets/branding/phakathi-holdings/phakathi-holdings-black.svg";
@@ -86,14 +86,14 @@ export default function Layout({ children, currentPageName }) {
   const [user, setUser] = React.useState(null);
 
   React.useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    api.auth.me().then(setUser).catch(() => {});
   }, []);
 
   const orgName = user?.branding?.orgName || "Phakathi Flow";
   const orgTagline = user?.branding?.orgTagline || "Employee Experience & Intelligence";
 
   const handleLogout = () => {
-    base44.auth.logout();
+    api.auth.logout();
   };
 
   const renderMenuItems = (key) => (

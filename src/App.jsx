@@ -59,35 +59,80 @@ import SageIntegration from './pages/SageIntegration';
 
 setupIframeMessaging();
 
-const AuthLanding = ({ onLogin, error }) => (
-  <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white flex items-center justify-center p-4">
-    <div className="w-full max-w-4xl grid md:grid-cols-[1.2fr_0.8fr] gap-6 items-stretch">
-      <div className="bg-white/10 border border-white/10 rounded-3xl p-8 shadow-2xl backdrop-blur">
-        <img
-          src={phakathiLogoFullColor}
-          alt="Phakathi Holdings"
-          className="h-20 w-auto mb-8 opacity-95"
-        />
-        <p className="text-sm uppercase tracking-[0.3em] text-white/50 mb-4">Phakathi Flow</p>
-        <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4">
-          One digital office for the Phakathi Holdings group.
-        </h1>
-        <p className="text-white/70 text-lg mb-8">
-          Sign in or register, then choose the company you belong to so your dashboard, team views, meetings, and colour defaults are set up correctly.
-        </p>
-        {error?.message && (
-          <div className="mb-5 rounded-xl border border-amber-300/30 bg-amber-400/10 p-3 text-sm text-amber-100">
-            {error.message}
-          </div>
-        )}
-        <button
-          type="button"
-          onClick={onLogin}
-          className="inline-flex items-center justify-center rounded-xl bg-white text-gray-950 px-6 py-3 font-semibold shadow-lg hover:bg-gray-100 transition-colors"
-        >
-          Sign in / Register
-        </button>
-      </div>
+const AuthLanding = ({ onLogin, error }) => {
+  const [form, setForm] = React.useState({ full_name: "", email: "", password: "" });
+  const [localError, setLocalError] = React.useState("");
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setLocalError("");
+    if (!form.email.trim()) {
+      setLocalError("Enter your work email to continue.");
+      return;
+    }
+    try {
+      setIsSubmitting(true);
+      await onLogin(form);
+    } catch (err) {
+      setLocalError(err.message || "Could not sign you in.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white flex items-center justify-center p-4">
+      <div className="w-full max-w-4xl grid md:grid-cols-[1.2fr_0.8fr] gap-6 items-stretch">
+        <div className="bg-white/10 border border-white/10 rounded-3xl p-8 shadow-2xl backdrop-blur">
+          <img
+            src={phakathiLogoFullColor}
+            alt="Phakathi Holdings"
+            className="h-20 w-auto mb-8 opacity-95"
+          />
+          <p className="text-sm uppercase tracking-[0.3em] text-white/50 mb-4">Phakathi Flow</p>
+          <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4">
+            One digital office for the Phakathi Holdings group.
+          </h1>
+          <p className="text-white/70 text-lg mb-8">
+            Sign in or register, then choose the company you belong to so your dashboard, team views, meetings, and colour defaults are set up correctly.
+          </p>
+          {(error?.message || localError) && (
+            <div className="mb-5 rounded-xl border border-amber-300/30 bg-amber-400/10 p-3 text-sm text-amber-100">
+              {localError || error.message}
+            </div>
+          )}
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <input
+              type="text"
+              value={form.full_name}
+              onChange={(e) => setForm(f => ({ ...f, full_name: e.target.value }))}
+              placeholder="Full name"
+              className="w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-white placeholder:text-white/40 outline-none focus:border-white/50"
+            />
+            <input
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
+              placeholder="Work email"
+              className="w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-white placeholder:text-white/40 outline-none focus:border-white/50"
+            />
+            <input
+              type="password"
+              value={form.password}
+              onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))}
+              placeholder="Password (optional for local dev)"
+              className="w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-white placeholder:text-white/40 outline-none focus:border-white/50"
+            />
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="inline-flex w-full items-center justify-center rounded-xl bg-white text-gray-950 px-6 py-3 font-semibold shadow-lg hover:bg-gray-100 transition-colors disabled:opacity-60"
+            >
+              {isSubmitting ? "Signing in..." : "Sign in / Register"}
+            </button>
+          </form>
+        </div>
 
       <div className="bg-white rounded-3xl overflow-hidden shadow-2xl text-gray-900">
         <div
@@ -110,7 +155,8 @@ const AuthLanding = ({ onLogin, error }) => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 const AuthenticatedApp = () => {
   const { user, isAuthenticated, isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, checkUserAuth } = useAuth();

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -65,17 +65,17 @@ function ReviewCard({ review, user, onUpdate, okrs }) {
   const reviewOKRs = okrs.filter((o) => o.review_id === review.id);
 
   const updateReview = useMutation({
-    mutationFn: (data) => base44.entities.PerformanceReview.update(review.id, data),
+    mutationFn: (data) => api.entities.PerformanceReview.update(review.id, data),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["reviews"] }); setEditing(null); },
   });
 
   const createOKR = useMutation({
-    mutationFn: (data) => base44.entities.OKR.create({ ...data, review_id: review.id, employee_email: review.employee_email, period: review.review_period }),
+    mutationFn: (data) => api.entities.OKR.create({ ...data, review_id: review.id, employee_email: review.employee_email, period: review.review_period }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["okrs"] }); setShowOKRForm(false); setNewOKR({ objective: "", key_results: [""], progress: 0, status: "not_started", notes: "" }); },
   });
 
   const updateOKR = useMutation({
-    mutationFn: ({ id, ...data }) => base44.entities.OKR.update(id, data),
+    mutationFn: ({ id, ...data }) => api.entities.OKR.update(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["okrs"] }),
   });
 
@@ -313,23 +313,23 @@ export default function PerformanceReviews() {
   const [activeTab, setActiveTab] = useState("reviews");
   const queryClient = useQueryClient();
 
-  const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => base44.auth.me() });
+  const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => api.auth.me() });
   const isAdmin = hasGroupOverviewAccess(user);
 
   const { data: reviews = [], isLoading } = useQuery({
     queryKey: ["reviews"],
-    queryFn: () => base44.entities.PerformanceReview.list("-created_date", 100),
+    queryFn: () => api.entities.PerformanceReview.list("-created_date", 100),
   });
 
   const { data: okrs = [] } = useQuery({
     queryKey: ["okrs"],
-    queryFn: () => base44.entities.OKR.list("-created_date", 500),
+    queryFn: () => api.entities.OKR.list("-created_date", 500),
   });
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      const me = await base44.auth.me();
-      return base44.entities.PerformanceReview.create({
+      const me = await api.auth.me();
+      return api.entities.PerformanceReview.create({
         ...data,
         manager_email: me.email,
         manager_name: me.full_name || me.email,
@@ -339,7 +339,7 @@ export default function PerformanceReviews() {
     onSuccess: async (review) => {
       queryClient.invalidateQueries({ queryKey: ["reviews"] });
       setShowCreate(false);
-      await base44.integrations.Core.SendEmail({
+      await api.integrations.Core.SendEmail({
         to: newReview.employee_email,
         subject: `Performance Review: ${newReview.review_period} – Action Required`,
         body: `Hi ${newReview.employee_name},\n\nYour ${newReview.review_period} performance review has been initiated. Please log in to complete your self-assessment.\n\nThis is an important part of your development journey at Phakathi Holdings.\n\nKind regards,\n${newReview.manager_name || "Management"}`,

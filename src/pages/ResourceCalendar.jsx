@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -118,30 +118,30 @@ export default function ResourceCalendar() {
   const [newResource, setNewResource] = useState({ name: "", type: "Meeting Room", capacity: "", location: "" });
   const queryClient = useQueryClient();
 
-  const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => base44.auth.me() });
+  const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => api.auth.me() });
   const isAdmin = user?.role === "admin";
 
   const { data: resources = [] } = useQuery({
     queryKey: ["resources"],
-    queryFn: () => base44.entities.Resource.filter({ is_active: true }),
+    queryFn: () => api.entities.Resource.filter({ is_active: true }),
   });
 
   const { data: bookings = [] } = useQuery({
     queryKey: ["bookings"],
-    queryFn: () => base44.entities.Booking.list("-created_date", 300),
+    queryFn: () => api.entities.Booking.list("-created_date", 300),
   });
 
   const weekDays = Array.from({ length: 5 }, (_, i) => addDays(weekStart, i));
 
   const createBooking = useMutation({
     mutationFn: async (data) => {
-      const me = await base44.auth.me();
-      const booking = await base44.entities.Booking.create({
+      const me = await api.auth.me();
+      const booking = await api.entities.Booking.create({
         ...data,
         booker_email: me.email,
         booker_name: me.full_name || me.email,
       });
-      await base44.integrations.Core.SendEmail({
+      await api.integrations.Core.SendEmail({
         to: me.email,
         subject: `Booking Confirmed: ${data.title}`,
         body: `Hi ${me.full_name || me.email},\n\nYour booking has been confirmed!\n\n📌 ${data.title}\n🏢 Resource: ${data.resource_name}\n📅 Date: ${data.date}\n🕐 Time: ${data.start_time} – ${data.end_time}\n\nPhakathi Holdings – Resource Scheduler`,
@@ -152,12 +152,12 @@ export default function ResourceCalendar() {
   });
 
   const cancelBooking = useMutation({
-    mutationFn: (id) => base44.entities.Booking.update(id, { status: "cancelled" }),
+    mutationFn: (id) => api.entities.Booking.update(id, { status: "cancelled" }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["bookings"] }),
   });
 
   const createResource = useMutation({
-    mutationFn: (data) => base44.entities.Resource.create({ ...data, capacity: data.capacity ? parseInt(data.capacity) : undefined, is_active: true }),
+    mutationFn: (data) => api.entities.Resource.create({ ...data, capacity: data.capacity ? parseInt(data.capacity) : undefined, is_active: true }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["resources"] }); setShowAddResource(false); setNewResource({ name: "", type: "Meeting Room", capacity: "", location: "" }); },
   });
 

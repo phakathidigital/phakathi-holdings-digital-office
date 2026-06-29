@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lightbulb, RefreshCw, Loader2, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -45,7 +45,7 @@ Provide personalized, actionable suggestions to help them:
 
 Be encouraging, specific, and practical.`;
 
-      const response = await base44.integrations.Core.InvokeLLM({
+      const response = await api.integrations.Core.InvokeLLM({
         prompt: prompt,
         response_json_schema: {
           type: "object",

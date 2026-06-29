@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Clock, CheckCircle, XCircle, FileText, Calendar, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,25 +32,25 @@ export default function Leave() {
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => api.auth.me(),
   });
 
   const { data: myLeaves, isLoading: myLeavesLoading } = useQuery({
     queryKey: ['myLeaves'],
-    queryFn: () => base44.entities.LeaveRequest.filter({ employee_email: user?.email }, "-created_date"),
+    queryFn: () => api.entities.LeaveRequest.filter({ employee_email: user?.email }, "-created_date"),
     enabled: !!user?.email,
     initialData: [],
   });
 
   const { data: allLeaves, isLoading: allLeavesLoading } = useQuery({
     queryKey: ['allLeaves'],
-    queryFn: () => base44.entities.LeaveRequest.list("-created_date"),
+    queryFn: () => api.entities.LeaveRequest.list("-created_date"),
     enabled: user?.role === 'admin',
     initialData: [],
   });
 
   const createLeaveMutation = useMutation({
-    mutationFn: (data) => base44.entities.LeaveRequest.create(data),
+    mutationFn: (data) => api.entities.LeaveRequest.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myLeaves'] });
       queryClient.invalidateQueries({ queryKey: ['allLeaves'] });
@@ -59,14 +59,14 @@ export default function Leave() {
   });
 
   const updateLeaveMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.LeaveRequest.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.LeaveRequest.update(id, data),
     onSuccess: (_, { leave, data }) => {
       queryClient.invalidateQueries({ queryKey: ['myLeaves'] });
       queryClient.invalidateQueries({ queryKey: ['allLeaves'] });
       // Email notification to employee
       if (leave?.employee_email && data?.status) {
         const statusLabel = data.status === 'approved' ? 'Approved ✅' : 'Rejected ❌';
-        base44.integrations.Core.SendEmail({
+        api.integrations.Core.SendEmail({
           to: leave.employee_email,
           subject: `Your Leave Request has been ${data.status === 'approved' ? 'Approved' : 'Rejected'} — Phakathi Holdings`,
           body: `Dear ${leave.employee_name || leave.employee_email},\n\nYour ${leave.leave_type} request (${leave.start_date} to ${leave.end_date}) has been <strong>${statusLabel}</strong>.\n\n${data.rejection_reason ? `Reason: ${data.rejection_reason}\n\n` : ''}Please log in to the Phakathi Holdings Digital Office portal for more details.\n\nRegards,\nPhakathi Holdings HR`,

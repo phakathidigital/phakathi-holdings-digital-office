@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { Search, Loader2, BookOpen, ExternalLink, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
@@ -22,7 +22,7 @@ export default function KnowledgeSearch() {
     if (!q.trim()) return;
     setLoading(true);
     setResult(null);
-    const response = await base44.integrations.Core.InvokeLLM({
+    const response = await api.integrations.Core.InvokeLLM({
       prompt: `You are the internal knowledge assistant for Phakathi Holdings, a multi-subsidiary South African holding company.
 
 A staff member is asking: "${q}"

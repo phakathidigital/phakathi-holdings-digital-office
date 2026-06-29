@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,11 +23,11 @@ export default function KudosDialog({ open, onClose, user }) {
 
   const { data: users = [] } = useQuery({
     queryKey: ['users-list'],
-    queryFn: () => base44.entities.User.list(),
+    queryFn: () => api.entities.User.list(),
   });
 
   const send = useMutation({
-    mutationFn: () => base44.entities.Recognition.create({
+    mutationFn: () => api.entities.Recognition.create({
       ...form,
       sender_email: user?.email,
       sender_name: user?.full_name || user?.email,

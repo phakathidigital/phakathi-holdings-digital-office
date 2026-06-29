@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -136,15 +136,15 @@ export default function AutoPayroll() {
   const [emailSending, setEmailSending] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
-  const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => base44.auth.me() });
+  const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => api.auth.me() });
   const isAdmin = user?.role === "admin";
 
-  const { data: expenses = [] } = useQuery({ queryKey: ["expenses-payroll"], queryFn: () => base44.entities.Expense.list("-created_date", 500) });
-  const { data: leaves = [] } = useQuery({ queryKey: ["leaves-payroll"], queryFn: () => base44.entities.LeaveRequest.list("-created_date", 500) });
-  const { data: meetings = [] } = useQuery({ queryKey: ["meetings-payroll"], queryFn: () => base44.entities.MeetingNote.list("-created_date", 200) });
-  const { data: payslips = [] } = useQuery({ queryKey: ["payslips-payroll"], queryFn: () => base44.entities.Payslip.list("-created_date", 500) });
-  const { data: users = [] } = useQuery({ queryKey: ["users-payroll"], queryFn: () => base44.entities.User.list() });
-  const { data: profiles = [] } = useQuery({ queryKey: ["profiles-payroll"], queryFn: () => base44.entities.UserProfile.list() });
+  const { data: expenses = [] } = useQuery({ queryKey: ["expenses-payroll"], queryFn: () => api.entities.Expense.list("-created_date", 500) });
+  const { data: leaves = [] } = useQuery({ queryKey: ["leaves-payroll"], queryFn: () => api.entities.LeaveRequest.list("-created_date", 500) });
+  const { data: meetings = [] } = useQuery({ queryKey: ["meetings-payroll"], queryFn: () => api.entities.MeetingNote.list("-created_date", 200) });
+  const { data: payslips = [] } = useQuery({ queryKey: ["payslips-payroll"], queryFn: () => api.entities.Payslip.list("-created_date", 500) });
+  const { data: users = [] } = useQuery({ queryKey: ["users-payroll"], queryFn: () => api.entities.User.list() });
+  const { data: profiles = [] } = useQuery({ queryKey: ["profiles-payroll"], queryFn: () => api.entities.UserProfile.list() });
 
   const monthIdx = MONTHS.indexOf(selectedMonth) + 1;
   const monthPrefix = `${selectedYear}-${String(monthIdx).padStart(2, "0")}`;
@@ -264,7 +264,7 @@ export default function AutoPayroll() {
     setEmailSending(true);
     for (const row of payrollRows) {
       if (!row.employee_email || !row.employee_email.includes("@")) continue;
-      await base44.integrations.Core.SendEmail({
+      await api.integrations.Core.SendEmail({
         to: row.employee_email,
         subject: `Your ${selectedMonth} ${selectedYear} Payroll Adjustment Summary`,
         body: `Dear ${row.employee_name},\n\nHere is your automated payroll adjustment summary for ${selectedMonth} ${selectedYear}:\n\n` +

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { motion } from "framer-motion";
@@ -194,13 +194,13 @@ export default function Kanban() {
   const [timeLogTask, setTimeLogTask] = useState(null);
   const queryClient = useQueryClient();
 
-  const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => base44.auth.me() });
-  const { data: users = [] } = useQuery({ queryKey: ["users"], queryFn: () => base44.entities.User.list() });
-  const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => base44.entities.Project.list("-created_date", 50) });
-  const { data: tasks = [], isLoading } = useQuery({ queryKey: ["tasks"], queryFn: () => base44.entities.Task.list("-created_date", 200) });
+  const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => api.auth.me() });
+  const { data: users = [] } = useQuery({ queryKey: ["users"], queryFn: () => api.entities.User.list() });
+  const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => api.entities.Project.list("-created_date", 50) });
+  const { data: tasks = [], isLoading } = useQuery({ queryKey: ["tasks"], queryFn: () => api.entities.Task.list("-created_date", 200) });
 
   const updateTask = useMutation({
-    mutationFn: ({ id, ...data }) => base44.entities.Task.update(id, data),
+    mutationFn: ({ id, ...data }) => api.entities.Task.update(id, data),
     onMutate: async ({ id, ...data }) => {
       await queryClient.cancelQueries({ queryKey: ["tasks"] });
       const prev = queryClient.getQueryData(["tasks"]);
@@ -214,7 +214,7 @@ export default function Kanban() {
   const handleAssign = async (task, email, fullName) => {
     updateTask.mutate({ id: task.id, assigned_to: email });
     if (email && email !== user?.email) {
-      base44.integrations.Core.SendEmail({
+      api.integrations.Core.SendEmail({
         to: email,
         subject: `You've been assigned a task: ${task.title}`,
         body: `Hi ${fullName || email},\n\nYou have been assigned a task on the Phakathi Holdings Kanban Board.\n\n📌 Task: ${task.title}${task.description ? `\n📝 Description: ${task.description}` : ""}${task.due_date ? `\n📅 Due: ${task.due_date}` : ""}\n\nPlease log in to view and update your task.\n\nPhakathi Holdings – Digital Office`,

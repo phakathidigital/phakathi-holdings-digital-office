@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Hash, Plus, Send, Users, MessageCircle, Search, X, ChevronRight, Circle } from "lucide-react";
@@ -75,18 +75,18 @@ export default function Messaging() {
   const messagesEndRef = useRef(null);
   const qc = useQueryClient();
 
-  useEffect(() => { base44.auth.me().then(setUser).catch(() => {}); }, []);
+  useEffect(() => { api.auth.me().then(setUser).catch(() => {}); }, []);
 
   const { data: channels = [] } = useQuery({
     queryKey: ["channels"],
-    queryFn: () => base44.entities.Channel.list("-created_date"),
+    queryFn: () => api.entities.Channel.list("-created_date"),
     refetchInterval: 5000,
   });
 
   const { data: messages = [] } = useQuery({
     queryKey: ["messages", activeChannel?.id],
     queryFn: () => activeChannel
-      ? base44.entities.Message.filter({ channel_id: activeChannel.id }, "created_date", 200)
+      ? api.entities.Message.filter({ channel_id: activeChannel.id }, "created_date", 200)
       : [],
     enabled: !!activeChannel,
     refetchInterval: 3000,
@@ -97,7 +97,7 @@ export default function Messaging() {
   }, [messages]);
 
   const sendMutation = useMutation({
-    mutationFn: (content) => base44.entities.Message.create({
+    mutationFn: (content) => api.entities.Message.create({
       channel_id: activeChannel.id,
       channel_name: activeChannel.name,
       channel_type: activeChannel.type,
@@ -110,12 +110,12 @@ export default function Messaging() {
 
   const reactMutation = useMutation({
     mutationFn: ({ msgId, emoji, existing }) =>
-      base44.entities.Message.update(msgId, { reactions: [...(existing || []), emoji] }),
+      api.entities.Message.update(msgId, { reactions: [...(existing || []), emoji] }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["messages", activeChannel?.id] }),
   });
 
   const createChannelMutation = useMutation({
-    mutationFn: () => base44.entities.Channel.create({
+    mutationFn: () => api.entities.Channel.create({
       name: newChannelName.toLowerCase().replace(/\s+/g, "-"),
       description: newChannelDesc,
       type: "channel",

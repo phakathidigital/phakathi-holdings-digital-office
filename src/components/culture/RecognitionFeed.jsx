@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { motion } from 'framer-motion';
 import { Heart } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -20,11 +20,11 @@ export default function RecognitionFeed({ userEmail, compact = false }) {
 
   const { data: recognitions = [] } = useQuery({
     queryKey: ['recognitions'],
-    queryFn: () => base44.entities.Recognition.list('-created_date', compact ? 5 : 20),
+    queryFn: () => api.entities.Recognition.list('-created_date', compact ? 5 : 20),
   });
 
   const toggleLike = useMutation({
-    mutationFn: ({ id, likes }) => base44.entities.Recognition.update(id, { likes }),
+    mutationFn: ({ id, likes }) => api.entities.Recognition.update(id, { likes }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['recognitions'] }),
   });
 

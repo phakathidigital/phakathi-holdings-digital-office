@@ -1,5 +1,5 @@
 import React from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Cell } from "recharts";
@@ -13,12 +13,12 @@ const DEPT_COLORS = ["#1f2937", "#4b5563", "#6b7280", "#9ca3af", "#d1d5db", "#e5
 export default function Analytics() {
   const { data: leaves = [] } = useQuery({
     queryKey: ["allLeaves"],
-    queryFn: () => base44.entities.LeaveRequest.list("-created_date", 200),
+    queryFn: () => api.entities.LeaveRequest.list("-created_date", 200),
   });
 
   const { data: meetings = [] } = useQuery({
     queryKey: ["meetingNotes"],
-    queryFn: () => base44.entities.MeetingNote.list("-meeting_date", 200),
+    queryFn: () => api.entities.MeetingNote.list("-meeting_date", 200),
   });
 
   // Leave by department

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -50,12 +50,12 @@ export default function BenefitsEnrollmentForm({ existing, user, open, onClose }
         employee_name: user.full_name || user.email,
         status: "submitted",
       };
-      if (existing?.id) return base44.entities.BenefitsEnrollment.update(existing.id, payload);
-      return base44.entities.BenefitsEnrollment.create(payload);
+      if (existing?.id) return api.entities.BenefitsEnrollment.update(existing.id, payload);
+      return api.entities.BenefitsEnrollment.create(payload);
     },
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ["benefits-enrollment"] });
-      await base44.integrations.Core.SendEmail({
+      await api.integrations.Core.SendEmail({
         to: user.email,
         subject: `Benefits Enrollment Submitted — ${currentYear}`,
         body: `Hi ${user.full_name || "there"},\n\nYour benefits enrollment for ${currentYear} has been submitted for HR review.\n\nSelected benefits:\n- Medical Aid: ${form.medical_aid}\n- Retirement Fund: ${form.retirement_fund ? "Yes" : "No"}\n- Group Life Cover: ${form.group_life_cover ? "Yes" : "No"}\n\nYou will be notified once HR approves your enrollment.\n\nPhakathi Holdings HR`,

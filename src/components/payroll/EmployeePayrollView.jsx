@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,13 +29,13 @@ export default function EmployeePayrollView({ user }) {
 
   const { data: myPayslips = [] } = useQuery({
     queryKey: ["my-payslips", user?.email],
-    queryFn: () => base44.entities.Payslip.filter({ employee_email: user?.email }),
+    queryFn: () => api.entities.Payslip.filter({ employee_email: user?.email }),
     enabled: !!user?.email,
   });
 
   const { data: myBenefits = [] } = useQuery({
     queryKey: ["benefits-enrollment", user?.email],
-    queryFn: () => base44.entities.BenefitsEnrollment.filter({ employee_email: user?.email }),
+    queryFn: () => api.entities.BenefitsEnrollment.filter({ employee_email: user?.email }),
     enabled: !!user?.email,
   });
 

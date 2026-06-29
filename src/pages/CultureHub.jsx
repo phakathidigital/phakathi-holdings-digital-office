@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { Heart, Cake, Award, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -17,10 +17,10 @@ export default function CultureHub() {
   const [tab, setTab] = useState('recognition');
   const [showKudos, setShowKudos] = useState(false);
 
-  const { data: user } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
+  const { data: user } = useQuery({ queryKey: ['me'], queryFn: () => api.auth.me() });
   const { data: recognitions = [] } = useQuery({
     queryKey: ['recognitions-count'],
-    queryFn: () => base44.entities.Recognition.list(),
+    queryFn: () => api.entities.Recognition.list(),
   });
 
   const kudosSentThisWeek = recognitions.filter(r => {

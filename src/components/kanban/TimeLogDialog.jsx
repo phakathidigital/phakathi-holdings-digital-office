@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +19,7 @@ export default function TimeLogDialog({ open, onClose, task, user }) {
   const [billable, setBillable] = useState(true);
 
   const createLog = useMutation({
-    mutationFn: (data) => base44.entities.TimeLog.create(data),
+    mutationFn: (data) => api.entities.TimeLog.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timelogs'] });
       toast.success(`${hours}h logged for "${task?.title}"`);

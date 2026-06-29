@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Button } from "@/components/ui/button";
 import { Mic, Square, Trash2, CheckCircle } from "lucide-react";
 
@@ -59,9 +59,9 @@ export default function AudioRecorder({ onTranscriptReady }) {
     setState("transcribing");
     try {
       // Upload the audio file
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: audioBlobRef.current });
+      const { file_url } = await api.integrations.Core.UploadFile({ file: audioBlobRef.current });
       // Use AI to transcribe and summarize
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await api.integrations.Core.InvokeLLM({
         prompt: `This is an audio recording from a business meeting at Phakathi Holdings. Please transcribe the content as accurately as possible. Format it as a conversation transcript with speaker labels where possible (Speaker 1:, Speaker 2:, etc.). If you cannot identify specific speakers, use numbered labels. Return the raw transcript only.`,
         file_urls: [file_url],
       });

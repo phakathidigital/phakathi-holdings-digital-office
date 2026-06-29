@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -210,10 +210,10 @@ export default function OrgChart() {
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [viewMode, setViewMode] = useState("tree"); // tree | grid | analytics
 
-  const { data: users = [], isLoading } = useQuery({ queryKey: ["org-users"], queryFn: () => base44.entities.User.list() });
-  const { data: profiles = [] } = useQuery({ queryKey: ["org-profiles"], queryFn: () => base44.entities.UserProfile.list() });
-  const { data: projects = [] } = useQuery({ queryKey: ["org-projects"], queryFn: () => base44.entities.Project.list() });
-  const { data: tasks = [] } = useQuery({ queryKey: ["org-tasks"], queryFn: () => base44.entities.Task.list() });
+  const { data: users = [], isLoading } = useQuery({ queryKey: ["org-users"], queryFn: () => api.entities.User.list() });
+  const { data: profiles = [] } = useQuery({ queryKey: ["org-profiles"], queryFn: () => api.entities.UserProfile.list() });
+  const { data: projects = [] } = useQuery({ queryKey: ["org-projects"], queryFn: () => api.entities.Project.list() });
+  const { data: tasks = [] } = useQuery({ queryKey: ["org-tasks"], queryFn: () => api.entities.Task.list() });
 
   // Merge user + profile data
   const enrichedUsers = useMemo(() => users.map(u => {

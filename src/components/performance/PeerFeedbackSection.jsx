@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,13 +38,13 @@ export default function PeerFeedbackSection({ reviewId, employeeEmail, employeeN
 
   const { data: feedbacks = [] } = useQuery({
     queryKey: ["peer-feedback", reviewId],
-    queryFn: () => base44.entities.PeerFeedback.filter({ review_id: reviewId }),
+    queryFn: () => api.entities.PeerFeedback.filter({ review_id: reviewId }),
   });
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      const me = await base44.auth.me();
-      return base44.entities.PeerFeedback.create({
+      const me = await api.auth.me();
+      return api.entities.PeerFeedback.create({
         ...data,
         review_id: reviewId,
         employee_email: employeeEmail,

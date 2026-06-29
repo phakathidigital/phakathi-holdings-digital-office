@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -141,11 +141,11 @@ export default function CalendarPage() {
   const [subsidiaryFilter, setSubsidiaryFilter] = useState("All");
   const [typeFilter, setTypeFilter] = useState("all");
 
-  const { data: projects = [] } = useQuery({ queryKey: ["cal-projects"], queryFn: () => base44.entities.Project.list() });
-  const { data: tasks = [] } = useQuery({ queryKey: ["cal-tasks"], queryFn: () => base44.entities.Task.list() });
-  const { data: leaves = [] } = useQuery({ queryKey: ["cal-leaves"], queryFn: () => base44.entities.LeaveRequest.list() });
-  const { data: meetings = [] } = useQuery({ queryKey: ["cal-meetings"], queryFn: () => base44.entities.MeetingNote.list() });
-  const { data: onboardings = [] } = useQuery({ queryKey: ["cal-onboarding"], queryFn: () => base44.entities.OnboardingRecord.list() });
+  const { data: projects = [] } = useQuery({ queryKey: ["cal-projects"], queryFn: () => api.entities.Project.list() });
+  const { data: tasks = [] } = useQuery({ queryKey: ["cal-tasks"], queryFn: () => api.entities.Task.list() });
+  const { data: leaves = [] } = useQuery({ queryKey: ["cal-leaves"], queryFn: () => api.entities.LeaveRequest.list() });
+  const { data: meetings = [] } = useQuery({ queryKey: ["cal-meetings"], queryFn: () => api.entities.MeetingNote.list() });
+  const { data: onboardings = [] } = useQuery({ queryKey: ["cal-onboarding"], queryFn: () => api.entities.OnboardingRecord.list() });
 
   // Build unified event list
   const allEvents = useMemo(() => {

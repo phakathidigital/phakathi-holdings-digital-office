@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -29,7 +29,7 @@ export default function ProjectDetails() {
   const { data: project, isLoading: projectLoading } = useQuery({
     queryKey: ['project', projectId],
     queryFn: async () => {
-      const projects = await base44.entities.Project.list();
+      const projects = await api.entities.Project.list();
       return projects.find(p => p.id === projectId);
     },
     enabled: !!projectId,
@@ -37,13 +37,13 @@ export default function ProjectDetails() {
 
   const { data: tasks, isLoading: tasksLoading } = useQuery({
     queryKey: ['project-tasks', projectId],
-    queryFn: () => base44.entities.Task.filter({ project_id: projectId }, "-updated_date"),
+    queryFn: () => api.entities.Task.filter({ project_id: projectId }, "-updated_date"),
     initialData: [],
     enabled: !!projectId,
   });
 
   const createTaskMutation = useMutation({
-    mutationFn: (taskData) => base44.entities.Task.create({ ...taskData, project_id: projectId }),
+    mutationFn: (taskData) => api.entities.Task.create({ ...taskData, project_id: projectId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project-tasks', projectId] });
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
@@ -53,7 +53,7 @@ export default function ProjectDetails() {
   });
 
   const updateTaskMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Task.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Task.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project-tasks', projectId] });
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
@@ -63,7 +63,7 @@ export default function ProjectDetails() {
   });
 
   const updateProjectMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Project.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.Project.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project', projectId] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
@@ -72,7 +72,7 @@ export default function ProjectDetails() {
   });
 
   const deleteTaskMutation = useMutation({
-    mutationFn: (id) => base44.entities.Task.delete(id),
+    mutationFn: (id) => api.entities.Task.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project-tasks', projectId] });
       queryClient.invalidateQueries({ queryKey: ['tasks'] });

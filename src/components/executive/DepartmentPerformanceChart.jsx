@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, Tooltip } from 'recharts';
 
 const DEPARTMENTS = ['Management', 'Finance', 'HR', 'IT', 'Operations', 'Empoweryst'];
 
 export default function DepartmentPerformanceChart() {
-  const { data: tasks = [] } = useQuery({ queryKey: ['dept-tasks'], queryFn: () => base44.entities.Task.list() });
-  const { data: leaves = [] } = useQuery({ queryKey: ['dept-leaves'], queryFn: () => base44.entities.LeaveRequest.list() });
-  const { data: tickets = [] } = useQuery({ queryKey: ['dept-tickets'], queryFn: () => base44.entities.Ticket.list() });
+  const { data: tasks = [] } = useQuery({ queryKey: ['dept-tasks'], queryFn: () => api.entities.Task.list() });
+  const { data: leaves = [] } = useQuery({ queryKey: ['dept-leaves'], queryFn: () => api.entities.LeaveRequest.list() });
+  const { data: tickets = [] } = useQuery({ queryKey: ['dept-tickets'], queryFn: () => api.entities.Ticket.list() });
 
   const data = DEPARTMENTS.map(dept => {
     const deptTasks = tasks.filter(t => t.project_id); // simplified

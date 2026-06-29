@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -18,7 +18,7 @@ export default function NotificationComposer({ open, onClose, user }) {
   });
 
   const create = useMutation({
-    mutationFn: (data) => base44.entities.Notification.create({ ...data, created_by: user?.email }),
+    mutationFn: (data) => api.entities.Notification.create({ ...data, created_by: user?.email }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['notifications'] });
       qc.invalidateQueries({ queryKey: ['notifications-bell'] });

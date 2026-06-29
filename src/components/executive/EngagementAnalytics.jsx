@@ -1,14 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 const DEPT_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
 export default function EngagementAnalytics() {
-  const { data: leaves = [] } = useQuery({ queryKey: ['exec-leaves'], queryFn: () => base44.entities.LeaveRequest.list() });
-  const { data: tickets = [] } = useQuery({ queryKey: ['exec-tickets'], queryFn: () => base44.entities.Ticket.list() });
-  const { data: tasks = [] } = useQuery({ queryKey: ['exec-tasks'], queryFn: () => base44.entities.Task.list() });
-  const { data: reviews = [] } = useQuery({ queryKey: ['exec-reviews'], queryFn: () => base44.entities.PerformanceReview.list() });
+  const { data: leaves = [] } = useQuery({ queryKey: ['exec-leaves'], queryFn: () => api.entities.LeaveRequest.list() });
+  const { data: tickets = [] } = useQuery({ queryKey: ['exec-tickets'], queryFn: () => api.entities.Ticket.list() });
+  const { data: tasks = [] } = useQuery({ queryKey: ['exec-tasks'], queryFn: () => api.entities.Task.list() });
+  const { data: reviews = [] } = useQuery({ queryKey: ['exec-reviews'], queryFn: () => api.entities.PerformanceReview.list() });
 
   // Leave by type
   const leaveByType = leaves.reduce((acc, l) => {
