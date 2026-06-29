@@ -22,13 +22,28 @@ npm run build
 
 ## Backend
 
-The backend lives in `server/` and stores local development data in `.local-data/db.json`. That folder is intentionally git-ignored.
+The backend follows the README target structure:
+
+```text
+backend/
+├── src/
+│   ├── config/
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   └── index.js
+└── prisma/
+    ├── schema.prisma
+    └── entities/
+```
+
+Local development data is stored in `.local-data/db.json`. That folder is intentionally git-ignored.
 
 Implemented backend capabilities:
 
 - Local sign-in/register by email.
 - Current user profile read/update.
-- Generic entity CRUD for all migrated entity schemas in `server/schemas/entities/`.
+- Generic entity CRUD for all migrated entity schemas in `backend/prisma/entities/`.
 - Seed users for Phakathi Holdings and Empoweryst.
 - Local file upload storage under `.local-data/uploads`.
 - Email/SMS/AI placeholder endpoints so workflows remain usable without external provider keys.

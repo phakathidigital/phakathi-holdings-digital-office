@@ -7,7 +7,7 @@ const rootDir = path.resolve(path.dirname(__filename), "..");
 const viteBin = path.join(rootDir, "node_modules", "vite", "bin", "vite.js");
 
 const commands = [
-  ["backend", process.execPath, ["server/index.mjs"]],
+  ["backend", process.execPath, ["backend/src/index.js"]],
   ["frontend", process.execPath, [viteBin, "--configLoader", "runner"]],
 ];
 

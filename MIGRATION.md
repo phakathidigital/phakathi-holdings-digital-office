@@ -3,8 +3,8 @@
 ## Completed
 
 - Replaced hosted platform SDK usage with `src/api/apiClient.js`.
-- Added a local Node backend in `server/index.mjs`.
-- Moved entity schemas into `server/schemas/entities/`.
+- Added a local Express backend in `backend/src/index.js`.
+- Moved entity schemas into `backend/prisma/entities/`.
 - Removed hosted-platform package dependencies from `package.json` and `package-lock.json`.
 - Replaced external login redirect with a local sign-in/register form.
 - Preserved the existing frontend API shape through a compatibility client so pages/components did not need a redesign.
