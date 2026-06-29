@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { entitySchemaDir } from "../config/paths.js";
 import { nowStamped, readDb, writeDb } from "../config/database.js";
+import { userFromToken } from "../middleware/auth.js";
 import { deliverNotification } from "../services/pushService.js";
 import { handleEntityCreated, handleEntityUpdated, normalizeNotification } from "../services/notificationHooks.js";
 
@@ -36,8 +37,62 @@ function sortRecords(records, sort) {
 
 async function getEntityStore(req) {
   const db = await readDb();
+  req.user ||= userFromToken(req, db);
   db.entities[req.params.entityName] ||= [];
   return { db, records: db.entities[req.params.entityName] };
+}
+
+function getProjectTaskStats(db, projectId) {
+  const projectTasks = (db.entities.Task || []).filter((task) => task.project_id === projectId);
+  const completedTasks = projectTasks.filter((task) => task.status === "completed");
+  return {
+    total: projectTasks.length,
+    completed: completedTasks.length,
+    progress: projectTasks.length ? Math.round((completedTasks.length / projectTasks.length) * 100) : 0,
+  };
+}
+
+function validateProjectCompletion(db, projectId, projectData) {
+  if (projectData.status !== "completed") return null;
+  const stats = getProjectTaskStats(db, projectId);
+  if (stats.total === 0) return "A project cannot be marked completed until it has linked tasks.";
+  if (stats.completed !== stats.total) {
+    return `A project cannot be marked completed while ${stats.total - stats.completed} linked task(s) are still open.`;
+  }
+  return null;
+}
+
+function prepareEntityData(entityName, incoming, existing = {}, req = {}) {
+  const data = entityName === "Notification" ? normalizeNotification(incoming) : { ...incoming };
+
+  if (entityName === "Project") {
+    delete data.progress;
+    delete data.progress_override;
+  }
+
+  if (entityName === "Task") {
+    const previousStatus = existing.status || "todo";
+    const nextStatus = data.status || previousStatus;
+    if (nextStatus !== previousStatus) {
+      const statusEvent = {
+        from: previousStatus,
+        to: nextStatus,
+        changed_by: req.user?.email || "unknown",
+        changed_at: new Date().toISOString(),
+      };
+      data.status_history = [...(existing.status_history || []), statusEvent];
+    }
+    if (nextStatus === "completed" && previousStatus !== "completed") {
+      data.completed_at = new Date().toISOString();
+      data.completed_by = req.user?.email || "unknown";
+    }
+    if (previousStatus === "completed" && nextStatus !== "completed") {
+      data.reopened_at = new Date().toISOString();
+      data.reopened_by = req.user?.email || "unknown";
+    }
+  }
+
+  return data;
 }
 
 router.get("/:entityName/schema", async (req, res) => {
@@ -63,7 +118,11 @@ router.get("/:entityName", async (req, res) => {
 
 router.post("/:entityName", async (req, res) => {
   const { db, records } = await getEntityStore(req);
-  const body = req.params.entityName === "Notification" ? normalizeNotification(req.body) : req.body;
+  const body = prepareEntityData(req.params.entityName, req.body, {}, req);
+  if (req.params.entityName === "Project") {
+    const completionError = validateProjectCompletion(db, body.id, body);
+    if (completionError) return res.status(400).json({ message: completionError });
+  }
   const created = nowStamped(body);
   records.push(created);
   await writeDb(db);
@@ -74,7 +133,15 @@ router.post("/:entityName", async (req, res) => {
 
 router.post("/:entityName/bulk", async (req, res) => {
   const { db, records } = await getEntityStore(req);
-  const created = (req.body.items || []).map((item) => nowStamped(req.params.entityName === "Notification" ? normalizeNotification(item) : item));
+  const created = [];
+  for (const item of req.body.items || []) {
+    const prepared = prepareEntityData(req.params.entityName, item, {}, req);
+    if (req.params.entityName === "Project") {
+      const completionError = validateProjectCompletion(db, prepared.id, prepared);
+      if (completionError) return res.status(400).json({ message: completionError });
+    }
+    created.push(nowStamped(prepared));
+  }
   records.push(...created);
   await writeDb(db);
   if (req.params.entityName === "Notification") {
@@ -87,12 +154,18 @@ router.post("/:entityName/bulk", async (req, res) => {
 
 router.patch("/:entityName/bulk", async (req, res) => {
   const { db, records } = await getEntityStore(req);
-  const updated = (req.body.items || []).map((item) => {
+  const updated = [];
+  for (const item of req.body.items || []) {
     const index = records.findIndex((record) => record.id === item.id);
-    if (index === -1) return null;
-    records[index] = nowStamped(item, records[index]);
-    return records[index];
-  }).filter(Boolean);
+    if (index === -1) continue;
+    const prepared = prepareEntityData(req.params.entityName, item, records[index], req);
+    if (req.params.entityName === "Project") {
+      const completionError = validateProjectCompletion(db, item.id, { ...records[index], ...prepared });
+      if (completionError) return res.status(400).json({ message: completionError });
+    }
+    records[index] = nowStamped(prepared, records[index]);
+    updated.push(records[index]);
+  }
   await writeDb(db);
   res.json(updated);
 });
@@ -102,10 +175,20 @@ router.patch("/:entityName/many", async (req, res) => {
   const affected = [];
   records.forEach((record) => {
     if (matches(record, req.body.query)) {
-      Object.assign(record, req.body.update || {}, { updated_date: new Date().toISOString() });
+      const prepared = prepareEntityData(req.params.entityName, req.body.update || {}, record, req);
+      if (req.params.entityName === "Project") {
+        const completionError = validateProjectCompletion(db, record.id, { ...record, ...prepared });
+        if (completionError) {
+          affected.push({ __completionError: completionError });
+          return;
+        }
+      }
+      Object.assign(record, prepared, { updated_date: new Date().toISOString() });
       affected.push(record);
     }
   });
+  const completionError = affected.find((record) => record.__completionError)?.__completionError;
+  if (completionError) return res.status(400).json({ message: completionError });
   await writeDb(db);
   res.json({ count: affected.length, records: affected });
 });
@@ -133,7 +216,12 @@ router.patch("/:entityName/:id", async (req, res) => {
   const index = records.findIndex((item) => item.id === req.params.id);
   if (index === -1) return res.status(404).json({ message: `${req.params.entityName} not found` });
   const previous = { ...records[index] };
-  records[index] = nowStamped(req.body, records[index]);
+  const prepared = prepareEntityData(req.params.entityName, req.body, records[index], req);
+  if (req.params.entityName === "Project") {
+    const completionError = validateProjectCompletion(db, req.params.id, { ...records[index], ...prepared });
+    if (completionError) return res.status(400).json({ message: completionError });
+  }
+  records[index] = nowStamped(prepared, records[index]);
   await writeDb(db);
   await handleEntityUpdated(db, req.params.entityName, previous, records[index]);
   res.json(records[index]);

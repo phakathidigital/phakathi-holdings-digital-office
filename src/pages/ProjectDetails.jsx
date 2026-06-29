@@ -88,6 +88,10 @@ export default function ProjectDetails() {
   };
 
   const handleProjectSubmit = (data) => {
+    if (data.status === "completed" && (tasks.length === 0 || progress < 100)) {
+      window.alert("This project cannot be marked completed until all linked tasks are completed. Progress is verified from task completion.");
+      return;
+    }
     updateProjectMutation.mutate({ id: projectId, data });
   };
 
@@ -103,6 +107,14 @@ export default function ProjectDetails() {
   };
 
   const handleStatusChange = (task, newStatus) => {
+    const hasIncompleteBlockers = newStatus === "completed" && task.blocked_by?.some((blockedTaskId) => {
+      const blocker = tasks.find((item) => item.id === blockedTaskId);
+      return blocker && blocker.status !== "completed";
+    });
+    if (hasIncompleteBlockers) {
+      window.alert("This task cannot be marked Done until its blocking task(s) are completed.");
+      return;
+    }
     updateTaskMutation.mutate({ id: task.id, data: { ...task, status: newStatus } });
   };
 

@@ -3,7 +3,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, Users, DollarSign, TrendingUp } from "lucide-react";
+import { Calendar, Users, DollarSign, TrendingUp, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 
@@ -88,13 +88,17 @@ export default function ProjectStats({ project, tasks, progress }) {
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-gray-700" /> {/* Updated color */}
-                <span className="text-sm font-medium text-gray-600">Overall Progress</span>
+                <span className="text-sm font-medium text-gray-600">Verified Overall Progress</span>
+                <ShieldCheck className="w-4 h-4 text-green-600" />
               </div>
               <span className="text-2xl font-bold text-gray-900">{progress}%</span>
             </div>
             <Progress value={progress} className="h-3" />
             <p className="text-sm text-gray-500">
               {tasks.filter(t => t.status === 'completed').length} of {tasks.length} tasks completed
+            </p>
+            <p className="text-xs text-gray-400">
+              Progress is calculated from completed linked tasks. Manual project progress is ignored.
             </p>
           </div>
         </CardContent>

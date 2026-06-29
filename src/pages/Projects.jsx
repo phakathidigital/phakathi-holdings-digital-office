@@ -3,7 +3,7 @@ import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search, Filter, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
@@ -62,6 +62,12 @@ export default function Projects() {
 
   const handleSubmit = (data) => {
     if (editingProject) {
+      const projectTaskCount = tasks.filter(t => t.project_id === editingProject.id).length;
+      const progress = getProjectProgress(editingProject.id);
+      if (data.status === "completed" && (projectTaskCount === 0 || progress < 100)) {
+        window.alert("This project cannot be marked completed until all linked tasks are completed. Progress is verified from task completion.");
+        return;
+      }
       updateProjectMutation.mutate({ id: editingProject.id, data });
     } else {
       createProjectMutation.mutate(data);
@@ -118,6 +124,17 @@ export default function Projects() {
             New Project
           </Button>
         </motion.div>
+
+        <div className="rounded-2xl border border-green-100 bg-green-50 p-4 flex items-start gap-3">
+          <ShieldCheck className="w-5 h-5 text-green-700 mt-0.5 shrink-0" />
+          <div>
+            <p className="font-semibold text-green-900">Project progress is verified from tasks</p>
+            <p className="text-sm text-green-800 mt-1">
+              Employees cannot type a project progress percentage. Progress is calculated from linked tasks marked Done.
+              A project cannot be completed while linked tasks are still open.
+            </p>
+          </div>
+        </div>
 
         {/* Search and Filters */}
         <div className="flex flex-col md:flex-row gap-4">
@@ -179,6 +196,7 @@ export default function Projects() {
                   project={project}
                   progress={getProjectProgress(project.id)}
                   taskCount={tasks.filter(t => t.project_id === project.id).length}
+                  completedTaskCount={tasks.filter(t => t.project_id === project.id && t.status === 'completed').length}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                   index={index}

@@ -60,6 +60,29 @@
         "type": "string"
       },
       "description": "Array of task IDs that must be completed before this task can move forward"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the task was first marked completed"
+    },
+    "completed_by": {
+      "type": "string",
+      "description": "Email of the user who marked the task completed"
+    },
+    "reopened_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reopened_by": {
+      "type": "string"
+    },
+    "status_history": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Audit trail of task status changes"
     }
   },
   "required": [

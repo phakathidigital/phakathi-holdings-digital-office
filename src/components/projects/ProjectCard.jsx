@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Calendar, Users, MoreVertical, Edit, Trash2, CheckCircle } from "lucide-react";
+import { Calendar, Users, MoreVertical, Edit, Trash2, CheckCircle, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import {
@@ -30,7 +30,7 @@ const priorityColors = {
   critical: "bg-red-100 text-red-700",
 };
 
-export default function ProjectCard({ project, progress, taskCount, onEdit, onDelete, index }) {
+export default function ProjectCard({ project, progress, taskCount, completedTaskCount = 0, onEdit, onDelete, index }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -109,17 +109,23 @@ export default function ProjectCard({ project, progress, taskCount, onEdit, onDe
               )}
               <div className="flex items-center text-sm text-gray-600">
                 <CheckCircle className="w-4 h-4 mr-2" />
-                <span>{taskCount} tasks</span>
+                <span>{completedTaskCount}/{taskCount} tasks completed</span>
               </div>
             </div>
 
             {/* Progress */}
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Progress</span>
+                <span className="text-gray-600 flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-green-600" />
+                  Verified progress
+                </span>
                 <span className="font-semibold text-gray-900">{progress}%</span>
               </div>
               <Progress value={progress} className="h-2" />
+              <p className="text-xs text-gray-400">
+                Calculated from completed linked tasks, not typed manually.
+              </p>
             </div>
           </CardContent>
         </Card>
