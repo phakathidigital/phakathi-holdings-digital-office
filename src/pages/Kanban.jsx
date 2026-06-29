@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import { Columns, Circle, Clock, CheckCircle2, Calendar, UserPlus, X, AlertTriangle, Link2, Timer, Plus, Pencil, Trash2 } from "lucide-react";
+import { Columns, Circle, Clock, CheckCircle2, Calendar, UserPlus, X, AlertTriangle, Link2, Timer, Plus, Pencil, Trash2, Info } from "lucide-react";
 import TimeLogDialog from "@/components/kanban/TimeLogDialog";
 import { format, parseISO } from "date-fns";
 import DependencyPath from "@/components/kanban/DependencyPath";
@@ -493,6 +493,37 @@ export default function Kanban() {
             </Select>
           </div>
         </motion.div>
+
+        <Card className="border-none shadow-sm bg-white">
+          <CardContent className="p-4">
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex gap-3 flex-1">
+                <div className="w-9 h-9 rounded-xl bg-gray-900 text-white flex items-center justify-center shrink-0">
+                  <Info className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">Office execution tracker</p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Use this board to turn project work and Monday meeting action items into visible tasks.
+                    Move work from <strong>To Do</strong> to <strong>In Progress</strong> to <strong>Done</strong>, assign owners,
+                    set due dates, and spot stuck work quickly.
+                  </p>
+                </div>
+              </div>
+              <div className="bg-gray-50 rounded-xl border border-gray-100 p-3 lg:w-[360px]">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Example</p>
+                <p className="text-sm text-gray-700 mt-1">
+                  “Meriam to prepare finance report by Friday” becomes:
+                </p>
+                <ul className="text-xs text-gray-500 mt-2 space-y-1">
+                  <li><strong>Title:</strong> Prepare finance report</li>
+                  <li><strong>Assigned to:</strong> Meriam Malatji</li>
+                  <li><strong>Status:</strong> To Do, then In Progress, then Done</li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {isLoading ? (
           <div className="grid grid-cols-3 gap-4">

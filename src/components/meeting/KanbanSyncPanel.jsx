@@ -102,13 +102,21 @@ function TaskRow({ task, index, onChange, onRemove }) {
 
 export default function KanbanSyncPanel({ meeting, onSynced }) {
   const qc = useQueryClient();
+  const actionItemTasks = (meeting.action_items || []).map((item) => ({
+    title: item.replace(/^[^:]{1,60}:\s*/, "").replace(/\s+—.*$/, "").trim() || item,
+    description: `Action item from meeting: ${meeting.title}\n\n${item}`,
+    assigned_to: extractAssigneeFromActionItem(item),
+    priority: "medium",
+    due_date: "",
+  }));
   const [tasks, setTasks] = useState(
-    (meeting.extracted_tasks || []).map(t => ({ ...t }))
+    ((meeting.extracted_tasks?.length ? meeting.extracted_tasks : actionItemTasks) || []).map(t => ({ ...t }))
   );
   const [syncing, setSyncing] = useState(false);
   const [synced, setSynced] = useState(!!meeting.tasks_synced);
 
   const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => api.entities.Project.list("-created_date", 50) });
+  const { data: users = [] } = useQuery({ queryKey: ["users"], queryFn: () => api.entities.User.list() });
 
   const handleChange = (index, updated) => {
     setTasks(prev => prev.map((t, i) => i === index ? updated : t));
@@ -126,16 +134,16 @@ export default function KanbanSyncPanel({ meeting, onSynced }) {
     if (!tasks.length) return;
     setSyncing(true);
     try {
-      // Find a default project if tasks don't have one (first project found)
+      // Link to first project when available; otherwise create a general Kanban task.
       const defaultProjectId = projects[0]?.id;
 
       for (const t of tasks) {
-        const projectId = t.project_id || defaultProjectId;
-        if (!projectId) continue; // Task requires a project_id (required field)
+        const projectId = t.project_id || defaultProjectId || "";
+        const assignedTo = resolveUserEmail(t.assigned_to, users);
         await api.entities.Task.create({
           title: t.title,
           description: t.description || `Action item from meeting: ${meeting.title}`,
-          assigned_to: t.assigned_to || "",
+          assigned_to: assignedTo,
           priority: t.priority || "medium",
           due_date: t.due_date || "",
           status: "todo",
@@ -151,7 +159,7 @@ export default function KanbanSyncPanel({ meeting, onSynced }) {
       toast.success(`${tasks.length} task${tasks.length > 1 ? "s" : ""} pushed to Kanban`);
       onSynced?.();
     } catch (err) {
-      toast.error("Failed to sync tasks — check that all tasks have a project linked.");
+      toast.error("Failed to sync tasks. Please check the task titles and assignees.");
     } finally {
       setSyncing(false);
     }
@@ -193,9 +201,9 @@ export default function KanbanSyncPanel({ meeting, onSynced }) {
       </div>
 
       {projects.length === 0 && (
-        <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 flex items-center gap-1.5">
+        <p className="text-xs text-blue-600 bg-blue-50 rounded-lg px-3 py-2 flex items-center gap-1.5">
           <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-          You need at least one Project for tasks to be linked. Create a project first.
+          No project exists yet. These will be created as general Kanban tasks.
         </p>
       )}
 
@@ -209,7 +217,7 @@ export default function KanbanSyncPanel({ meeting, onSynced }) {
         )}
         <Button
           onClick={handleSync}
-          disabled={synced || syncing || !tasks.length || !projects.length}
+          disabled={synced || syncing || !tasks.length}
           className="gap-2 bg-gray-900 hover:bg-gray-800 text-white h-8 text-xs"
         >
           {syncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Kanban className="w-3.5 h-3.5" />}
@@ -218,4 +226,26 @@ export default function KanbanSyncPanel({ meeting, onSynced }) {
       </div>
     </div>
   );
+}
+
+function extractAssigneeFromActionItem(item = "") {
+  const match = item.match(/^([^:—-]{2,60})[:—-]/);
+  return match?.[1]?.trim() || "";
+}
+
+function normalize(value = "") {
+  return String(value).trim().toLowerCase();
+}
+
+function resolveUserEmail(value = "", users = []) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (raw.includes("@")) return raw;
+  const wanted = normalize(raw);
+  const match = users.find((user) => {
+    const fullName = normalize(user.full_name);
+    const firstName = fullName.split(" ")[0];
+    return fullName === wanted || firstName === wanted || fullName.includes(wanted);
+  });
+  return match?.email || raw;
 }
