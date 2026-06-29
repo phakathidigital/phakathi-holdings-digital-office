@@ -54,7 +54,7 @@ export default function NotificationDropdown({ notifications, userEmail, onClose
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -8, scale: 0.97 }}
       transition={{ duration: 0.15 }}
-      className="absolute right-0 top-12 w-80 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden"
+      className="fixed left-4 right-4 top-20 mx-auto w-auto max-w-md bg-white rounded-2xl shadow-2xl border border-gray-200 z-[9998] overflow-hidden md:left-auto md:right-6 md:mx-0 md:w-96"
     >
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div className="flex items-center gap-2">

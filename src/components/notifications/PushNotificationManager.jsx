@@ -127,7 +127,7 @@ export default function PushNotificationManager({ user }) {
   }, [user?.email, pushEnabled]);
 
   return (
-    <div className="fixed bottom-4 right-4 z-[9999] flex w-[calc(100vw-2rem)] max-w-sm flex-col gap-3 pointer-events-none">
+    <div className="fixed left-1/2 top-5 z-[9999] flex w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 flex-col gap-3 pointer-events-none">
       <AnimatePresence>
         {activeToasts.map((notif) => (
           <NotificationToast

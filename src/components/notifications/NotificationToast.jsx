@@ -24,10 +24,10 @@ export default function NotificationToast({ notification, onDismiss }) {
 
   return (
     <motion.div
-      initial={{ x: 80, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: 80, opacity: 0 }}
-      className={`pointer-events-auto flex items-start gap-3 p-4 rounded-xl shadow-2xl border border-gray-200 border-l-4 min-w-72 max-w-sm ${PRIORITY_STYLES[notification.priority] || PRIORITY_STYLES.medium}`}
+      initial={{ y: -24, opacity: 0, scale: 0.96 }}
+      animate={{ y: 0, opacity: 1, scale: 1 }}
+      exit={{ y: -24, opacity: 0, scale: 0.96 }}
+      className={`pointer-events-auto flex w-full items-start gap-3 rounded-2xl border border-gray-200 border-l-4 p-4 shadow-2xl backdrop-blur min-w-72 ${PRIORITY_STYLES[notification.priority] || PRIORITY_STYLES.medium}`}
     >
       <Bell className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
       <div className="flex-1 min-w-0">
