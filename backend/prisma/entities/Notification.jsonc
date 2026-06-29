@@ -22,6 +22,14 @@
       ],
       "default": "general"
     },
+    "schedule_key": {
+      "type": "string",
+      "description": "Idempotency key for scheduled/system notifications"
+    },
+    "preference_key": {
+      "type": "string",
+      "description": "UserProfile boolean preference field required for this notification category"
+    },
     "priority": {
       "type": "string",
       "enum": [

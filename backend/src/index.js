@@ -8,6 +8,8 @@ import entityRoutes from "./routes/entities.js";
 import integrationRoutes from "./routes/integrations.js";
 import functionRoutes from "./routes/functions.js";
 import analyticsRoutes from "./routes/analytics.js";
+import pushRoutes from "./routes/push.js";
+import { startNotificationScheduler } from "./services/scheduler.js";
 
 const app = express();
 const PORT = Number(process.env.PORT || 4000);
@@ -25,6 +27,7 @@ app.use("/api/entities", entityRoutes);
 app.use("/api/integrations", integrationRoutes);
 app.use("/api/functions", functionRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/push", pushRoutes);
 
 // README-style resource route aliases. The frontend compatibility client uses
 // /api/entities/:EntityName, while these aliases keep the backend ready for
@@ -62,6 +65,8 @@ const resourceAliases = {
   "company-feed": "CompanyFeedPost",
   recognitions: "Recognition",
   notifications: "Notification",
+  "push-subscriptions": "PushSubscription",
+  "notification-deliveries": "NotificationDelivery",
   "knowledge-base": "KnowledgeBaseDocument",
   "dam-compliance-rules": "DAMComplianceRule",
   "sage-integration": "SageIntegration",
@@ -84,3 +89,4 @@ await ensureStore();
 app.listen(PORT, "127.0.0.1", () => {
   console.log(`Phakathi Flow API running on http://127.0.0.1:${PORT}`);
 });
+startNotificationScheduler();

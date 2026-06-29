@@ -23,10 +23,15 @@ export default function NotificationSettings({ user, onUpdate, isLoading }) {
     notification_email: "",
     email_notifications_enabled: false,
     push_notifications_enabled: false,
+    birthday_notifications_enabled: true,
+    holiday_notifications_enabled: true,
+    break_reminders_enabled: true,
+    did_you_know_enabled: true,
   });
   const [showSuccess, setShowSuccess] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [pushDenied, setPushDenied] = useState(false);
+  const [testStatus, setTestStatus] = useState("");
 
   useEffect(() => {
     if (user?.notification_settings) {
@@ -46,6 +51,10 @@ export default function NotificationSettings({ user, onUpdate, isLoading }) {
         notification_email: profile[0].notification_email || user?.email || "",
         email_notifications_enabled: profile[0].email_notifications_enabled || false,
         push_notifications_enabled: profile[0].push_notifications_enabled || false,
+        birthday_notifications_enabled: profile[0].birthday_notifications_enabled ?? true,
+        holiday_notifications_enabled: profile[0].holiday_notifications_enabled ?? true,
+        break_reminders_enabled: profile[0].break_reminders_enabled ?? true,
+        did_you_know_enabled: profile[0].did_you_know_enabled ?? true,
       });
     } else if (user?.email) {
       setProfilePrefs(prev => ({ ...prev, notification_email: user.email }));
@@ -88,6 +97,16 @@ export default function NotificationSettings({ user, onUpdate, isLoading }) {
     setSavingProfile(false);
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
+  };
+
+  const handleSendTestPush = async () => {
+    setTestStatus("Sending test notification...");
+    try {
+      await api.push.sendTest();
+      setTestStatus("Test notification sent. If this device is subscribed, it should appear shortly.");
+    } catch (error) {
+      setTestStatus(error.message || "Could not send test notification.");
+    }
   };
 
   const notificationGroups = [
@@ -190,6 +209,31 @@ export default function NotificationSettings({ user, onUpdate, isLoading }) {
                 checked={profilePrefs.push_notifications_enabled}
                 onCheckedChange={handlePushToggle}
               />
+            </div>
+
+            <div className="grid gap-4 rounded-xl border border-gray-100 bg-gray-50 p-4">
+              <p className="text-sm font-semibold text-gray-800">Daily office notification preferences</p>
+              {[
+                ["birthday_notifications_enabled", "Birthday reminders"],
+                ["holiday_notifications_enabled", "Public holiday notices"],
+                ["break_reminders_enabled", "Taking-a-break motivations"],
+                ["did_you_know_enabled", "Funny, interesting quotes and Did You Know facts"],
+              ].map(([key, label]) => (
+                <div key={key} className="flex items-center justify-between gap-4">
+                  <Label className="text-sm text-gray-700">{label}</Label>
+                  <Switch
+                    checked={profilePrefs[key] ?? true}
+                    onCheckedChange={(checked) => setProfilePrefs({ ...profilePrefs, [key]: checked })}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Button type="button" variant="outline" onClick={handleSendTestPush} disabled={!profilePrefs.push_notifications_enabled}>
+                Send test push notification
+              </Button>
+              {testStatus && <p className="text-xs text-gray-500">{testStatus}</p>}
             </div>
           </CardContent>
         </Card>

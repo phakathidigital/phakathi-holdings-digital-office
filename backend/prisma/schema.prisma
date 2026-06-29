@@ -31,3 +31,29 @@ model EntityRecord {
 
   @@index([entity_name])
 }
+
+model PushSubscription {
+  id           String   @id @default(uuid())
+  user_email   String
+  endpoint     String   @unique
+  keys         Json
+  device_label String?
+  user_agent   String?
+  enabled      Boolean  @default(true)
+  last_seen_at DateTime?
+  created_date DateTime @default(now())
+  updated_date DateTime @updatedAt
+}
+
+model NotificationDelivery {
+  id              String   @id @default(uuid())
+  notification_id String
+  user_email      String
+  channel         String
+  status          String
+  endpoint        String?
+  sent_at         DateTime?
+  error           String?
+  created_date    DateTime @default(now())
+  updated_date    DateTime @updatedAt
+}

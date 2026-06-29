@@ -91,3 +91,32 @@ VITE_API_BASE_URL=http://127.0.0.1:4000/api
 ```
 
 Provider keys such as `OPENAI_API_KEY`, SMTP, SMS, and future `DATABASE_URL` values are optional until the production backend is hardened.
+
+## Device push notifications
+
+Phakathi Flow now includes browser/device push notification support for logged-in users:
+
+- Service worker notification handling in `public/sw.js`.
+- Push subscription storage per user/device in `PushSubscription`.
+- Per-notification delivery tracking in `NotificationDelivery`.
+- Backend VAPID/web-push delivery through `/api/push`.
+- Scheduled notification scan for birthdays, South African holidays/special days, break reminders, and “Did You Know?” facts.
+- User preferences in Settings for birthdays, public holidays, break motivations, and funny/interesting “Did You Know” facts.
+
+For stable push subscriptions, generate persistent VAPID keys once and place them in `.env.local`:
+
+```bash
+npm run push:vapid
+```
+
+Then copy the generated values into:
+
+```bash
+VAPID_PUBLIC_KEY=...
+VAPID_PRIVATE_KEY=...
+VAPID_SUBJECT=mailto:notifications@phakathiholdings.local
+```
+
+Localhost can use browser push during development. Production device push requires HTTPS and stable VAPID keys. Users must also enable Browser Push Notifications in Settings on each device they want subscribed.
+
+The backend scheduler runs shortly after startup and then every four hours. It creates each scheduled notification once per day using an idempotency key, then sends browser push to subscribed devices where the user’s notification preferences allow it.

@@ -12,6 +12,7 @@
 - Added local upload storage in `.local-data/uploads`.
 - Added placeholder email, SMS, AI, analytics, and function endpoints.
 - Preserved first-login company setup, subsidiary grouping, user designation/role, personal branding, company defaults, Monday meeting templates, and group overview roles.
+- Added self-hosted browser/device push foundations: service worker, VAPID/web-push backend delivery, per-device subscriptions, scheduled birthday/holiday/break/Did You Know notifications, user notification preferences, and delivery logs.
 
 ## Current backend status
 
@@ -31,6 +32,8 @@ Production hardening still recommended:
 - Wire email to SMTP/SES/SendGrid.
 - Wire AI endpoints to OpenAI/Anthropic via server-side provider keys.
 - Replace placeholder function/analytics endpoints with real jobs and audit logs.
+- Move the notification scheduler to a durable production worker/cron process instead of relying only on the local API process timer.
+- Configure persistent VAPID keys in production and require HTTPS for browser push.
 - Add automated API tests.
 
 ## Verification checklist
@@ -43,6 +46,10 @@ Production hardening still recommended:
 - [x] New users are routed into first-login company setup when no subsidiary exists.
 - [x] Company/subsidiary and designation are stored on the user/profile data.
 - [x] Branding assets are local and wired into the visible app.
+- [x] Browser/device push notification foundations implemented.
+- [x] Notification preferences added for birthdays, holidays, breaks, and Did You Know/funny facts.
+- [x] Delivery tracking records added for browser push attempts.
 - [ ] Production database and migrations implemented.
 - [ ] Real email/SMS/AI providers connected.
+- [ ] Production worker/cron deployment configured for scheduled notifications.
 - [ ] Full browser QA completed against `npm run dev`.

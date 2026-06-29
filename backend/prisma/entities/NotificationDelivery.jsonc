@@ -1,0 +1,14 @@
+{
+  "name": "NotificationDelivery",
+  "type": "object",
+  "properties": {
+    "notification_id": { "type": "string" },
+    "user_email": { "type": "string" },
+    "channel": { "type": "string", "enum": ["browser_push", "email", "in_app"] },
+    "status": { "type": "string", "enum": ["pending", "sent", "failed"] },
+    "endpoint": { "type": "string" },
+    "sent_at": { "type": "string", "format": "date-time" },
+    "error": { "type": "string" }
+  },
+  "required": ["notification_id", "user_email", "channel", "status"]
+}

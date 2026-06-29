@@ -1,0 +1,14 @@
+{
+  "name": "PushSubscription",
+  "type": "object",
+  "properties": {
+    "user_email": { "type": "string" },
+    "endpoint": { "type": "string" },
+    "keys": { "type": "object" },
+    "device_label": { "type": "string" },
+    "user_agent": { "type": "string" },
+    "enabled": { "type": "boolean", "default": true },
+    "last_seen_at": { "type": "string", "format": "date-time" }
+  },
+  "required": ["user_email", "endpoint", "keys"]
+}

@@ -38,6 +38,17 @@ export async function ensureStore() {
 
   try {
     await fs.access(dbPath);
+    const db = JSON.parse(await fs.readFile(dbPath, "utf8"));
+    const entityNames = await listEntityNames();
+    db.entities ||= {};
+    let changed = false;
+    for (const name of entityNames) {
+      if (!Array.isArray(db.entities[name])) {
+        db.entities[name] = [];
+        changed = true;
+      }
+    }
+    if (changed) await writeDb(db);
   } catch {
     const entityNames = await listEntityNames();
     const entities = Object.fromEntries(entityNames.map((name) => [name, []]));

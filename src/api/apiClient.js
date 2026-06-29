@@ -9,6 +9,10 @@ function setToken(token) {
   if (token) localStorage.setItem(TOKEN_KEY, token);
 }
 
+export function getAuthToken() {
+  return getToken();
+}
+
 async function request(path, options = {}) {
   const headers = {
     "Content-Type": "application/json",
@@ -190,5 +194,18 @@ export const api = {
       method: "POST",
       body: JSON.stringify(event),
     }).catch(() => null),
+  },
+  push: {
+    getVapidPublicKey: () => request("/push/vapid-public-key"),
+    subscribe: (subscription) => request("/push/subscribe", {
+      method: "POST",
+      body: JSON.stringify(subscription),
+    }),
+    unsubscribe: (endpoint) => request("/push/unsubscribe", {
+      method: "POST",
+      body: JSON.stringify({ endpoint }),
+    }),
+    sendTest: () => request("/push/test", { method: "POST" }),
+    runScan: () => request("/push/run-scan", { method: "POST" }),
   },
 };

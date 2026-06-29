@@ -9,7 +9,8 @@
     "dev:backend": "node backend/src/index.js",
     "build": "vite build --configLoader runner",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "push:vapid": "node -e \"import('web-push').then(({default: webPush}) => console.log(webPush.generateVAPIDKeys()))\""
   },
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",
@@ -70,6 +71,7 @@
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.171.0",
     "vaul": "^1.1.2",
+    "web-push": "^3.6.7",
     "zod": "^3.24.2"
   },
   "devDependencies": {
