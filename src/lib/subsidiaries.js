@@ -17,9 +17,20 @@ export const SUBSIDIARY_ALIASES = {
   "Synergex Healthcare": "Synergex Health",
 };
 
-export const COMPANY_TEAM_PLACEHOLDERS = {
-  "Phakathi Holdings": ["Lorraine", "Meriam", "Phathu", "Thuli", "Percity"],
-  Empoweryst: ["Sarah", "Lesedi", "Molato"],
+export const COMPANY_TEAM_MEMBERS = {
+  "Phakathi Holdings": [
+    "Mr Tshepo Phakathi — Group CEO",
+    "Lorraine Sekwati — HR",
+    "Meriam Malatji — Bookkeeper / Accountant",
+    "Phathtshedzo Rakhunwana — Web, Graphics, and System Developer",
+    "Thuli Thabethe — Office Coordinator",
+    "Percity Mavimbela — Operations Manager",
+  ],
+  Empoweryst: [
+    "Sarah Ngwenya — Administrator",
+    "Lesedi Lucy Motloung — Senior BBBEE Consultant",
+    "Molato Moloko — Senior BBBEE Consultant",
+  ],
 };
 
 export const COMPANY_BRANDING_DEFAULTS = {
@@ -34,8 +45,8 @@ export const COMPANY_BRANDING_DEFAULTS = {
 };
 
 export const MONDAY_ALIGNMENT_ATTENDEES = {
-  "Phakathi Holdings": ["Lorraine", "Meriam", "Phathu", "Thuli", "Percity"],
-  Empoweryst: ["Sarah", "Lesedi", "Molato"],
+  "Phakathi Holdings": ["Mr Tshepo Phakathi", "Lorraine Sekwati", "Meriam Malatji", "Phathtshedzo Rakhunwana", "Thuli Thabethe", "Percity Mavimbela"],
+  Empoweryst: ["Sarah Ngwenya", "Lesedi Lucy Motloung", "Molato Moloko"],
 };
 
 export const MONDAY_ALIGNMENT_AGENDA = `1. Opening and weekly alignment
@@ -47,7 +58,7 @@ export const MONDAY_ALIGNMENT_AGENDA = `1. Opening and weekly alignment
 
 export function normalizeSubsidiary(value) { return SUBSIDIARY_ALIASES[value] || value || ""; }
 export function getCompanyBranding(subsidiary) { return COMPANY_BRANDING_DEFAULTS[normalizeSubsidiary(subsidiary)] || COMPANY_BRANDING_DEFAULTS["Phakathi Holdings"]; }
-export function getTeamPlaceholders(subsidiary) { return COMPANY_TEAM_PLACEHOLDERS[normalizeSubsidiary(subsidiary)] || []; }
+export function getCompanyTeamMembers(subsidiary) { return COMPANY_TEAM_MEMBERS[normalizeSubsidiary(subsidiary)] || []; }
 export function getNextMonday(date = new Date()) {
   const next = new Date(date);
   const day = next.getDay();

@@ -398,7 +398,7 @@ Return a JSON object with these exact keys:
                     <div>
                       <label className="text-sm font-medium text-gray-700 block mb-1">Attendees (emails or names, comma-separated)</label>
                       <Input value={form.attendees_raw} onChange={e => setForm(f => ({ ...f, attendees_raw: e.target.value }))}
-                        placeholder="Lorraine, Meriam, sarah@example.com" />
+                        placeholder="Lorraine Sekwati, Meriam Malatji, sarah.ngwenya@phakathiholdings.local" />
                     </div>
                   </div>
 

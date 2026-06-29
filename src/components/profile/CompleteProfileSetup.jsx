@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building2, Loader2, Palette, Users } from "lucide-react";
-import { SUBSIDIARIES, getCompanyBranding, getTeamPlaceholders } from "@/lib/subsidiaries";
+import { SUBSIDIARIES, getCompanyBranding, getCompanyTeamMembers } from "@/lib/subsidiaries";
 import { applyBranding } from "@/lib/branding";
 
 export default function CompleteProfileSetup({ user, onCompleted }) {
@@ -14,7 +14,7 @@ export default function CompleteProfileSetup({ user, onCompleted }) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const companyBranding = useMemo(() => getCompanyBranding(form.subsidiary), [form.subsidiary]);
-  const teamPlaceholders = useMemo(() => getTeamPlaceholders(form.subsidiary), [form.subsidiary]);
+  const companyTeamMembers = useMemo(() => getCompanyTeamMembers(form.subsidiary), [form.subsidiary]);
   const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
 
   const handleSubmit = async (event) => {
@@ -65,8 +65,8 @@ export default function CompleteProfileSetup({ user, onCompleted }) {
                   <p className="text-xs text-gray-500 mt-2">You can override these later in Settings → Branding.</p>
                 </div>
                 <div className="rounded-xl bg-gray-50 p-4 border border-gray-100">
-                  <p className="text-sm font-semibold text-gray-800 flex items-center gap-2"><Users className="w-4 h-4" /> Initial team placeholders</p>
-                  <p className="text-xs text-gray-500 mt-2">{teamPlaceholders.length ? teamPlaceholders.join(", ") : "No named placeholders yet for this company."}</p>
+                  <p className="text-sm font-semibold text-gray-800 flex items-center gap-2"><Users className="w-4 h-4" /> Company team</p>
+                  <p className="text-xs text-gray-500 mt-2">{companyTeamMembers.length ? companyTeamMembers.join(", ") : "No named team members recorded yet for this company."}</p>
                 </div>
               </div>
             )}

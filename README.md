@@ -63,10 +63,11 @@ The canonical subsidiary list is shared from `src/lib/subsidiaries.js`:
 
 New users sign in/register locally, then must complete first-login profile setup before entering the app. That setup captures company/subsidiary and designation/role.
 
-Initial team placeholders:
+Actual initial staff records:
 
-- Phakathi Holdings: Lorraine, Meriam, Phathu, Thuli, Percity
-- Empoweryst: Sarah, Lesedi, Molato
+- Group CEO: Mr Tshepo Phakathi
+- Phakathi Holdings: Lorraine Sekwati — HR; Meriam Malatji — Bookkeeper / Accountant; Phathtshedzo Rakhunwana — Web, Graphics, and System Developer; Thuli Thabethe — Office Coordinator; Percity Mavimbela — Operations Manager
+- Empoweryst: Sarah Ngwenya — Administrator; Lesedi Lucy Motloung — Senior BBBEE Consultant; Molato Moloko — Senior BBBEE Consultant
 
 ## Branding
 
