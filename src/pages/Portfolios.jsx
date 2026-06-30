@@ -13,6 +13,8 @@ import { Progress } from '@/components/ui/progress';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import WorkSystemFlow from '@/components/work/WorkSystemFlow';
+import { getPortfolioProgress, getPortfolioProjects } from '@/lib/workSystem';
 
 const STATUS_STYLES = {
   active:     { cls: 'bg-indigo-100 text-indigo-700 border-indigo-200', icon: TrendingUp },
@@ -32,6 +34,7 @@ export default function Portfolios() {
 
   const { data: portfolios = [], isLoading } = useQuery({ queryKey: ['portfolios'], queryFn: () => api.entities.Portfolio.list('-created_date') });
   const { data: projects = [] } = useQuery({ queryKey: ['projects'], queryFn: () => api.entities.Project.list() });
+  const { data: tasks = [] } = useQuery({ queryKey: ['tasks'], queryFn: () => api.entities.Task.list() });
 
   const create = useMutation({
     mutationFn: d => api.entities.Portfolio.create(d),
@@ -68,6 +71,8 @@ export default function Portfolios() {
           <Button onClick={() => setShowCreate(true)} className="gap-2"><Plus className="w-4 h-4" />New Portfolio</Button>
         </div>
 
+        <WorkSystemFlow active="portfolios" />
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {stats.map((s, i) => (
             <Card key={i} className="border-0 shadow-sm"><CardContent className="p-4">
@@ -93,7 +98,8 @@ export default function Portfolios() {
             {portfolios.map((p, idx) => {
               const stl = STATUS_STYLES[p.status] || STATUS_STYLES.active;
               const SIcon = stl.icon;
-              const linked = (p.project_ids || []).map(id => projects.find(pr => pr.id === id)).filter(Boolean);
+              const linked = getPortfolioProjects(p, projects);
+              const progress = getPortfolioProgress(p, projects, tasks);
               return (
                 <motion.div key={p.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}>
                   <Card className="border-0 shadow-sm hover:shadow-md transition-all bg-white h-full flex flex-col">
@@ -109,10 +115,14 @@ export default function Portfolios() {
                       </div>
                     </CardHeader>
                     <CardContent className="flex-1 space-y-3">
-                      {p.progress != null && (
+                      {linked.length > 0 && (
                         <div>
-                          <div className="flex justify-between text-xs text-gray-400 mb-1"><span>Progress</span><span>{p.progress}%</span></div>
-                          <Progress value={p.progress} className="h-2" />
+                          <div className="flex justify-between text-xs text-gray-400 mb-1">
+                            <span>Verified roll-up progress</span>
+                            <span>{progress}%</span>
+                          </div>
+                          <Progress value={progress} className="h-2" />
+                          <p className="text-[11px] text-gray-400 mt-1">Average progress of linked projects, which is calculated from tasks.</p>
                         </div>
                       )}
                       <div className="grid grid-cols-2 gap-2 text-xs">

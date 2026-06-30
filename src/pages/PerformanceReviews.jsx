@@ -17,6 +17,7 @@ import PeerFeedbackSection from "../components/performance/PeerFeedbackSection";
 import EvaluationReport from "../components/performance/EvaluationReport";
 import GrowthHistory from "../components/performance/GrowthHistory";
 import { hasGroupOverviewAccess, accessScopeLabel } from "@/lib/accessControl";
+import WorkSystemFlow from "@/components/work/WorkSystemFlow";
 
 const DEPARTMENTS = ["Management", "Finance", "HR", "IT", "Operations", "Empoweryst"];
 const PERIODS = ["Q1 2025", "Q2 2025", "Q3 2025", "Q4 2025", "Q1 2026", "Q2 2026", "Q3 2026", "Q4 2026"];
@@ -380,6 +381,8 @@ export default function PerformanceReviews() {
             </Button>
           )}
         </motion.div>
+
+        <WorkSystemFlow active="goals" />
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4">

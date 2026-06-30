@@ -13,6 +13,7 @@ import ProjectDialog from "../components/projects/ProjectDialog";
 import FilterTabs from "../components/projects/FilterTabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SUBSIDIARIES } from "@/lib/subsidiaries";
+import WorkSystemFlow from "@/components/work/WorkSystemFlow";
 
 export default function Projects() {
   const [showDialog, setShowDialog] = useState(false);
@@ -32,6 +33,12 @@ export default function Projects() {
   const { data: tasks } = useQuery({
     queryKey: ['tasks'],
     queryFn: () => api.entities.Task.list(),
+    initialData: [],
+  });
+
+  const { data: portfolios = [] } = useQuery({
+    queryKey: ['portfolios'],
+    queryFn: () => api.entities.Portfolio.list(),
     initialData: [],
   });
 
@@ -125,6 +132,8 @@ export default function Projects() {
           </Button>
         </motion.div>
 
+        <WorkSystemFlow active="projects" />
+
         <div className="rounded-2xl border border-green-100 bg-green-50 p-4 flex items-start gap-3">
           <ShieldCheck className="w-5 h-5 text-green-700 mt-0.5 shrink-0" />
           <div>
@@ -213,6 +222,7 @@ export default function Projects() {
           project={editingProject}
           onSubmit={handleSubmit}
           isLoading={createProjectMutation.isPending || updateProjectMutation.isPending}
+          portfolios={portfolios}
         />
       </div>
     </div>

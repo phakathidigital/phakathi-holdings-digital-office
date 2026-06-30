@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { format, parseISO, isBefore } from 'date-fns';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import WorkSystemFlow from '@/components/work/WorkSystemFlow';
 
 const STATUS_CFG = {
   pending:     { cls: 'bg-gray-100 text-gray-600',   dot: 'bg-gray-300' },
@@ -77,6 +78,8 @@ export default function Roadmaps() {
             <Button onClick={() => setShowCreate(true)} className="gap-2"><Plus className="w-4 h-4" />Add Milestone</Button>
           </div>
         </div>
+
+        <WorkSystemFlow active="schedule" />
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[

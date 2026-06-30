@@ -14,6 +14,7 @@ import TaskList from "../components/project-details/TaskList";
 import TaskDialog from "../components/project-details/TaskDialog";
 import ProjectStats from "../components/project-details/ProjectStats";
 import ProjectDialog from "../components/projects/ProjectDialog";
+import WorkSystemFlow from "@/components/work/WorkSystemFlow";
 
 export default function ProjectDetails() {
   const navigate = useNavigate();
@@ -40,6 +41,12 @@ export default function ProjectDetails() {
     queryFn: () => api.entities.Task.filter({ project_id: projectId }, "-updated_date"),
     initialData: [],
     enabled: !!projectId,
+  });
+
+  const { data: portfolios = [] } = useQuery({
+    queryKey: ['portfolios'],
+    queryFn: () => api.entities.Portfolio.list(),
+    initialData: [],
   });
 
   const createTaskMutation = useMutation({
@@ -206,6 +213,8 @@ export default function ProjectDetails() {
           </div>
         </motion.div>
 
+        <WorkSystemFlow active="projects" compact />
+
         {/* Project Stats */}
         <ProjectStats project={project} tasks={tasks} progress={progress} />
 
@@ -236,6 +245,7 @@ export default function ProjectDetails() {
           project={project}
           onSubmit={handleProjectSubmit}
           isLoading={updateProjectMutation.isPending}
+          portfolios={portfolios}
         />
       </div>
     </div>

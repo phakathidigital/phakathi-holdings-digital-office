@@ -10,6 +10,14 @@
       "type": "string",
       "description": "Project description"
     },
+    "portfolio_id": {
+      "type": "string",
+      "description": "Portfolio this project belongs to"
+    },
+    "okr_id": {
+      "type": "string",
+      "description": "Optional OKR this project supports"
+    },
     "subsidiary": {
       "type": "string",
       "enum": [
@@ -66,6 +74,10 @@
     "color": {
       "type": "string",
       "description": "Project color theme"
+    },
+    "progress": {
+      "type": "number",
+      "description": "Read-only calculated progress from linked task completion. Manual values are ignored by the API."
     }
   },
   "required": [

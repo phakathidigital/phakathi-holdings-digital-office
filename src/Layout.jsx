@@ -36,7 +36,7 @@ const navigationItems = [
   { title: "Roadmaps",          url: "/Roadmaps",           icon: Map,             group: "work" },
   { title: "Gantt Timeline",    url: "/GanttChart",         icon: GanttChartSquare,group: "work" },
   { title: "Time Tracking",     url: "/TimeTracking",       icon: Timer,           group: "work" },
-  { title: "Goals & OKRs",      url: "/Analytics",          icon: Target,          group: "work" },
+  { title: "Goals & OKRs",      url: "/PerformanceReviews", icon: Target,          group: "work" },
   // COLLABORATION
   { title: "Messaging",         url: "/Messaging",          icon: MessageCircle,   group: "collaboration" },
   { title: "Company Feed",      url: "/CompanyFeed",        icon: Rss,             group: "collaboration" },

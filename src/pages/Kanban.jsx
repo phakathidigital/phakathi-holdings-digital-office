@@ -17,6 +17,7 @@ import { Columns, Circle, Clock, CheckCircle2, Calendar, UserPlus, X, AlertTrian
 import TimeLogDialog from "@/components/kanban/TimeLogDialog";
 import { format, parseISO } from "date-fns";
 import DependencyPath from "@/components/kanban/DependencyPath";
+import WorkSystemFlow from "@/components/work/WorkSystemFlow";
 
 const COLUMNS = [
   { id: "todo",        label: "To Do",       icon: Circle,       color: "text-gray-500",  bg: "bg-gray-50",   border: "border-gray-200",  headerBg: "bg-gray-100" },
@@ -493,6 +494,8 @@ export default function Kanban() {
             </Select>
           </div>
         </motion.div>
+
+        <WorkSystemFlow active="tasks" />
 
         <Card className="border-none shadow-sm bg-white">
           <CardContent className="p-4">

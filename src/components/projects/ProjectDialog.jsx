@@ -24,10 +24,11 @@ const colors = [
   "#808080", "#000000", "#C0C0C0", "#404040", "#606060", "#A0A0A0", "#505050", "#707070"
 ];
 
-export default function ProjectDialog({ open, onOpenChange, project, onSubmit, isLoading }) {
+export default function ProjectDialog({ open, onOpenChange, project, onSubmit, isLoading, portfolios = [] }) {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
+    portfolio_id: "",
     subsidiary: "",
     status: "planning",
     priority: "medium",
@@ -43,6 +44,7 @@ export default function ProjectDialog({ open, onOpenChange, project, onSubmit, i
       setFormData({
         name: project.name || "",
         description: project.description || "",
+        portfolio_id: project.portfolio_id || "",
         subsidiary: project.subsidiary || "",
         status: project.status || "planning",
         priority: project.priority || "medium",
@@ -56,6 +58,7 @@ export default function ProjectDialog({ open, onOpenChange, project, onSubmit, i
       setFormData({
         name: "",
         description: "",
+        portfolio_id: "",
         subsidiary: "",
         status: "planning",
         priority: "medium",
@@ -100,6 +103,19 @@ export default function ProjectDialog({ open, onOpenChange, project, onSubmit, i
                 placeholder="Enter project name"
                 required
               />
+            </div>
+
+            <div className="md:col-span-2 space-y-2">
+              <Label htmlFor="portfolio_id">Portfolio / Strategic Initiative</Label>
+              <Select value={formData.portfolio_id || "none"} onValueChange={(value) => setFormData({...formData, portfolio_id: value === "none" ? "" : value})}>
+                <SelectTrigger><SelectValue placeholder="Link to portfolio..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Portfolio</SelectItem>
+                  {portfolios.map((portfolio) => (
+                    <SelectItem key={portfolio.id} value={portfolio.id}>{portfolio.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="md:col-span-2 space-y-2">

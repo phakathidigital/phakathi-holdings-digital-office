@@ -10,6 +10,7 @@ import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   BarChart, Bar, AreaChart, Area,
 } from 'recharts';
+import WorkSystemFlow from '@/components/work/WorkSystemFlow';
 
 const PERIOD_DAYS = { '7': 7, '14': 14, '30': 30 };
 
@@ -111,6 +112,8 @@ export default function TimeTracking() {
           </Select>
         </div>
       </motion.div>
+
+      <WorkSystemFlow active="capacity" />
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

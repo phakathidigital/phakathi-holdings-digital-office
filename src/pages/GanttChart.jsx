@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { addDays, format, differenceInDays, parseISO, startOfDay, isValid } from 'date-fns';
 import GanttBar from '../components/gantt/GanttBar';
 import GanttDependencyLines from '../components/gantt/GanttDependencyLines';
+import WorkSystemFlow from '@/components/work/WorkSystemFlow';
 
 const ROW_HEIGHT = 44;
 const LABEL_WIDTH = 200;
@@ -159,6 +160,10 @@ export default function GanttChart() {
             <Button variant="ghost" size="sm" className="h-7 text-xs text-gray-500" onClick={handleDiscard}>Discard</Button>
           </div>
         )}
+      </div>
+
+      <div className="px-6 py-3 bg-gray-50 border-b border-gray-200">
+        <WorkSystemFlow active="schedule" compact />
       </div>
 
       {/* Chart area */}

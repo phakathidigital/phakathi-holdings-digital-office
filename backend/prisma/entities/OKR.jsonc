@@ -8,6 +8,14 @@
     "employee_email": {
       "type": "string"
     },
+    "portfolio_id": {
+      "type": "string",
+      "description": "Optional portfolio linked to this OKR"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Optional project linked to this OKR"
+    },
     "objective": {
       "type": "string"
     },
