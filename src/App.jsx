@@ -57,6 +57,7 @@ import WorkloadPlanner from './pages/WorkloadPlanner';
 import Roadmaps from './pages/Roadmaps';
 import CompanyFeed from './pages/CompanyFeed';
 import SageIntegration from './pages/SageIntegration';
+import GoalsOKRs from './pages/GoalsOKRs';
 
 setupIframeMessaging();
 
@@ -201,6 +202,7 @@ const AuthenticatedApp = () => {
         <Route path="/Kanban" element={<Kanban />} />
         <Route path="/ResourceCalendar" element={<ResourceCalendar />} />
         <Route path="/PerformanceReviews" element={<PerformanceReviews />} />
+        <Route path="/GoalsOKRs" element={<GoalsOKRs />} />
         <Route path="/PayrollDashboard" element={<PayrollDashboard />} />
         <Route path="/Expenses" element={<Expenses />} />
         <Route path="/Assets" element={<Assets />} />

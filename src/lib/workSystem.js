@@ -2,7 +2,7 @@ export const WORK_SYSTEM_STEPS = [
   {
     key: "goals",
     label: "Goals & OKRs",
-    path: "/PerformanceReviews",
+    path: "/GoalsOKRs",
     description: "Define what the group or employee must achieve.",
   },
   {
@@ -63,3 +63,29 @@ export function getPortfolioProgress(portfolio, projects = [], tasks = []) {
   return Math.round(total / linkedProjects.length);
 }
 
+export function getGoalPortfolios(goal, portfolios = []) {
+  return portfolios.filter((portfolio) => portfolio.okr_id === goal?.id || goal?.portfolio_id === portfolio.id);
+}
+
+export function getGoalProjects(goal, projects = [], portfolios = []) {
+  const linkedPortfolioIds = new Set(getGoalPortfolios(goal, portfolios).map((portfolio) => portfolio.id));
+  return projects.filter((project) =>
+    project.okr_id === goal?.id ||
+    goal?.project_id === project.id ||
+    linkedPortfolioIds.has(project.portfolio_id)
+  );
+}
+
+export function getGoalProgress(goal, portfolios = [], projects = [], tasks = []) {
+  const linkedPortfolios = getGoalPortfolios(goal, portfolios);
+  if (linkedPortfolios.length) {
+    const total = linkedPortfolios.reduce((sum, portfolio) => sum + getPortfolioProgress(portfolio, projects, tasks), 0);
+    return Math.round(total / linkedPortfolios.length);
+  }
+  const linkedProjects = getGoalProjects(goal, projects, portfolios);
+  if (linkedProjects.length) {
+    const total = linkedProjects.reduce((sum, project) => sum + getProjectProgress(project, tasks), 0);
+    return Math.round(total / linkedProjects.length);
+  }
+  return Number(goal?.progress || 0);
+}
