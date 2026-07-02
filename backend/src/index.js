@@ -89,4 +89,6 @@ await ensureStore();
 app.listen(PORT, "127.0.0.1", () => {
   console.log(`Phakathi Flow API running on http://127.0.0.1:${PORT}`);
 });
-startNotificationScheduler();
+if (process.env.ENABLE_LOCAL_NOTIFICATION_SCHEDULER !== "false" && process.env.NETLIFY !== "true") {
+  startNotificationScheduler();
+}

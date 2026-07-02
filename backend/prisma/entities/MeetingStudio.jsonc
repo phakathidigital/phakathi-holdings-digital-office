@@ -91,6 +91,31 @@
     "emails_sent": {
       "type": "boolean",
       "default": false
+    },
+    "extracted_tasks": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "attendee_summaries": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "tasks_synced": {
+      "type": "boolean",
+      "default": false
+    },
+    "ai_provider": {
+      "type": "string"
+    },
+    "ai_model": {
+      "type": "string"
+    },
+    "ai_note": {
+      "type": "string"
     }
   },
   "required": [

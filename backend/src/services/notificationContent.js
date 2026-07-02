@@ -105,6 +105,20 @@ export function damUsageNotifications(db, date = new Date()) {
   }];
 }
 
+export function mondayAlignmentNotifications(db, date = new Date()) {
+  if (date.getDay() !== 1) return [];
+  return [{
+    title: "🗓️ Monday alignment reminder",
+    message: "Weekly group alignment is today. Review open Kanban actions, project blockers, DAM updates, and subsidiary priorities before the meeting.",
+    type: "meeting_reminder",
+    priority: "medium",
+    delivery_channels: ["in_app", "browser_push"],
+    target_users: usersWithPreference(db, "meeting_reminders_enabled"),
+    preference_key: "meeting_reminders_enabled",
+    schedule_key: `monday-alignment-${date.toISOString().slice(0, 10)}`,
+  }];
+}
+
 export function holidayNotifications(db, date = new Date()) {
   const holiday = getTodaysHoliday(date);
   if (!holiday) return [];

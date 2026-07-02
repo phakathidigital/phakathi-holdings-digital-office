@@ -138,6 +138,10 @@ export const api = {
         method: "POST",
         body: JSON.stringify(data),
       }),
+      AnalyzeMeetingTranscript: (data) => request("/integrations/ai/meeting-studio", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
       SendEmail: (data) => request("/integrations/send-email", {
         method: "POST",
         body: JSON.stringify(data),

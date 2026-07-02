@@ -1,0 +1,16 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[functions."scheduled-notifications"]
+  schedule = "0 7,11,14 * * *"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+

@@ -70,7 +70,13 @@ router.post("/test", requireAuth, async (req, res) => {
   res.json(notification);
 });
 
-router.post("/run-scan", requireAuth, async (_req, res) => {
+function allowSchedulerSecret(req, res, next) {
+  const configured = process.env.SCHEDULED_NOTIFICATION_SECRET;
+  if (configured && req.get("x-scheduler-secret") === configured) return next();
+  return requireAuth(req, res, next);
+}
+
+router.post("/run-scan", allowSchedulerSecret, async (_req, res) => {
   const created = await runNotificationScan();
   res.json({ created: created.length, notifications: created });
 });

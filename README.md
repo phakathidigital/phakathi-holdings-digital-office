@@ -1,6 +1,6 @@
 # Phakathi Flow
 
-Phakathi Flow is the local/self-hosted digital office for the Phakathi Holdings group. It supports shared services and subsidiary teams in one React/Vite app, with a local Node API backend for auth, profiles, entity data, uploads, email placeholders, and AI placeholders.
+Phakathi Flow is the local/self-hosted digital office for the Phakathi Holdings group. It supports shared services and subsidiary teams in one React/Vite app, with a local Node API backend for auth, profiles, entity data, uploads, email placeholders, OpenAI-backed Meeting Studio processing, and safe local AI fallback.
 
 ## Local development
 
@@ -46,7 +46,8 @@ Implemented backend capabilities:
 - Generic entity CRUD for all migrated entity schemas in `backend/prisma/entities/`.
 - Seed users for Phakathi Holdings and Empoweryst.
 - Local file upload storage under `.local-data/uploads`.
-- Email/SMS/AI placeholder endpoints so workflows remain usable without external provider keys.
+- Email/SMS queue placeholders plus OpenAI-backed Meeting Studio transcript analysis with safe deterministic fallback when `OPENAI_API_KEY` is not configured.
+- July 2026 seeded working data for Goals → Portfolio → Projects → Kanban → Meeting Studio workflow.
 
 ## Multi-company group-user feature
 
@@ -83,6 +84,17 @@ The app uses the Phakathi Holdings logo in the auth landing screen, sidebar, mob
 
 The meeting scheduler and AI Meeting Studio include a weekly Monday alignment template based on the March/April 2026 meeting notes. The template includes group strategy alignment, subsidiary updates, performance/project-management blockers, and action-item follow-up.
 
+Meeting Studio posts transcripts to the backend `/api/integrations/ai/meeting-studio` endpoint. When `OPENAI_API_KEY` is present, the backend uses OpenAI to return:
+
+- executive summary
+- decisions
+- action items
+- structured notes
+- attendee summaries
+- extracted Kanban-ready tasks
+
+When no key is present, the backend uses a deterministic fallback parser so the UI remains usable for testing and daily capture.
+
 ## Environment
 
 Copy `.env.example` to `.env.local` if you need to override defaults.
@@ -91,7 +103,7 @@ Copy `.env.example` to `.env.local` if you need to override defaults.
 VITE_API_BASE_URL=http://127.0.0.1:4000/api
 ```
 
-Provider keys such as `OPENAI_API_KEY`, SMTP, SMS, and future `DATABASE_URL` values are optional until the production backend is hardened.
+Provider keys such as `OPENAI_API_KEY`, SMTP, SMS, and future `DATABASE_URL` values are optional until the production backend is hardened. `OPENAI_API_KEY` enables the real Meeting Studio AI flow; without it, Meeting Studio uses the safe fallback.
 
 ## Device push notifications
 
@@ -123,4 +135,25 @@ VAPID_SUBJECT=mailto:notifications@phakathiholdings.local
 
 Localhost can use browser push during development. Production device push requires HTTPS and stable VAPID keys. Users must also enable Browser Push Notifications in Settings on each device they want subscribed.
 
-The backend scheduler runs shortly after startup and then every four hours. It creates each scheduled notification once per day using an idempotency key, then sends browser push to subscribed devices where the user’s notification preferences allow it.
+For local development, the backend scheduler runs shortly after startup and then every four hours unless `ENABLE_LOCAL_NOTIFICATION_SCHEDULER=false`.
+
+For deployment, notification scans are prepared for Netlify scheduled functions:
+
+- `netlify.toml` configures `netlify/functions/scheduled-notifications.mjs`.
+- The function runs at 07:00, 11:00, and 14:00 UTC.
+- Set `PHAKATHI_API_BASE_URL` to your deployed backend/API URL so Netlify triggers scans against persistent storage.
+- Set `SCHEDULED_NOTIFICATION_SECRET` on both Netlify and the backend to allow secure cron triggering of `/api/push/run-scan`.
+
+The scheduler preserves birthday, South African holiday/special day, break/wellness, Did You Know, DAM usage, and Monday reminder logic through the shared backend notification scanner.
+
+## July 2026 workflow seed
+
+The local backend seeds realistic working data:
+
+- OKR: July 2026 group execution rhythm.
+- Portfolio: July 2026 Group Execution & Education Growth Portfolio.
+- Projects: Monday alignment cadence, Empoweryst BBBEE delivery, DAM discipline, and education ecosystem pipeline.
+- Kanban tasks assigned to the real Phakathi Holdings / Empoweryst roster.
+- Monday alignment Meeting Studio record for 6 July 2026 with summary, decisions, action items, attendee summaries, and synced Kanban tasks.
+
+The stale Tester project/task seed is removed automatically during backend store initialization.

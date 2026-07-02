@@ -268,54 +268,12 @@ export default function MeetingStudioPage() {
     });
 
     try {
-      // Build attendees block for per-person summaries
-      const attendeesBlock = attendees.length
-        ? `Attendees: ${attendees.join(", ")}`
-        : "";
-
-      const result = await api.integrations.Core.InvokeLLM({
-        prompt: `You are an expert corporate meeting analyst for Phakathi Holdings, a diversified South African investment group.
-
-Analyse the following meeting transcript and produce comprehensive, professional meeting documentation.
-
-Meeting Title: ${form.title}
-Date: ${form.meeting_date}
-${attendeesBlock}
-
-TRANSCRIPT:
-${form.transcript}
-
-Return a JSON object with these exact keys:
-- summary: A concise executive summary (2-4 paragraphs)
-- decisions: Array of strings, each a key decision made
-- action_items: Array of strings, each formatted as "OWNER: Action — Deadline (if mentioned)"
-- structured_notes: Full structured meeting notes with sections for Agenda, Discussion Points, and Outcomes
-- individual_summaries: Object where each key is an attendee email and value is a personalised summary focusing on what's relevant to that person
-- extracted_tasks: Array of task objects extracted from the meeting. Each task must have: title (string, required), description (string), assigned_to (email string — match against the attendee list if possible, else empty string), priority ("low"|"medium"|"high"|"critical"), due_date (ISO date string if mentioned, else empty string). Only include concrete, actionable tasks with a clear owner or outcome.`,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            summary: { type: "string" },
-            decisions: { type: "array", items: { type: "string" } },
-            action_items: { type: "array", items: { type: "string" } },
-            structured_notes: { type: "string" },
-            individual_summaries: { type: "object" },
-            extracted_tasks: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  title: { type: "string" },
-                  description: { type: "string" },
-                  assigned_to: { type: "string" },
-                  priority: { type: "string" },
-                  due_date: { type: "string" },
-                },
-              },
-            },
-          },
-        },
-        model: "claude_sonnet_4_6",
+      const result = await api.integrations.Core.AnalyzeMeetingTranscript({
+        title: form.title,
+        meeting_date: form.meeting_date,
+        subsidiary: form.subsidiary,
+        attendees,
+        transcript: form.transcript,
       });
 
       await api.entities.MeetingStudio.update(record.id, {
@@ -324,7 +282,11 @@ Return a JSON object with these exact keys:
         action_items: result.action_items,
         structured_notes: result.structured_notes,
         individual_summaries: result.individual_summaries,
+        attendee_summaries: result.attendee_summaries || [],
         extracted_tasks: result.extracted_tasks || [],
+        ai_provider: result.ai_provider,
+        ai_model: result.ai_model,
+        ai_note: result.ai_note,
         status: "completed",
       });
 
@@ -351,7 +313,7 @@ Return a JSON object with these exact keys:
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
               <Mic className="w-7 h-7" /> AI Meeting Studio
             </h1>
-            <p className="text-gray-500 mt-1">Upload or paste your transcript — AI generates full notes, action items, and sends summaries to every attendee</p>
+            <p className="text-gray-500 mt-1">Upload or paste your transcript — OpenAI generates full notes, action items, attendee summaries, and Kanban-ready tasks when configured.</p>
           </div>
           <div className="flex gap-2">
             <Button onClick={() => setShowScheduler(true)} variant="outline" className="gap-2">
@@ -430,7 +392,7 @@ John: Great. Sarah, can you prepare a full report by Friday?
                   <div className="flex items-center justify-between pt-2 border-t">
                     <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg">
                       <Sparkles className="w-3.5 h-3.5" />
-                      Powered by Claude AI — uses more credits for best quality
+                      OpenAI-backed when configured; safe local fallback remains available
                     </div>
                     <Button
                       onClick={handleGenerate}
