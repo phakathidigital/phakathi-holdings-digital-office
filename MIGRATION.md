@@ -49,7 +49,11 @@ Production hardening still recommended:
 - [x] Browser/device push notification foundations implemented.
 - [x] Notification preferences added for birthdays, holidays, breaks, and Did You Know/funny facts.
 - [x] Delivery tracking records added for browser push attempts.
+- [x] OpenAI-backed Meeting Studio flow implemented with safe fallback.
+- [x] Netlify scheduled notification function configured.
+- [x] July 2026 realistic work-system seed data added.
 - [ ] Production database and migrations implemented.
-- [ ] Real email/SMS/AI providers connected.
-- [ ] Production worker/cron deployment configured for scheduled notifications.
+- [ ] Production OpenAI key configured and tested in deployed environment.
+- [ ] Real email/SMS providers connected.
+- [ ] Netlify production environment variables configured.
 - [ ] Full browser QA completed against `npm run dev`.
