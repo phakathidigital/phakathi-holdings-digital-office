@@ -1,3 +1,4 @@
+import "../config/env.js";
 import crypto from "node:crypto";
 
 const TOKEN_ALGORITHM = "HS256";

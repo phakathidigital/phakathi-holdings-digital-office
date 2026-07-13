@@ -1,3 +1,4 @@
+import "./env.js";
 import webPush from "web-push";
 
 const fallbackKeys = webPush.generateVAPIDKeys();

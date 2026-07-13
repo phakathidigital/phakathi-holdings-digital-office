@@ -2,12 +2,13 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 import { dataDir, dbPath, entitySchemaDir, uploadDir } from "./paths.js";
+import { OFFICE_CONTACTS } from "./officeContacts.js";
 
 const initialEmployees = [
   { full_name: "Mr Tshepo Phakathi", email: "tshepo.phakathi@phakathiholdings.local", role: "admin", subsidiary: "Phakathi Holdings", department: "Executive", job_title: "Group CEO" },
-  { full_name: "Lorraine Sekwati", email: "lorraine.sekwati@phakathiholdings.local", role: "user", subsidiary: "Phakathi Holdings", department: "HR", job_title: "HR" },
+  { full_name: "Lorraine Sekwati", email: OFFICE_CONTACTS.hrEmail, role: "user", subsidiary: "Phakathi Holdings", department: "HR", job_title: "HR" },
   { full_name: "Meriam Malatji", email: "meriam.malatji@phakathiholdings.local", role: "user", subsidiary: "Phakathi Holdings", department: "Finance", job_title: "Bookkeeper / Accountant" },
-  { full_name: "Phathtshedzo Rakhunwana", email: "phathtshedzo.rakhunwana@phakathiholdings.local", role: "user", subsidiary: "Phakathi Holdings", department: "Digital", job_title: "Web, Graphics, and System Developer" },
+  { full_name: "Phathtshedzo Rakhunwana", email: OFFICE_CONTACTS.digitalLeadEmail, role: "user", subsidiary: "Phakathi Holdings", department: "Digital", job_title: "Web, Graphics, and System Developer" },
   { full_name: "Thuli Thabethe", email: "thuli.thabethe@phakathiholdings.local", role: "user", subsidiary: "Phakathi Holdings", department: "Office Administration", job_title: "Office Coordinator" },
   { full_name: "Percity Mavimbela", email: "percity.mavimbela@phakathiholdings.local", role: "user", subsidiary: "Phakathi Holdings", department: "Operations", job_title: "Operations Manager" },
   { full_name: "Sarah Ngwenya", email: "sarah.ngwenya@phakathiholdings.local", role: "user", subsidiary: "Empoweryst", department: "Administration", job_title: "Administrator" },
@@ -17,13 +18,20 @@ const initialEmployees = [
 
 const legacySeedEmails = new Set([
   "lorraine@phakathiholdings.local",
+  "lorraine.sekwati@phakathiholdings.local",
   "meriam@phakathiholdings.local",
   "phathu@phakathiholdings.local",
+  "phathtshedzo.rakhunwana@phakathiholdings.local",
   "thuli@phakathiholdings.local",
   "percity@phakathiholdings.local",
   "sarah@phakathiholdings.local",
   "lesedi@phakathiholdings.local",
   "molato@phakathiholdings.local",
+]);
+
+const seedEmailAliases = new Map([
+  ["lorraine.sekwati@phakathiholdings.local", OFFICE_CONTACTS.hrEmail],
+  ["phathtshedzo.rakhunwana@phakathiholdings.local", OFFICE_CONTACTS.digitalLeadEmail],
 ]);
 
 function initialUsers() {
@@ -40,6 +48,15 @@ function upsertInitialEmployees(db) {
   db.entities ||= {};
   db.entities.User ||= [];
   db.entities.UserProfile ||= [];
+
+  for (const user of db.entities.User) {
+    const nextEmail = seedEmailAliases.get(String(user.email || "").toLowerCase());
+    if (nextEmail) user.email = nextEmail;
+  }
+  for (const profile of db.entities.UserProfile) {
+    const nextEmail = seedEmailAliases.get(String(profile.user_email || "").toLowerCase());
+    if (nextEmail) profile.user_email = nextEmail;
+  }
 
   db.entities.User = db.entities.User.filter((user) => !legacySeedEmails.has(user.email));
   db.entities.UserProfile = db.entities.UserProfile.filter((profile) => !legacySeedEmails.has(profile.user_email));
@@ -176,7 +193,7 @@ function seedJuly2026Workflow(db) {
         "tshepo.phakathi@phakathiholdings.local",
         "percity.mavimbela@phakathiholdings.local",
         "thuli.thabethe@phakathiholdings.local",
-        "phathtshedzo.rakhunwana@phakathiholdings.local",
+        OFFICE_CONTACTS.digitalLeadEmail,
       ],
       color: "#111827",
     },
@@ -207,8 +224,8 @@ function seedJuly2026Workflow(db) {
       start_date: "2026-07-03",
       end_date: "2026-07-17",
       team_members: [
-        "phathtshedzo.rakhunwana@phakathiholdings.local",
-        "lorraine.sekwati@phakathiholdings.local",
+        OFFICE_CONTACTS.digitalLeadEmail,
+        OFFICE_CONTACTS.hrEmail,
         "meriam.malatji@phakathiholdings.local",
       ],
       color: "#2563eb",
@@ -225,7 +242,7 @@ function seedJuly2026Workflow(db) {
       team_members: [
         "tshepo.phakathi@phakathiholdings.local",
         "percity.mavimbela@phakathiholdings.local",
-        "phathtshedzo.rakhunwana@phakathiholdings.local",
+        OFFICE_CONTACTS.digitalLeadEmail,
       ],
       color: "#16a34a",
     },
@@ -241,16 +258,16 @@ function seedJuly2026Workflow(db) {
 
   const tasks = [
     ["task-july-agenda-pack", projectIds.meetingCadence, "Prepare 6 July Monday alignment agenda pack", "Thuli to circulate agenda, previous decisions, and open action list before the meeting.", "thuli.thabethe@phakathiholdings.local", "completed", "high", "2026-07-03", 2],
-    ["task-july-meeting-transcript", projectIds.meetingCadence, "Process 6 July transcript in Meeting Studio", "Phathu to process transcript, confirm summary, and sync extracted tasks to Kanban.", "phathtshedzo.rakhunwana@phakathiholdings.local", "in_progress", "high", "2026-07-06", 3],
+    ["task-july-meeting-transcript", projectIds.meetingCadence, "Process 6 July transcript in Meeting Studio", "Phathu to process transcript, confirm summary, and sync extracted tasks to Kanban.", OFFICE_CONTACTS.digitalLeadEmail, "in_progress", "high", "2026-07-06", 3],
     ["task-july-action-followup", projectIds.meetingCadence, "Publish Monday action follow-up list", "Percity to confirm owners, due dates, and blocked items after Meeting Studio task extraction.", "percity.mavimbela@phakathiholdings.local", "todo", "high", "2026-07-07", 2],
     ["task-empoweryst-client-register", projectIds.empowerystDelivery, "Update Empoweryst client delivery register", "Sarah to update active client list, missing documents, and next consultant touchpoints.", "sarah.ngwenya@phakathiholdings.local", "in_progress", "critical", "2026-07-08", 5],
     ["task-empoweryst-consultant-actions", projectIds.empowerystDelivery, "Confirm consultant action owners", "Lesedi and Molato to split outstanding BBBEE client actions and add deadlines.", "lesedi.motloung@phakathiholdings.local", "todo", "high", "2026-07-09", 4],
     ["task-empoweryst-risk-escalation", projectIds.empowerystDelivery, "Escalate high-risk Empoweryst delivery blockers", "Molato to identify client blockers needing management intervention.", "molato.moloko@phakathiholdings.local", "todo", "high", "2026-07-10", 3],
-    ["task-dam-folder-structure", projectIds.damDiscipline, "Finalise Document Vault folder structure", "Phathu to align folders with HR, Finance, Projects, Empoweryst, and meeting records.", "phathtshedzo.rakhunwana@phakathiholdings.local", "in_progress", "high", "2026-07-10", 4],
-    ["task-dam-hr-documents", projectIds.damDiscipline, "Upload and tag HR policy documents", "Lorraine to upload HR policies and tag them for approval and staff visibility.", "lorraine.sekwati@phakathiholdings.local", "todo", "medium", "2026-07-14", 3],
+    ["task-dam-folder-structure", projectIds.damDiscipline, "Finalise Document Vault folder structure", "Phathu to align folders with HR, Finance, Projects, Empoweryst, and meeting records.", OFFICE_CONTACTS.digitalLeadEmail, "in_progress", "high", "2026-07-10", 4],
+    ["task-dam-hr-documents", projectIds.damDiscipline, "Upload and tag HR policy documents", "Lorraine to upload HR policies and tag them for approval and staff visibility.", OFFICE_CONTACTS.hrEmail, "todo", "medium", "2026-07-14", 3],
     ["task-dam-finance-documents", projectIds.damDiscipline, "Upload July finance working documents", "Meriam to upload finance working files and mark confidential items correctly.", "meriam.malatji@phakathiholdings.local", "todo", "medium", "2026-07-15", 3],
     ["task-education-pipeline-map", projectIds.educationPipeline, "Map education ecosystem opportunities", "Percity to draft pipeline across Kaelo Education, Baby Geniuses, Key Experts training support, and shared services.", "percity.mavimbela@phakathiholdings.local", "todo", "medium", "2026-07-17", 5],
-    ["task-education-exec-review", projectIds.educationPipeline, "Prepare education growth review for Group CEO", "Phathu to prepare a one-page dashboard for Tshepo with projects, owners, blockers, and next actions.", "phathtshedzo.rakhunwana@phakathiholdings.local", "todo", "medium", "2026-07-20", 4],
+    ["task-education-exec-review", projectIds.educationPipeline, "Prepare education growth review for Group CEO", "Phathu to prepare a one-page dashboard for Tshepo with projects, owners, blockers, and next actions.", OFFICE_CONTACTS.digitalLeadEmail, "todo", "medium", "2026-07-20", 4],
   ];
 
   for (const [id, project_id, title, description, assigned_to, status, priority, due_date, estimated_hours] of tasks) {
@@ -298,9 +315,9 @@ function seedJuly2026Workflow(db) {
     subsidiary: "Phakathi Holdings",
     attendees: [
       "tshepo.phakathi@phakathiholdings.local",
-      "lorraine.sekwati@phakathiholdings.local",
+      OFFICE_CONTACTS.hrEmail,
       "meriam.malatji@phakathiholdings.local",
-      "phathtshedzo.rakhunwana@phakathiholdings.local",
+      OFFICE_CONTACTS.digitalLeadEmail,
       "thuli.thabethe@phakathiholdings.local",
       "percity.mavimbela@phakathiholdings.local",
       "sarah.ngwenya@phakathiholdings.local",
@@ -326,7 +343,7 @@ function seedJuly2026Workflow(db) {
     individual_summaries: {
       "tshepo.phakathi@phakathiholdings.local": "Group CEO overview: July execution will be monitored through connected work-system progress.",
       "percity.mavimbela@phakathiholdings.local": "Operations: own weekly follow-up discipline and unblock overloaded work.",
-      "phathtshedzo.rakhunwana@phakathiholdings.local": "Digital: process transcript, maintain Meeting Studio/Kanban workflow, and prepare dashboard visibility.",
+      [OFFICE_CONTACTS.digitalLeadEmail]: "Digital: process transcript, maintain Meeting Studio/Kanban workflow, and prepare dashboard visibility.",
       "sarah.ngwenya@phakathiholdings.local": "Empoweryst: update client delivery register and surface admin blockers.",
     },
     attendee_summaries: [
@@ -335,8 +352,8 @@ function seedJuly2026Workflow(db) {
     ],
     extracted_tasks: [
       { title: "Update Empoweryst client delivery register", description: "Extracted from 6 July Monday alignment.", assigned_to: "sarah.ngwenya@phakathiholdings.local", priority: "critical", due_date: "2026-07-08", project_id: projectIds.empowerystDelivery },
-      { title: "Process 6 July transcript in Meeting Studio", description: "Extracted from 6 July Monday alignment.", assigned_to: "phathtshedzo.rakhunwana@phakathiholdings.local", priority: "high", due_date: "2026-07-06", project_id: projectIds.meetingCadence },
-      { title: "Upload HR policy documents to Document Vault", description: "Extracted from 6 July Monday alignment.", assigned_to: "lorraine.sekwati@phakathiholdings.local", priority: "medium", due_date: "2026-07-14", project_id: projectIds.damDiscipline },
+      { title: "Process 6 July transcript in Meeting Studio", description: "Extracted from 6 July Monday alignment.", assigned_to: OFFICE_CONTACTS.digitalLeadEmail, priority: "high", due_date: "2026-07-06", project_id: projectIds.meetingCadence },
+      { title: "Upload HR policy documents to Document Vault", description: "Extracted from 6 July Monday alignment.", assigned_to: OFFICE_CONTACTS.hrEmail, priority: "medium", due_date: "2026-07-14", project_id: projectIds.damDiscipline },
     ],
     tasks_synced: true,
     emails_sent: false,

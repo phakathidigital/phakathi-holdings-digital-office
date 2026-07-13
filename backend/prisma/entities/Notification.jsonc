@@ -18,7 +18,8 @@
         "it_downtime",
         "dam_reminder",
         "meeting_reminder",
-        "birthday_reminder"
+        "birthday_reminder",
+        "performance"
       ],
       "default": "general"
     },

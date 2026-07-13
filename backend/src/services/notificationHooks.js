@@ -1,4 +1,5 @@
-import { nowStamped } from "../config/database.js";
+import { nowStamped, writeDb } from "../config/database.js";
+import { PERFORMANCE_NOTIFICATION_EMAILS } from "../config/officeContacts.js";
 import { deliverNotification } from "./pushService.js";
 
 const DEFAULT_CHANNELS = ["in_app", "browser_push"];
@@ -23,6 +24,11 @@ async function createNotification(db, notification) {
   db.entities.Notification.push(created);
   await deliverNotification(db, created);
   return created;
+}
+
+function queueEmail(db, email) {
+  db.emails ||= [];
+  db.emails.push(nowStamped(email));
 }
 
 function newlyAssignedEmail(before = {}, after = {}, field) {
@@ -90,6 +96,33 @@ export async function handleEntityCreated(db, entityName, record) {
       related_entity_id: record.id,
       created_by: "system",
     });
+  }
+
+  if (entityName === "PerformanceReview") {
+    const targets = uniq([record.employee_email, record.manager_email, ...PERFORMANCE_NOTIFICATION_EMAILS]);
+    if (targets.length) {
+      await createNotification(db, {
+        title: "⭐ Performance review created",
+        message: `${record.employee_name || record.employee_email}'s ${record.review_period || ""} performance review is open for action.`,
+        type: "performance",
+        priority: "high",
+        target_users: targets,
+        related_entity_type: "PerformanceReview",
+        related_entity_id: record.id,
+        created_by: "system",
+      });
+    }
+    for (const hrEmail of PERFORMANCE_NOTIFICATION_EMAILS) {
+      queueEmail(db, {
+        to: hrEmail,
+        subject: `Performance Review Created: ${record.employee_name || record.employee_email}`,
+        body: `A performance review has been created.\n\nEmployee: ${record.employee_name || record.employee_email}\nEmployee email: ${record.employee_email || "Not specified"}\nPeriod: ${record.review_period || "Not specified"}\nManager: ${record.manager_name || record.manager_email || "Not specified"}\nStatus: ${record.status || "Not specified"}\n\nOpen Phakathi Flow to review the record.`,
+        related_entity_type: "PerformanceReview",
+        related_entity_id: record.id,
+        created_by: "system",
+      });
+    }
+    await writeDb(db);
   }
 }
 
@@ -197,6 +230,36 @@ export async function handleEntityUpdated(db, entityName, before, after) {
         related_entity_id: after.id,
         created_by: "system",
       });
+    }
+  }
+
+  if (entityName === "PerformanceReview") {
+    const statusChanged = before.status !== after.status;
+    const managerRatingChanged = before.manager_rating !== after.manager_rating;
+    const selfRatingChanged = before.self_rating !== after.self_rating;
+    if (statusChanged || managerRatingChanged || selfRatingChanged) {
+      const targets = uniq([after.employee_email, after.manager_email, ...PERFORMANCE_NOTIFICATION_EMAILS]);
+      await createNotification(db, {
+        title: "⭐ Performance review updated",
+        message: `${after.employee_name || after.employee_email}'s ${after.review_period || ""} review is now ${after.status?.replaceAll("_", " ") || "updated"}.`,
+        type: "performance",
+        priority: statusChanged ? "high" : "medium",
+        target_users: targets,
+        related_entity_type: "PerformanceReview",
+        related_entity_id: after.id,
+        created_by: "system",
+      });
+      for (const hrEmail of PERFORMANCE_NOTIFICATION_EMAILS) {
+        queueEmail(db, {
+          to: hrEmail,
+          subject: `Performance Review Updated: ${after.employee_name || after.employee_email}`,
+          body: `A performance review has been updated.\n\nEmployee: ${after.employee_name || after.employee_email}\nEmployee email: ${after.employee_email || "Not specified"}\nPeriod: ${after.review_period || "Not specified"}\nManager: ${after.manager_name || after.manager_email || "Not specified"}\nStatus: ${after.status || "Not specified"}\nSelf rating: ${after.self_rating || "Not captured"}\nManager rating: ${after.manager_rating || "Not captured"}\n\nOpen Phakathi Flow to review the record.`,
+          related_entity_type: "PerformanceReview",
+          related_entity_id: after.id,
+          created_by: "system",
+        });
+      }
+      await writeDb(db);
     }
   }
 }

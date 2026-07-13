@@ -71,8 +71,10 @@ For the real seeded employees below, use their listed work email on first sign-i
 Actual initial staff records:
 
 - Group CEO: Mr Tshepo Phakathi
-- Phakathi Holdings: Lorraine Sekwati — HR; Meriam Malatji — Bookkeeper / Accountant; Phathtshedzo Rakhunwana — Web, Graphics, and System Developer; Thuli Thabethe — Office Coordinator; Percity Mavimbela — Operations Manager
+- Phakathi Holdings: Lorraine Sekwati — HR (`lorraine@phkathiholdings.co.za`); Meriam Malatji — Bookkeeper / Accountant; Phathtshedzo Rakhunwana — Web, Graphics, and System Developer (`phathutshedzo@phakathiholdings`); Thuli Thabethe — Office Coordinator; Percity Mavimbela — Operations Manager
 - Empoweryst: Sarah Ngwenya — Administrator; Lesedi Lucy Motloung — Senior BBBEE Consultant; Molato Moloko — Senior BBBEE Consultant
+
+Performance-related notifications and queued email notices are copied to HR at `lorraine@phkathiholdings.co.za`.
 
 ## Branding
 
