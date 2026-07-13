@@ -9,6 +9,7 @@ const DB_BLOB_STORE = "phakathi-flow-db";
 const DB_BLOB_KEY = "db.json";
 
 function shouldUseBlobPersistence() {
+  if (process.env.PHAKATHI_STORAGE === "local-json") return false;
   return process.env.PHAKATHI_STORAGE === "netlify-blobs" || process.env.NETLIFY === "true";
 }
 

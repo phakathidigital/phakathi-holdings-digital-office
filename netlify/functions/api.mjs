@@ -19,7 +19,7 @@ function queryToObject(searchParams) {
 export default async (request, context) => {
   appModule ||= await import("../../backend/src/index.js");
   await appModule.prepareApp();
-  lambdaHandler ||= serverless(appModule.app, { provider: "netlify" });
+  lambdaHandler ||= serverless(appModule.app);
 
   const url = new URL(request.url);
   const body = ["GET", "HEAD"].includes(request.method) ? undefined : await request.text();
