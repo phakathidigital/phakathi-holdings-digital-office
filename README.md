@@ -1,6 +1,6 @@
 # Phakathi Flow
 
-Phakathi Flow is the local/self-hosted digital office for the Phakathi Holdings group. It supports shared services and subsidiary teams in one React/Vite app, with a local Node API backend for auth, profiles, entity data, uploads, email placeholders, OpenAI-backed Meeting Studio processing, and safe local AI fallback.
+Phakathi Flow is the local/self-hosted digital office for the Phakathi Holdings group. It supports shared services and subsidiary teams in one React/Vite app, with a Node/Netlify API backend for auth, profiles, entity data, uploads, email placeholders, OpenAI-backed Meeting Studio processing, scheduled notifications, and safe local AI fallback.
 
 ## Local development
 
@@ -37,7 +37,7 @@ backend/
     └── entities/
 ```
 
-Local development data is stored in `.local-data/db.json`. That folder is intentionally git-ignored.
+Local development data is stored in `.local-data/db.json`. That folder is intentionally git-ignored. Deployed Netlify functions use Netlify Blobs for persistent hosted app data and uploaded files.
 
 Implemented backend capabilities:
 
@@ -47,7 +47,7 @@ Implemented backend capabilities:
 - Current user profile read/update.
 - Auth-protected generic entity CRUD for all migrated entity schemas in `backend/prisma/entities/`.
 - Seed users for Phakathi Holdings and Empoweryst.
-- Local file upload storage under `.local-data/uploads`.
+- Local file upload storage under `.local-data/uploads`; hosted upload storage through Netlify Blobs.
 - Email/SMS queue placeholders plus OpenAI-backed Meeting Studio transcript analysis with safe deterministic fallback when `OPENAI_API_KEY` is not configured.
 - July 2026 seeded working data for Goals → Portfolio → Projects → Kanban → Meeting Studio workflow.
 
@@ -112,6 +112,30 @@ JWT_SECRET=replace-with-a-long-random-secret
 
 For office testing, set `JWT_SECRET` before employees begin using the app so sessions remain valid across backend restarts. Provider keys such as `OPENAI_API_KEY`, SMTP, SMS, and future `DATABASE_URL` values are optional until the production backend is hardened. `OPENAI_API_KEY` enables the real Meeting Studio AI flow; without it, Meeting Studio uses the safe fallback.
 
+## Netlify always-on office deployment
+
+The deployed Netlify setup now includes:
+
+- `/api/*` served by `netlify/functions/api.mjs`.
+- Persistent hosted app data in Netlify Blobs store `phakathi-flow-db`.
+- Persistent hosted uploads in Netlify Blobs store `phakathi-flow-uploads`.
+- Scheduled notification scans in `netlify/functions/scheduled-notifications.mjs`.
+- Production frontend API base set to `/api` in `netlify.toml`.
+
+Set these sensitive variables in Netlify site environment variables, not in Git:
+
+```bash
+JWT_SECRET=...
+VAPID_PUBLIC_KEY=...
+VAPID_PRIVATE_KEY=...
+VAPID_SUBJECT=mailto:notifications@phakathiholdings.local
+SCHEDULED_NOTIFICATION_SECRET=...
+OPENAI_API_KEY=...
+OPENAI_MEETING_MODEL=gpt-4.1-mini
+```
+
+`PHAKATHI_STORAGE=netlify-blobs` is configured in `netlify.toml` for deployed builds. If a separate external API is later used, set `PHAKATHI_API_BASE_URL`; otherwise the scheduled function scans the Netlify Blobs-backed store directly.
+
 ## Device push notifications
 
 Phakathi Flow now includes browser/device push notification support for logged-in users:
@@ -156,7 +180,8 @@ For deployment, notification scans are prepared for Netlify scheduled functions:
 
 - `netlify.toml` configures `netlify/functions/scheduled-notifications.mjs`.
 - The function runs at 07:00, 11:00, and 14:00 UTC.
-- Set `PHAKATHI_API_BASE_URL` to your deployed backend/API URL so Netlify triggers scans against persistent storage.
+- By default, the scheduled function scans the Netlify Blobs-backed store directly.
+- Optionally set `PHAKATHI_API_BASE_URL` to a separate deployed backend/API URL if you later move the API away from Netlify Functions.
 - Set `SCHEDULED_NOTIFICATION_SECRET` on both Netlify and the backend to allow secure cron triggering of `/api/push/run-scan`.
 
 The scheduler preserves birthday, South African holiday/special day, break/wellness, Did You Know, DAM usage, and Monday reminder logic through the shared backend notification scanner.

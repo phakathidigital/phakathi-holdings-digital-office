@@ -1,8 +1,21 @@
+import "./env.js";
 import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 import { dataDir, dbPath, entitySchemaDir, uploadDir } from "./paths.js";
 import { OFFICE_CONTACTS } from "./officeContacts.js";
+
+const DB_BLOB_STORE = "phakathi-flow-db";
+const DB_BLOB_KEY = "db.json";
+
+function shouldUseBlobPersistence() {
+  return process.env.PHAKATHI_STORAGE === "netlify-blobs" || process.env.NETLIFY === "true";
+}
+
+async function getDbBlobStore() {
+  const { getStore } = await import("@netlify/blobs");
+  return getStore({ name: DB_BLOB_STORE, consistency: "strong" });
+}
 
 const initialEmployees = [
   { full_name: "Mr Tshepo Phakathi", email: "tshepo.phakathi@phakathiholdings.local", role: "admin", subsidiary: "Phakathi Holdings", department: "Executive", job_title: "Group CEO" },
@@ -387,6 +400,37 @@ export async function listEntityNames() {
 }
 
 export async function ensureStore() {
+  if (shouldUseBlobPersistence()) {
+    const entityNames = await listEntityNames();
+    const store = await getDbBlobStore();
+    let db = await store.get(DB_BLOB_KEY, { type: "json" });
+    if (!db) {
+      const entities = Object.fromEntries(entityNames.map((name) => [name, []]));
+      entities.User = initialUsers();
+      entities.UserProfile = entities.User.map((user) => ({
+        id: crypto.randomUUID(),
+        user_email: user.email,
+        full_name: user.full_name,
+        subsidiary: user.subsidiary,
+        department: user.department,
+        job_title: user.job_title,
+        role: user.job_title,
+        created_date: new Date().toISOString(),
+        updated_date: new Date().toISOString(),
+      }));
+      db = { entities, events: [], emails: [], sms: [] };
+    }
+
+    db.entities ||= {};
+    for (const name of entityNames) {
+      if (!Array.isArray(db.entities[name])) db.entities[name] = [];
+    }
+    upsertInitialEmployees(db);
+    seedJuly2026Workflow(db);
+    await store.setJSON(DB_BLOB_KEY, db);
+    return;
+  }
+
   await fs.mkdir(dataDir, { recursive: true });
   await fs.mkdir(uploadDir, { recursive: true });
 
@@ -430,10 +474,21 @@ export async function ensureStore() {
 
 export async function readDb() {
   await ensureStore();
+  if (shouldUseBlobPersistence()) {
+    const store = await getDbBlobStore();
+    const db = await store.get(DB_BLOB_KEY, { type: "json" });
+    if (!db) throw new Error("Persistent Netlify Blobs database was not initialized.");
+    return db;
+  }
   return JSON.parse(await fs.readFile(dbPath, "utf8"));
 }
 
 export async function writeDb(db) {
+  if (shouldUseBlobPersistence()) {
+    const store = await getDbBlobStore();
+    await store.setJSON(DB_BLOB_KEY, db);
+    return;
+  }
   await fs.writeFile(dbPath, JSON.stringify(db, null, 2));
 }
 

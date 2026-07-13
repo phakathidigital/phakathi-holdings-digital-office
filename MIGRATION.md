@@ -14,6 +14,7 @@
 - Added placeholder email, SMS, AI, analytics, and function endpoints.
 - Preserved first-login company setup, subsidiary grouping, user designation/role, personal branding, company defaults, Monday meeting templates, and group overview roles.
 - Added self-hosted browser/device push foundations: service worker, VAPID/web-push backend delivery, per-device subscriptions, scheduled birthday/holiday/break/Did You Know notifications, user notification preferences, and delivery logs.
+- Added Netlify-hosted API function routing for `/api/*`, Netlify Blobs persistence for hosted app data/uploads, and scheduled notification scans that run outside the local dev server.
 
 ## Current backend status
 
@@ -23,6 +24,8 @@ Current persistence:
 
 - JSON file database: `.local-data/db.json`
 - Uploaded files: `.local-data/uploads`
+- Hosted Netlify app data: Netlify Blobs store `phakathi-flow-db`
+- Hosted Netlify uploads: Netlify Blobs store `phakathi-flow-uploads`
 
 Production hardening still recommended:
 
@@ -33,7 +36,7 @@ Production hardening still recommended:
 - Wire email to SMTP/SES/SendGrid.
 - Wire AI endpoints to OpenAI/Anthropic via server-side provider keys.
 - Replace placeholder function/analytics endpoints with real jobs and audit logs.
-- Move the notification scheduler to a durable production worker/cron process instead of relying only on the local API process timer.
+- For a later non-Netlify production stack, move the notification scheduler to that platform's durable worker/cron process.
 - Configure persistent VAPID keys in production and require HTTPS for browser push.
 - Add automated API tests.
 
@@ -54,8 +57,10 @@ Production hardening still recommended:
 - [x] Delivery tracking records added for browser push attempts.
 - [x] OpenAI-backed Meeting Studio flow implemented with safe fallback.
 - [x] Netlify scheduled notification function configured.
+- [x] Hosted `/api/*` function configured for Netlify.
+- [x] Netlify Blobs persistence configured for hosted data and uploads.
 - [x] July 2026 realistic work-system seed data added.
-- [ ] Production database and migrations implemented.
+- [ ] Postgres-grade relational production database and migrations implemented.
 - [ ] Production OpenAI key configured and tested in deployed environment.
 - [ ] Real email/SMS providers connected.
 - [ ] Netlify production environment variables configured.

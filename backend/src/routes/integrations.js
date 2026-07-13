@@ -1,3 +1,4 @@
+import "../config/env.js";
 import express from "express";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -8,13 +9,48 @@ import { analyzeMeetingTranscript } from "../services/meetingStudioAi.js";
 
 const router = express.Router();
 const PORT = Number(process.env.PORT || 4000);
+const UPLOAD_BLOB_STORE = "phakathi-flow-uploads";
+
+function useBlobUploads() {
+  return process.env.PHAKATHI_STORAGE === "netlify-blobs" || process.env.NETLIFY === "true";
+}
+
+async function getUploadStore() {
+  const { getStore } = await import("@netlify/blobs");
+  return getStore({ name: UPLOAD_BLOB_STORE, consistency: "strong" });
+}
 
 router.post("/upload-file", async (req, res) => {
   const extension = path.extname(req.body.name || "") || ".bin";
   const filename = `${Date.now()}-${crypto.randomUUID()}${extension}`;
   const base64 = String(req.body.dataUrl || "").split(",")[1] || "";
-  await fs.writeFile(path.join(uploadDir, filename), Buffer.from(base64, "base64"));
+  const buffer = Buffer.from(base64, "base64");
+  if (useBlobUploads()) {
+    const store = await getUploadStore();
+    await store.set(`uploads/${filename}`, buffer, {
+      metadata: {
+        contentType: req.body.type || "application/octet-stream",
+        originalName: req.body.name || filename,
+        uploadedAt: new Date().toISOString(),
+      },
+    });
+    return res.status(201).json({ file_url: `/api/integrations/uploads/${filename}` });
+  }
+  await fs.writeFile(path.join(uploadDir, filename), buffer);
   res.status(201).json({ file_url: `http://127.0.0.1:${PORT}/uploads/${filename}` });
+});
+
+router.get("/uploads/:filename", async (req, res) => {
+  if (!useBlobUploads()) return res.redirect(`/uploads/${encodeURIComponent(req.params.filename)}`);
+  const store = await getUploadStore();
+  const key = `uploads/${req.params.filename}`;
+  const [data, metadata] = await Promise.all([
+    store.get(key, { type: "arrayBuffer" }),
+    store.getMetadata(key),
+  ]);
+  if (!data) return res.status(404).json({ message: "File not found" });
+  res.setHeader("Content-Type", metadata?.contentType || "application/octet-stream");
+  res.send(Buffer.from(data));
 });
 
 router.post("/send-email", async (req, res) => {

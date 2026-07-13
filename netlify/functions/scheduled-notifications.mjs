@@ -29,13 +29,12 @@ export default async (req) => {
   const created = await runNotificationScan(date);
   return Response.json({
     ok: true,
-    mode: "local-json-store",
+    mode: getEnv("NETLIFY") === "true" || getEnv("PHAKATHI_STORAGE") === "netlify-blobs" ? "netlify-blobs" : "local-json-store",
     created: created.length,
-    note: "For production durability, set PHAKATHI_API_BASE_URL to a deployed backend/API with persistent storage.",
+    note: "Scheduled scan completed against the configured backend store.",
   });
 };
 
 export const config = {
   schedule: "0 7,11,14 * * *",
 };
-
