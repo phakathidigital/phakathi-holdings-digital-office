@@ -6,6 +6,7 @@ import { nowStamped, readDb, writeDb } from "../config/database.js";
 import { userFromToken } from "../middleware/auth.js";
 import { deliverNotification } from "../services/pushService.js";
 import { handleEntityCreated, handleEntityUpdated, normalizeNotification } from "../services/notificationHooks.js";
+import { sanitizeUser } from "../utils/authSecurity.js";
 
 const router = express.Router({ mergeParams: true });
 
@@ -36,10 +37,23 @@ function sortRecords(records, sort) {
 }
 
 async function getEntityStore(req) {
-  const db = await readDb();
+  const db = req.db || await readDb();
   req.user ||= userFromToken(req, db);
   db.entities[req.params.entityName] ||= [];
   return { db, records: db.entities[req.params.entityName] };
+}
+
+function sanitizeRecord(entityName, record) {
+  if (entityName === "User") return sanitizeUser(record);
+  if (entityName === "PushSubscription") {
+    const { endpoint, keys, ...safeRecord } = record || {};
+    return safeRecord;
+  }
+  return record;
+}
+
+function sanitizeRecords(entityName, records = []) {
+  return records.map((record) => sanitizeRecord(entityName, record));
 }
 
 function getProjectTaskStats(db, projectId) {
@@ -64,6 +78,16 @@ function validateProjectCompletion(db, projectId, projectData) {
 
 function prepareEntityData(entityName, incoming, existing = {}, req = {}) {
   const data = entityName === "Notification" ? normalizeNotification(incoming) : { ...incoming };
+
+  if (entityName === "User") {
+    delete data.password;
+    delete data.password_hash;
+    delete data.password_reset_token;
+    if (req.user?.role !== "admin") {
+      delete data.role;
+      delete data.email;
+    }
+  }
 
   if (entityName === "Project") {
     delete data.progress;
@@ -104,16 +128,28 @@ router.get("/:entityName/schema", async (req, res) => {
   }
 });
 
+router.use("/:entityName", async (req, res, next) => {
+  const db = await readDb();
+  const user = userFromToken(req, db);
+  if (!user) return res.status(401).json({ message: "Not authenticated" });
+  req.db = db;
+  req.user = sanitizeUser(user);
+  req.authenticatedUser = user;
+  next();
+});
+
 router.post("/:entityName/filter", async (req, res) => {
   const { records } = await getEntityStore(req);
   const filtered = sortRecords(records.filter((record) => matches(record, req.body.query)), req.body.sort);
-  res.json(req.body.limit ? filtered.slice(0, Number(req.body.limit)) : filtered);
+  const limited = req.body.limit ? filtered.slice(0, Number(req.body.limit)) : filtered;
+  res.json(sanitizeRecords(req.params.entityName, limited));
 });
 
 router.get("/:entityName", async (req, res) => {
   const { records } = await getEntityStore(req);
   const sorted = sortRecords(records, req.query.sort);
-  res.json(req.query.limit ? sorted.slice(0, Number(req.query.limit)) : sorted);
+  const limited = req.query.limit ? sorted.slice(0, Number(req.query.limit)) : sorted;
+  res.json(sanitizeRecords(req.params.entityName, limited));
 });
 
 router.post("/:entityName", async (req, res) => {
@@ -128,7 +164,7 @@ router.post("/:entityName", async (req, res) => {
   await writeDb(db);
   if (req.params.entityName === "Notification") await deliverNotification(db, created);
   else await handleEntityCreated(db, req.params.entityName, created);
-  res.status(201).json(created);
+  res.status(201).json(sanitizeRecord(req.params.entityName, created));
 });
 
 router.post("/:entityName/bulk", async (req, res) => {
@@ -149,7 +185,7 @@ router.post("/:entityName/bulk", async (req, res) => {
   } else {
     for (const item of created) await handleEntityCreated(db, req.params.entityName, item);
   }
-  res.status(201).json(created);
+  res.status(201).json(sanitizeRecords(req.params.entityName, created));
 });
 
 router.patch("/:entityName/bulk", async (req, res) => {
@@ -167,7 +203,7 @@ router.patch("/:entityName/bulk", async (req, res) => {
     updated.push(records[index]);
   }
   await writeDb(db);
-  res.json(updated);
+  res.json(sanitizeRecords(req.params.entityName, updated));
 });
 
 router.patch("/:entityName/many", async (req, res) => {
@@ -190,7 +226,7 @@ router.patch("/:entityName/many", async (req, res) => {
   const completionError = affected.find((record) => record.__completionError)?.__completionError;
   if (completionError) return res.status(400).json({ message: completionError });
   await writeDb(db);
-  res.json({ count: affected.length, records: affected });
+  res.json({ count: affected.length, records: sanitizeRecords(req.params.entityName, affected) });
 });
 
 router.delete("/:entityName/many", async (req, res) => {
@@ -202,13 +238,13 @@ router.delete("/:entityName/many", async (req, res) => {
     return false;
   });
   await writeDb(db);
-  res.json({ count: affected.length, records: affected });
+  res.json({ count: affected.length, records: sanitizeRecords(req.params.entityName, affected) });
 });
 
 router.get("/:entityName/:id", async (req, res) => {
   const { records } = await getEntityStore(req);
   const record = records.find((item) => item.id === req.params.id);
-  return record ? res.json(record) : res.status(404).json({ message: `${req.params.entityName} not found` });
+  return record ? res.json(sanitizeRecord(req.params.entityName, record)) : res.status(404).json({ message: `${req.params.entityName} not found` });
 });
 
 router.patch("/:entityName/:id", async (req, res) => {
@@ -224,7 +260,7 @@ router.patch("/:entityName/:id", async (req, res) => {
   records[index] = nowStamped(prepared, records[index]);
   await writeDb(db);
   await handleEntityUpdated(db, req.params.entityName, previous, records[index]);
-  res.json(records[index]);
+  res.json(sanitizeRecord(req.params.entityName, records[index]));
 });
 
 router.delete("/:entityName/:id", async (req, res) => {

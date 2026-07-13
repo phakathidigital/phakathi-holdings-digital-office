@@ -73,6 +73,10 @@ const AuthLanding = ({ onLogin, error }) => {
       setLocalError("Enter your work email to continue.");
       return;
     }
+    if (!form.password || form.password.length < 8) {
+      setLocalError("Enter a password of at least 8 characters.");
+      return;
+    }
     try {
       setIsSubmitting(true);
       await onLogin(form);
@@ -123,7 +127,7 @@ const AuthLanding = ({ onLogin, error }) => {
               type="password"
               value={form.password}
               onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))}
-              placeholder="Password (optional for local dev)"
+              placeholder="Password"
               className="w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-white placeholder:text-white/40 outline-none focus:border-white/50"
             />
             <button

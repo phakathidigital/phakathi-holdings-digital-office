@@ -7,6 +7,7 @@
 - Moved entity schemas into `backend/prisma/entities/`.
 - Removed hosted-platform package dependencies from `package.json` and `package-lock.json`.
 - Replaced external login redirect with a local sign-in/register form.
+- Added password hashing, signed local auth tokens, and first-password setup for seeded employee records.
 - Preserved the existing frontend API shape through a compatibility client so pages/components did not need a redesign.
 - Added local JSON persistence in `.local-data/db.json`.
 - Added local upload storage in `.local-data/uploads`.
@@ -16,7 +17,7 @@
 
 ## Current backend status
 
-This is a working local development backend, not yet a production backend.
+This is a working local/office-pilot backend, not yet a full production backend.
 
 Current persistence:
 
@@ -27,8 +28,8 @@ Production hardening still recommended:
 
 - Replace JSON storage with Postgres.
 - Add migrations with Prisma, Drizzle, or another migration tool.
-- Add password hashing and JWT/refresh-token auth.
-- Add RBAC middleware at the API layer.
+- Add refresh-token rotation and password reset/invite flows.
+- Extend RBAC middleware across sensitive entity operations and admin-only workflows.
 - Wire email to SMTP/SES/SendGrid.
 - Wire AI endpoints to OpenAI/Anthropic via server-side provider keys.
 - Replace placeholder function/analytics endpoints with real jobs and audit logs.
@@ -41,8 +42,10 @@ Production hardening still recommended:
 - [x] `npm install` works.
 - [x] `npm run build` works.
 - [x] Local API health endpoint responds.
-- [x] Local sign-in/register endpoint creates/returns a user.
-- [x] Generic entity list endpoint responds.
+- [x] Local sign-in/register endpoint creates/returns a user with password verification.
+- [x] Seeded employees can claim their staff profile by setting a first password.
+- [x] Generic entity list endpoint responds only with authenticated requests.
+- [x] User records are sanitized so password hashes are not returned to the browser.
 - [x] New users are routed into first-login company setup when no subsidiary exists.
 - [x] Company/subsidiary and designation are stored on the user/profile data.
 - [x] Branding assets are local and wired into the visible app.

@@ -38,12 +38,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   const loginOrRegister = async (credentials) => {
-    setIsLoadingAuth(true);
-    const currentUser = await api.auth.loginOrRegister(credentials);
-    setUser(currentUser);
-    setIsAuthenticated(true);
-    setIsLoadingAuth(false);
-    return currentUser;
+    try {
+      setIsLoadingAuth(true);
+      const currentUser = await api.auth.loginOrRegister(credentials);
+      setUser(currentUser);
+      setIsAuthenticated(true);
+      return currentUser;
+    } finally {
+      setIsLoadingAuth(false);
+    }
   };
 
   const logout = () => {

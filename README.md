@@ -41,9 +41,11 @@ Local development data is stored in `.local-data/db.json`. That folder is intent
 
 Implemented backend capabilities:
 
-- Local sign-in/register by email.
+- Local sign-in/register by email and password.
+- First password setup for seeded employees: if an employee already exists in the seeded roster but has no password yet, their first successful sign-in/register attempt sets their password on that staff record.
+- Signed local auth tokens using `JWT_SECRET`.
 - Current user profile read/update.
-- Generic entity CRUD for all migrated entity schemas in `backend/prisma/entities/`.
+- Auth-protected generic entity CRUD for all migrated entity schemas in `backend/prisma/entities/`.
 - Seed users for Phakathi Holdings and Empoweryst.
 - Local file upload storage under `.local-data/uploads`.
 - Email/SMS queue placeholders plus OpenAI-backed Meeting Studio transcript analysis with safe deterministic fallback when `OPENAI_API_KEY` is not configured.
@@ -63,6 +65,8 @@ The canonical subsidiary list is shared from `src/lib/subsidiaries.js`:
 8. Synergex Health
 
 New users sign in/register locally, then must complete first-login profile setup before entering the app. That setup captures company/subsidiary and designation/role.
+
+For the real seeded employees below, use their listed work email on first sign-in and choose a password of at least 8 characters. That claims the existing staff profile instead of creating a duplicate employee.
 
 Actual initial staff records:
 
@@ -101,9 +105,10 @@ Copy `.env.example` to `.env.local` if you need to override defaults.
 
 ```bash
 VITE_API_BASE_URL=http://127.0.0.1:4000/api
+JWT_SECRET=replace-with-a-long-random-secret
 ```
 
-Provider keys such as `OPENAI_API_KEY`, SMTP, SMS, and future `DATABASE_URL` values are optional until the production backend is hardened. `OPENAI_API_KEY` enables the real Meeting Studio AI flow; without it, Meeting Studio uses the safe fallback.
+For office testing, set `JWT_SECRET` before employees begin using the app so sessions remain valid across backend restarts. Provider keys such as `OPENAI_API_KEY`, SMTP, SMS, and future `DATABASE_URL` values are optional until the production backend is hardened. `OPENAI_API_KEY` enables the real Meeting Studio AI flow; without it, Meeting Studio uses the safe fallback.
 
 ## Device push notifications
 
@@ -133,7 +138,15 @@ VAPID_PRIVATE_KEY=...
 VAPID_SUBJECT=mailto:notifications@phakathiholdings.local
 ```
 
-Localhost can use browser push during development. Production device push requires HTTPS and stable VAPID keys. Users must also enable Browser Push Notifications in Settings on each device they want subscribed.
+Localhost can use browser push during development. Production/device push requires HTTPS or localhost, stable VAPID keys, and a running backend/scheduler. Users must also enable Browser Push Notifications in Settings on each device they want subscribed. Browser vendors require each user/device to grant permission; the app cannot silently enable operating-system popups.
+
+For office pilot testing:
+
+1. Generate VAPID keys once with `npm run push:vapid`.
+2. Put `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and `VAPID_SUBJECT` in `.env.local`.
+3. Start the app with `npm run dev`.
+4. Each employee signs in, opens Settings → Notifications, enables Browser Push Notifications, and sends a test push.
+5. Keep the backend running for local scheduled notifications, or deploy the Netlify scheduled function for hosted scans.
 
 For local development, the backend scheduler runs shortly after startup and then every four hours unless `ENABLE_LOCAL_NOTIFICATION_SCHEDULER=false`.
 

@@ -7,6 +7,11 @@ import { deliverNotification } from "../services/pushService.js";
 
 const router = express.Router();
 
+function sanitizeSubscription(record = {}) {
+  const { endpoint, keys, ...safeRecord } = record;
+  return safeRecord;
+}
+
 router.get("/vapid-public-key", (_req, res) => {
   res.json({ publicKey: vapidPublicKey });
 });
@@ -32,7 +37,7 @@ router.post("/subscribe", requireAuth, async (req, res) => {
   else db.entities.PushSubscription.push(record);
 
   await writeDb(db);
-  res.json(record);
+  res.json(sanitizeSubscription(record));
 });
 
 router.post("/unsubscribe", requireAuth, async (req, res) => {
