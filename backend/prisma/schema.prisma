@@ -7,46 +7,964 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id             String   @id @default(uuid())
-  email          String   @unique
-  full_name      String?
-  role           String   @default("user")
-  subsidiary     String?
-  department     String?
-  job_title      String?
-  branding       Json?
-  profile_image_url String?
-  cover_image_url   String?
-  created_date   DateTime @default(now())
-  updated_date   DateTime @updatedAt
+model Organisation {
+  id           String       @id @default(uuid())
+  name         String       @unique
+  slug         String       @unique
+  status       String       @default("active")
+  metadata     Json?
+  subsidiaries Subsidiary[]
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @updatedAt
+  deleted_at   DateTime?
+
+  @@map("organisations")
 }
 
-model EntityRecord {
-  id           String   @id @default(uuid())
-  entity_name  String
-  data         Json
-  created_date DateTime @default(now())
-  updated_date DateTime @updatedAt
+model Subsidiary {
+  id               String          @id @default(uuid())
+  organisation_id  String
+  name             String
+  slug             String          @unique
+  status           String          @default("active")
+  default_branding Json?
+  metadata         Json?
+  organisation     Organisation    @relation(fields: [organisation_id], references: [id])
+  departments      Department[]
+  users            User[]
+  client_accounts  ClientAccount[]
+  leads            Lead[]
+  opportunities    Opportunity[]
+  projects         Project[]
+  created_at       DateTime        @default(now())
+  updated_at       DateTime        @updatedAt
+  deleted_at       DateTime?
 
-  @@index([entity_name])
+  @@unique([organisation_id, name])
+  @@index([organisation_id])
+  @@map("subsidiaries")
+}
+
+model Department {
+  id            String     @id @default(uuid())
+  subsidiary_id String
+  name          String
+  slug          String
+  status        String     @default("active")
+  metadata      Json?
+  subsidiary    Subsidiary @relation(fields: [subsidiary_id], references: [id])
+  users         User[]
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+  deleted_at    DateTime?
+
+  @@unique([subsidiary_id, name])
+  @@index([subsidiary_id])
+  @@map("departments")
+}
+
+model User {
+  id                       String                @id @default(uuid())
+  email                    String                @unique
+  full_name                String?
+  role                     String                @default("user")
+  subsidiary               String?
+  department               String?
+  job_title                String?
+  subsidiary_id            String?
+  department_id            String?
+  password_hash            String?
+  auth_provider            String?
+  password_set_date        DateTime?
+  email_verified_at        DateTime?
+  phone                    String?
+  branding                 Json?
+  profile_image_url        String?
+  cover_image_url          String?
+  metadata                 Json?
+  subsidiary_ref           Subsidiary?           @relation(fields: [subsidiary_id], references: [id])
+  department_ref           Department?           @relation(fields: [department_id], references: [id])
+  profile                  UserProfile?
+  roles                    UserRole[]
+  sessions                 Session[]
+  refresh_tokens           RefreshToken[]
+  owned_accounts           ClientAccount[]       @relation("AccountOwner")
+  owned_contacts           ClientContact[]       @relation("ContactOwner")
+  client_interactions      ClientInteraction[]
+  client_activities        ClientActivity[]
+  assigned_leads           Lead[]                @relation("LeadOwner")
+  owned_opportunities      Opportunity[]         @relation("OpportunityOwner")
+  opportunity_activities   OpportunityActivity[]
+  owned_proposals          Proposal[]            @relation("ProposalOwner")
+  account_manager_projects Project[]             @relation("ProjectAccountManager")
+  assigned_tasks           Task[]                @relation("TaskAssignee")
+  audit_logs               AuditLog[]            @relation("AuditActor")
+  created_at               DateTime              @default(now())
+  updated_at               DateTime              @updatedAt
+  deleted_at               DateTime?
+
+  @@index([subsidiary_id])
+  @@index([department_id])
+  @@index([role])
+  @@map("users")
+}
+
+model UserProfile {
+  id          String    @id @default(uuid())
+  user_id     String    @unique
+  user_email  String    @unique
+  full_name   String?
+  subsidiary  String?
+  department  String?
+  job_title   String?
+  role        String?
+  preferences Json?
+  privacy     Json?
+  metadata    Json?
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+
+  @@map("user_profiles")
+}
+
+model Role {
+  id          String           @id @default(uuid())
+  name        String           @unique
+  description String?
+  metadata    Json?
+  permissions RolePermission[]
+  users       UserRole[]
+  created_at  DateTime         @default(now())
+  updated_at  DateTime         @updatedAt
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String           @id @default(uuid())
+  key         String           @unique
+  label       String
+  module      String
+  description String?
+  roles       RolePermission[]
+  created_at  DateTime         @default(now())
+  updated_at  DateTime         @updatedAt
+
+  @@index([module])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id            String     @id @default(uuid())
+  role_id       String
+  permission_id String
+  role          Role       @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  permission    Permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+  created_at    DateTime   @default(now())
+
+  @@unique([role_id, permission_id])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  id         String   @id @default(uuid())
+  user_id    String
+  role_id    String
+  scope_type String   @default("group")
+  scope_id   String?
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  role       Role     @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  created_at DateTime @default(now())
+
+  @@unique([user_id, role_id, scope_type, scope_id])
+  @@index([scope_type, scope_id])
+  @@map("user_roles")
+}
+
+model Session {
+  id         String    @id @default(uuid())
+  user_id    String
+  token_hash String    @unique
+  ip_address String?
+  user_agent String?
+  expires_at DateTime
+  revoked_at DateTime?
+  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  @@index([user_id])
+  @@index([expires_at])
+  @@map("sessions")
+}
+
+model RefreshToken {
+  id         String    @id @default(uuid())
+  user_id    String
+  token_hash String    @unique
+  family_id  String
+  expires_at DateTime
+  revoked_at DateTime?
+  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  @@index([user_id])
+  @@index([family_id])
+  @@map("refresh_tokens")
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  actor_user_id String?
+  actor_email   String?
+  action        String
+  entity_type   String
+  entity_id     String?
+  old_value     Json?
+  new_value     Json?
+  reason        String?
+  ip_address    String?
+  user_agent    String?
+  metadata      Json?
+  actor         User?    @relation("AuditActor", fields: [actor_user_id], references: [id])
+  created_at    DateTime @default(now())
+
+  @@index([entity_type, entity_id])
+  @@index([actor_user_id])
+  @@index([action])
+  @@map("audit_logs")
+}
+
+model ClientAccount {
+  id                  String                       @id @default(uuid())
+  name                String
+  status              String                       @default("active")
+  industry            String?
+  website             String?
+  address             String?
+  location            String?
+  source              String?
+  category            String?
+  tags                Json?
+  estimated_value     Decimal?                     @db.Decimal(14, 2)
+  historical_revenue  Decimal?                     @db.Decimal(14, 2)
+  relationship_status String?
+  subsidiary_id       String?
+  account_owner_id    String?
+  metadata            Json?
+  subsidiary          Subsidiary?                  @relation(fields: [subsidiary_id], references: [id])
+  account_owner       User?                        @relation("AccountOwner", fields: [account_owner_id], references: [id])
+  contacts            ClientContact[]
+  notes               ClientNote[]
+  interactions        ClientInteraction[]
+  activities          ClientActivity[]
+  health_snapshots    ClientHealthSnapshot[]
+  leads               Lead[]
+  opportunities       Opportunity[]
+  proposals           Proposal[]
+  deals               Deal[]
+  contracts           Contract[]
+  projects            Project[]
+  documents           DocumentClientRelationship[]
+  created_at          DateTime                     @default(now())
+  updated_at          DateTime                     @updatedAt
+  deleted_at          DateTime?
+
+  @@index([subsidiary_id])
+  @@index([account_owner_id])
+  @@index([status])
+  @@index([industry])
+  @@map("client_accounts")
+}
+
+model ClientContact {
+  id                String                    @id @default(uuid())
+  client_account_id String
+  owner_user_id     String?
+  full_name         String
+  position          String?
+  email             String?
+  phone             String?
+  preferred_contact String?
+  visibility        String                    @default("account_team")
+  metadata          Json?
+  client_account    ClientAccount             @relation(fields: [client_account_id], references: [id], onDelete: Cascade)
+  owner             User?                     @relation("ContactOwner", fields: [owner_user_id], references: [id])
+  relationships     ContactRelationship[]
+  preferences       ClientContactPreference[]
+  important_dates   ClientImportantDate[]
+  interests         ClientInterest[]
+  notes             ClientNote[]
+  interactions      ClientInteraction[]
+  activities        ClientActivity[]
+  created_at        DateTime                  @default(now())
+  updated_at        DateTime                  @updatedAt
+  deleted_at        DateTime?
+
+  @@index([client_account_id])
+  @@index([owner_user_id])
+  @@index([email])
+  @@map("client_contacts")
+}
+
+model ContactRelationship {
+  id                 String        @id @default(uuid())
+  client_contact_id  String
+  relationship_type  String
+  relationship_notes String?
+  visibility         String        @default("restricted")
+  metadata           Json?
+  client_contact     ClientContact @relation(fields: [client_contact_id], references: [id], onDelete: Cascade)
+  created_at         DateTime      @default(now())
+  updated_at         DateTime      @updatedAt
+  deleted_at         DateTime?
+
+  @@index([client_contact_id])
+  @@map("contact_relationships")
+}
+
+model ClientContactPreference {
+  id                String        @id @default(uuid())
+  client_contact_id String
+  preference_type   String
+  value             String
+  visibility        String        @default("restricted")
+  metadata          Json?
+  client_contact    ClientContact @relation(fields: [client_contact_id], references: [id], onDelete: Cascade)
+  created_at        DateTime      @default(now())
+  updated_at        DateTime      @updatedAt
+
+  @@index([client_contact_id])
+  @@map("client_contact_preferences")
+}
+
+model ClientImportantDate {
+  id                String        @id @default(uuid())
+  client_contact_id String
+  label             String
+  date_value        DateTime
+  recurrence        String        @default("yearly")
+  visibility        String        @default("restricted")
+  metadata          Json?
+  client_contact    ClientContact @relation(fields: [client_contact_id], references: [id], onDelete: Cascade)
+  created_at        DateTime      @default(now())
+  updated_at        DateTime      @updatedAt
+
+  @@index([client_contact_id])
+  @@index([date_value])
+  @@map("client_important_dates")
+}
+
+model ClientInterest {
+  id                String        @id @default(uuid())
+  client_contact_id String
+  interest          String
+  category          String?
+  visibility        String        @default("restricted")
+  metadata          Json?
+  client_contact    ClientContact @relation(fields: [client_contact_id], references: [id], onDelete: Cascade)
+  created_at        DateTime      @default(now())
+  updated_at        DateTime      @updatedAt
+
+  @@index([client_contact_id])
+  @@map("client_interests")
+}
+
+model ClientNote {
+  id                 String         @id @default(uuid())
+  client_account_id  String
+  client_contact_id  String?
+  created_by_user_id String?
+  subject            String?
+  body               String
+  visibility         String         @default("account_team")
+  metadata           Json?
+  client_account     ClientAccount  @relation(fields: [client_account_id], references: [id], onDelete: Cascade)
+  client_contact     ClientContact? @relation(fields: [client_contact_id], references: [id])
+  created_at         DateTime       @default(now())
+  updated_at         DateTime       @updatedAt
+  deleted_at         DateTime?
+
+  @@index([client_account_id])
+  @@index([client_contact_id])
+  @@map("client_notes")
+}
+
+model ClientInteraction {
+  id                String         @id @default(uuid())
+  client_account_id String
+  client_contact_id String?
+  user_id           String?
+  interaction_type  String
+  subject           String
+  description       String?
+  occurred_at       DateTime
+  source            String         @default("manual")
+  metadata          Json?
+  client_account    ClientAccount  @relation(fields: [client_account_id], references: [id], onDelete: Cascade)
+  client_contact    ClientContact? @relation(fields: [client_contact_id], references: [id])
+  user              User?          @relation(fields: [user_id], references: [id])
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+  deleted_at        DateTime?
+
+  @@index([client_account_id])
+  @@index([client_contact_id])
+  @@index([occurred_at])
+  @@map("client_interactions")
+}
+
+model ClientActivity {
+  id                  String         @id @default(uuid())
+  client_account_id   String?
+  client_contact_id   String?
+  user_id             String?
+  activity_type       String
+  subject             String
+  description         String?
+  occurred_at         DateTime
+  related_entity_type String?
+  related_entity_id   String?
+  source              String         @default("system")
+  metadata            Json?
+  client_account      ClientAccount? @relation(fields: [client_account_id], references: [id])
+  client_contact      ClientContact? @relation(fields: [client_contact_id], references: [id])
+  user                User?          @relation(fields: [user_id], references: [id])
+  created_at          DateTime       @default(now())
+
+  @@index([client_account_id, occurred_at])
+  @@index([client_contact_id])
+  @@index([related_entity_type, related_entity_id])
+  @@map("client_activities")
+}
+
+model ClientHealthSnapshot {
+  id                String        @id @default(uuid())
+  client_account_id String
+  score             Int
+  reasons           Json
+  calculated_at     DateTime      @default(now())
+  metadata          Json?
+  client_account    ClientAccount @relation(fields: [client_account_id], references: [id], onDelete: Cascade)
+
+  @@index([client_account_id, calculated_at])
+  @@map("client_health_snapshots")
+}
+
+model Lead {
+  id                String         @id @default(uuid())
+  title             String
+  source_id         String?
+  owner_user_id     String?
+  subsidiary_id     String?
+  client_account_id String?
+  status            String         @default("new")
+  qualification     String?
+  estimated_value   Decimal?       @db.Decimal(14, 2)
+  description       String?
+  metadata          Json?
+  source            LeadSource?    @relation(fields: [source_id], references: [id])
+  owner             User?          @relation("LeadOwner", fields: [owner_user_id], references: [id])
+  subsidiary        Subsidiary?    @relation(fields: [subsidiary_id], references: [id])
+  client_account    ClientAccount? @relation(fields: [client_account_id], references: [id])
+  opportunities     Opportunity[]
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+  deleted_at        DateTime?
+
+  @@index([status])
+  @@index([owner_user_id])
+  @@index([subsidiary_id])
+  @@map("leads")
+}
+
+model LeadSource {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  metadata    Json?
+  leads       Lead[]
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("lead_sources")
+}
+
+model OpportunityStage {
+  id            String        @id @default(uuid())
+  name          String        @unique
+  order_index   Int
+  probability   Int
+  is_won_stage  Boolean       @default(false)
+  is_lost_stage Boolean       @default(false)
+  metadata      Json?
+  opportunities Opportunity[]
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+
+  @@index([order_index])
+  @@map("opportunity_stages")
+}
+
+model Opportunity {
+  id                  String                @id @default(uuid())
+  title               String
+  lead_id             String?
+  client_account_id   String?
+  primary_contact_id  String?
+  owner_user_id       String?
+  subsidiary_id       String?
+  stage_id            String?
+  value               Decimal?              @db.Decimal(14, 2)
+  probability         Int?
+  weighted_value      Decimal?              @db.Decimal(14, 2)
+  expected_close_date DateTime?
+  source              String?
+  industry            String?
+  description         String?
+  competitors         Json?
+  products_services   Json?
+  next_action         String?
+  last_activity_at    DateTime?
+  next_follow_up_at   DateTime?
+  status              String                @default("open")
+  lost_reason         String?
+  metadata            Json?
+  lead                Lead?                 @relation(fields: [lead_id], references: [id])
+  client_account      ClientAccount?        @relation(fields: [client_account_id], references: [id])
+  owner               User?                 @relation("OpportunityOwner", fields: [owner_user_id], references: [id])
+  subsidiary          Subsidiary?           @relation(fields: [subsidiary_id], references: [id])
+  stage               OpportunityStage?     @relation(fields: [stage_id], references: [id])
+  activities          OpportunityActivity[]
+  proposals           Proposal[]
+  deals               Deal[]
+  projects            Project[]
+  created_at          DateTime              @default(now())
+  updated_at          DateTime              @updatedAt
+  deleted_at          DateTime?
+
+  @@index([client_account_id])
+  @@index([owner_user_id])
+  @@index([subsidiary_id])
+  @@index([stage_id])
+  @@index([expected_close_date])
+  @@map("opportunities")
+}
+
+model OpportunityActivity {
+  id             String      @id @default(uuid())
+  opportunity_id String
+  user_id        String?
+  activity_type  String
+  subject        String
+  description    String?
+  occurred_at    DateTime
+  metadata       Json?
+  opportunity    Opportunity @relation(fields: [opportunity_id], references: [id], onDelete: Cascade)
+  user           User?       @relation(fields: [user_id], references: [id])
+  created_at     DateTime    @default(now())
+
+  @@index([opportunity_id, occurred_at])
+  @@map("opportunity_activities")
+}
+
+model Proposal {
+  id                String        @id @default(uuid())
+  client_account_id String
+  opportunity_id    String?
+  owner_user_id     String?
+  proposal_value    Decimal?      @db.Decimal(14, 2)
+  submission_date   DateTime?
+  expiry_date       DateTime?
+  status            String        @default("draft")
+  document_id       String?
+  notes             String?
+  next_action       String?
+  metadata          Json?
+  client_account    ClientAccount @relation(fields: [client_account_id], references: [id])
+  opportunity       Opportunity?  @relation(fields: [opportunity_id], references: [id])
+  owner             User?         @relation("ProposalOwner", fields: [owner_user_id], references: [id])
+  deals             Deal[]
+  created_at        DateTime      @default(now())
+  updated_at        DateTime      @updatedAt
+  deleted_at        DateTime?
+
+  @@index([client_account_id])
+  @@index([opportunity_id])
+  @@index([status])
+  @@map("proposals")
+}
+
+model Deal {
+  id                String               @id @default(uuid())
+  client_account_id String
+  opportunity_id    String?
+  proposal_id       String?
+  status            String               @default("open")
+  value             Decimal?             @db.Decimal(14, 2)
+  closed_at         DateTime?
+  lost_reason       String?
+  metadata          Json?
+  client_account    ClientAccount        @relation(fields: [client_account_id], references: [id])
+  opportunity       Opportunity?         @relation(fields: [opportunity_id], references: [id])
+  proposal          Proposal?            @relation(fields: [proposal_id], references: [id])
+  products_services DealProductService[]
+  created_at        DateTime             @default(now())
+  updated_at        DateTime             @updatedAt
+  deleted_at        DateTime?
+
+  @@index([client_account_id])
+  @@index([status])
+  @@map("deals")
+}
+
+model DealProductService {
+  id          String   @id @default(uuid())
+  deal_id     String
+  name        String
+  description String?
+  value       Decimal? @db.Decimal(14, 2)
+  metadata    Json?
+  deal        Deal     @relation(fields: [deal_id], references: [id], onDelete: Cascade)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@index([deal_id])
+  @@map("deal_products_services")
+}
+
+model SalesForecast {
+  id               String   @id @default(uuid())
+  period_start     DateTime
+  period_end       DateTime
+  subsidiary_id    String?
+  owner_user_id    String?
+  pipeline_value   Decimal  @default(0) @db.Decimal(14, 2)
+  weighted_value   Decimal  @default(0) @db.Decimal(14, 2)
+  expected_revenue Decimal  @default(0) @db.Decimal(14, 2)
+  metadata         Json?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  @@index([period_start, period_end])
+  @@index([subsidiary_id])
+  @@map("sales_forecasts")
+}
+
+model SalesTarget {
+  id            String   @id @default(uuid())
+  period_start  DateTime
+  period_end    DateTime
+  subsidiary_id String?
+  owner_user_id String?
+  target_value  Decimal  @db.Decimal(14, 2)
+  metadata      Json?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  @@index([period_start, period_end])
+  @@index([subsidiary_id])
+  @@map("sales_targets")
+}
+
+model Contract {
+  id                String        @id @default(uuid())
+  client_account_id String
+  title             String
+  status            String        @default("draft")
+  contract_value    Decimal?      @db.Decimal(14, 2)
+  start_date        DateTime?
+  end_date          DateTime?
+  document_id       String?
+  metadata          Json?
+  client_account    ClientAccount @relation(fields: [client_account_id], references: [id])
+  projects          Project[]
+  created_at        DateTime      @default(now())
+  updated_at        DateTime      @updatedAt
+  deleted_at        DateTime?
+
+  @@index([client_account_id])
+  @@index([status])
+  @@map("contracts")
+}
+
+model Project {
+  id                  String                       @id @default(uuid())
+  name                String
+  description         String?
+  status              String                       @default("planning")
+  priority            String                       @default("medium")
+  subsidiary          String?
+  portfolio_id        String?
+  okr_id              String?
+  client_account_id   String?
+  primary_contact_id  String?
+  opportunity_id      String?
+  contract_id         String?
+  account_manager_id  String?
+  subsidiary_id       String?
+  project_value       Decimal?                     @db.Decimal(14, 2)
+  client_status       String?
+  expected_start_date DateTime?
+  expected_end_date   DateTime?
+  start_date          DateTime?
+  end_date            DateTime?
+  budget              Decimal?                     @db.Decimal(14, 2)
+  team_members        Json?
+  color               String?
+  metadata            Json?
+  client_account      ClientAccount?               @relation(fields: [client_account_id], references: [id])
+  opportunity         Opportunity?                 @relation(fields: [opportunity_id], references: [id])
+  contract            Contract?                    @relation(fields: [contract_id], references: [id])
+  account_manager     User?                        @relation("ProjectAccountManager", fields: [account_manager_id], references: [id])
+  subsidiary_ref      Subsidiary?                  @relation(fields: [subsidiary_id], references: [id])
+  tasks               Task[]
+  milestones          Milestone[]
+  meetings            Meeting[]
+  documents           DocumentClientRelationship[]
+  created_at          DateTime                     @default(now())
+  updated_at          DateTime                     @updatedAt
+  deleted_at          DateTime?
+
+  @@index([status])
+  @@index([portfolio_id])
+  @@index([okr_id])
+  @@index([client_account_id])
+  @@index([opportunity_id])
+  @@index([subsidiary_id])
+  @@map("projects")
+}
+
+model ProjectClientRelationship {
+  id                String   @id @default(uuid())
+  project_id        String
+  client_account_id String
+  relationship_type String   @default("delivery")
+  metadata          Json?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  @@unique([project_id, client_account_id, relationship_type])
+  @@index([client_account_id])
+  @@map("project_client_relationships")
+}
+
+model Task {
+  id               String    @id @default(uuid())
+  project_id       String?
+  title            String
+  description      String?
+  status           String    @default("todo")
+  priority         String    @default("medium")
+  assigned_to      String?
+  assigned_user_id String?
+  due_date         DateTime?
+  estimated_hours  Decimal?  @db.Decimal(10, 2)
+  actual_hours     Decimal?  @db.Decimal(10, 2)
+  tags             Json?
+  blocked_by       Json?
+  completed_at     DateTime?
+  completed_by     String?
+  reopened_at      DateTime?
+  reopened_by      String?
+  status_history   Json?
+  metadata         Json?
+  project          Project?  @relation(fields: [project_id], references: [id])
+  assigned_user    User?     @relation("TaskAssignee", fields: [assigned_user_id], references: [id])
+  time_logs        TimeLog[]
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+  deleted_at       DateTime?
+
+  @@index([project_id])
+  @@index([status])
+  @@index([assigned_to])
+  @@index([due_date])
+  @@map("tasks")
+}
+
+model Milestone {
+  id           String    @id @default(uuid())
+  project_id   String?
+  portfolio_id String?
+  title        String
+  description  String?
+  due_date     DateTime?
+  status       String    @default("pending")
+  owner_email  String?
+  metadata     Json?
+  project      Project?  @relation(fields: [project_id], references: [id])
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  deleted_at   DateTime?
+
+  @@index([project_id])
+  @@index([due_date])
+  @@map("milestones")
+}
+
+model TimeLog {
+  id             String   @id @default(uuid())
+  task_id        String?
+  project_id     String?
+  employee_email String
+  hours          Decimal  @db.Decimal(10, 2)
+  log_date       DateTime
+  description    String?
+  billable       Boolean  @default(false)
+  metadata       Json?
+  task           Task?    @relation(fields: [task_id], references: [id])
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  @@index([task_id])
+  @@index([project_id])
+  @@index([employee_email])
+  @@index([log_date])
+  @@map("time_logs")
+}
+
+model Meeting {
+  id                String               @id @default(uuid())
+  project_id        String?
+  client_account_id String?
+  title             String
+  meeting_type      String?
+  meeting_date      DateTime
+  recurrence        String?
+  summary           String?
+  decisions         Json?
+  action_items      Json?
+  structured_notes  String?
+  metadata          Json?
+  project           Project?             @relation(fields: [project_id], references: [id])
+  participants      MeetingParticipant[]
+  created_at        DateTime             @default(now())
+  updated_at        DateTime             @updatedAt
+  deleted_at        DateTime?
+
+  @@index([project_id])
+  @@index([client_account_id])
+  @@index([meeting_date])
+  @@map("meetings")
+}
+
+model MeetingParticipant {
+  id         String   @id @default(uuid())
+  meeting_id String
+  user_id    String?
+  email      String?
+  name       String?
+  role       String?
+  metadata   Json?
+  meeting    Meeting  @relation(fields: [meeting_id], references: [id], onDelete: Cascade)
+  created_at DateTime @default(now())
+
+  @@index([meeting_id])
+  @@map("meeting_participants")
+}
+
+model Document {
+  id           String                       @id @default(uuid())
+  title        String
+  file_url     String?
+  mime_type    String?
+  size_bytes   Int?
+  storage_key  String?
+  access_level String                       @default("internal")
+  metadata     Json?
+  client_links DocumentClientRelationship[]
+  created_at   DateTime                     @default(now())
+  updated_at   DateTime                     @updatedAt
+  deleted_at   DateTime?
+
+  @@index([access_level])
+  @@map("documents")
+}
+
+model DocumentClientRelationship {
+  id                String         @id @default(uuid())
+  document_id       String
+  client_account_id String?
+  project_id        String?
+  relationship_type String         @default("related")
+  metadata          Json?
+  document          Document       @relation(fields: [document_id], references: [id], onDelete: Cascade)
+  client_account    ClientAccount? @relation(fields: [client_account_id], references: [id])
+  project           Project?       @relation(fields: [project_id], references: [id])
+  created_at        DateTime       @default(now())
+
+  @@index([client_account_id])
+  @@index([project_id])
+  @@map("document_client_relationships")
+}
+
+model SupportTicket {
+  id                String    @id @default(uuid())
+  client_account_id String?
+  project_id        String?
+  title             String
+  description       String?
+  status            String    @default("open")
+  priority          String    @default("medium")
+  assigned_to       String?
+  metadata          Json?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+  deleted_at        DateTime?
+
+  @@index([client_account_id])
+  @@index([project_id])
+  @@index([status])
+  @@map("support_tickets")
+}
+
+model Notification {
+  id                  String                 @id @default(uuid())
+  title               String
+  message             String
+  type                String                 @default("general")
+  priority            String                 @default("low")
+  target_users        Json?
+  delivery_channels   Json?
+  preference_key      String?
+  schedule_key        String?
+  related_entity_type String?
+  related_entity_id   String?
+  metadata            Json?
+  created_by          String?
+  is_archived         Boolean                @default(false)
+  deliveries          NotificationDelivery[]
+  created_at          DateTime               @default(now())
+  updated_at          DateTime               @updatedAt
+  deleted_at          DateTime?
+
+  @@index([type])
+  @@index([schedule_key])
+  @@map("notifications")
 }
 
 model PushSubscription {
-  id           String   @id @default(uuid())
+  id           String    @id @default(uuid())
   user_email   String
-  endpoint     String   @unique
+  endpoint     String    @unique
   keys         Json
   device_label String?
   user_agent   String?
-  enabled      Boolean  @default(true)
+  enabled      Boolean   @default(true)
   last_seen_at DateTime?
-  created_date DateTime @default(now())
-  updated_date DateTime @updatedAt
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+
+  @@index([user_email])
+  @@map("push_subscriptions")
 }
 
 model NotificationDelivery {
-  id              String   @id @default(uuid())
+  id              String        @id @default(uuid())
   notification_id String
   user_email      String
   channel         String
@@ -54,6 +972,111 @@ model NotificationDelivery {
   endpoint        String?
   sent_at         DateTime?
   error           String?
-  created_date    DateTime @default(now())
-  updated_date    DateTime @updatedAt
+  metadata        Json?
+  notification    Notification? @relation(fields: [notification_id], references: [id])
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+
+  @@index([notification_id])
+  @@index([user_email])
+  @@index([status])
+  @@map("notification_deliveries")
+}
+
+model Integration {
+  id                     String                  @id @default(uuid())
+  name                   String
+  provider               String
+  status                 String                  @default("not_configured")
+  enabled                Boolean                 @default(false)
+  credentials_configured Boolean                 @default(false)
+  sync_direction         String?
+  sync_frequency         String?
+  webhook_status         String?
+  supported_modules      Json?
+  last_sync_at           DateTime?
+  last_error             String?
+  metadata               Json?
+  credentials            IntegrationCredential[]
+  sync_logs              IntegrationSyncLog[]
+  created_at             DateTime                @default(now())
+  updated_at             DateTime                @updatedAt
+  deleted_at             DateTime?
+
+  @@unique([provider, name])
+  @@index([provider])
+  @@index([status])
+  @@map("integrations")
+}
+
+model IntegrationCredential {
+  id              String      @id @default(uuid())
+  integration_id  String
+  key_name        String
+  encrypted_value String
+  metadata        Json?
+  integration     Integration @relation(fields: [integration_id], references: [id], onDelete: Cascade)
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
+
+  @@unique([integration_id, key_name])
+  @@map("integration_credentials")
+}
+
+model IntegrationSyncLog {
+  id              String      @id @default(uuid())
+  integration_id  String
+  run_id          String
+  status          String
+  records_read    Int         @default(0)
+  records_written Int         @default(0)
+  started_at      DateTime    @default(now())
+  finished_at     DateTime?
+  error           String?
+  metadata        Json?
+  integration     Integration @relation(fields: [integration_id], references: [id], onDelete: Cascade)
+
+  @@index([integration_id])
+  @@index([run_id])
+  @@map("integration_sync_logs")
+}
+
+model WebhookEvent {
+  id                  String    @id @default(uuid())
+  provider            String
+  event_type          String
+  signature_status    String
+  processing_status   String    @default("pending")
+  related_entity_type String?
+  related_entity_id   String?
+  payload_metadata    Json?
+  received_at         DateTime  @default(now())
+  processed_at        DateTime?
+  error               String?
+
+  @@index([provider, event_type])
+  @@index([processing_status])
+  @@map("webhook_events")
+}
+
+model EntityRecord {
+  id          String    @id @default(uuid())
+  entity_name String
+  record_id   String
+  data        Json
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+
+  @@unique([entity_name, record_id])
+  @@index([entity_name])
+  @@map("entity_records")
+}
+
+model AppState {
+  key        String   @id
+  value      Json
+  updated_at DateTime @updatedAt
+
+  @@map("app_state")
 }

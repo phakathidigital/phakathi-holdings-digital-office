@@ -10,12 +10,117 @@ const DB_BLOB_KEY = "db.json";
 
 function shouldUseBlobPersistence() {
   if (process.env.PHAKATHI_STORAGE === "local-json") return false;
+  if (process.env.PHAKATHI_STORAGE === "postgres") return false;
   return process.env.PHAKATHI_STORAGE === "netlify-blobs" || process.env.NETLIFY === "true";
 }
 
 async function getDbBlobStore() {
   const { getStore } = await import("@netlify/blobs");
   return getStore({ name: DB_BLOB_STORE, consistency: "strong" });
+}
+
+function shouldUsePostgresPersistence() {
+  return process.env.PHAKATHI_STORAGE === "postgres";
+}
+
+let prismaClient;
+
+async function getPrismaClient() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL is required when PHAKATHI_STORAGE=postgres.");
+  }
+  if (!prismaClient) {
+    const { PrismaClient } = await import("@prisma/client");
+    prismaClient = new PrismaClient();
+  }
+  return prismaClient;
+}
+
+async function readPostgresDb() {
+  const prisma = await getPrismaClient();
+  const [entityRecords, appStates] = await Promise.all([
+    prisma.entityRecord.findMany({
+      where: { deleted_at: null },
+      orderBy: { created_at: "asc" },
+    }),
+    prisma.appState.findMany(),
+  ]);
+
+  const entities = {};
+  for (const record of entityRecords) {
+    entities[record.entity_name] ||= [];
+    const data = record.data && typeof record.data === "object" ? record.data : {};
+    entities[record.entity_name].push({
+      ...data,
+      id: data.id || record.record_id,
+      created_date: data.created_date || record.created_at?.toISOString?.(),
+      updated_date: data.updated_date || record.updated_at?.toISOString?.(),
+    });
+  }
+
+  const states = new Map(appStates.map((item) => [item.key, item.value]));
+  return {
+    entities,
+    events: states.get("events") || [],
+    emails: states.get("emails") || [],
+    sms: states.get("sms") || [],
+  };
+}
+
+async function writePostgresDb(db) {
+  const prisma = await getPrismaClient();
+  const entities = db.entities || {};
+
+  for (const [entityName, records] of Object.entries(entities)) {
+    const normalizedRecords = Array.isArray(records) ? records : [];
+    const recordIds = normalizedRecords.map((record) => String(record.id || crypto.randomUUID()));
+
+    if (recordIds.length) {
+      await prisma.entityRecord.deleteMany({
+        where: {
+          entity_name: entityName,
+          record_id: { notIn: recordIds },
+        },
+      });
+    } else {
+      await prisma.entityRecord.deleteMany({ where: { entity_name: entityName } });
+    }
+
+    for (let index = 0; index < normalizedRecords.length; index += 1) {
+      const source = normalizedRecords[index] || {};
+      const recordId = recordIds[index];
+      const data = { ...source, id: recordId };
+      await prisma.entityRecord.upsert({
+        where: {
+          entity_name_record_id: {
+            entity_name: entityName,
+            record_id: recordId,
+          },
+        },
+        create: {
+          entity_name: entityName,
+          record_id: recordId,
+          data,
+        },
+        update: {
+          data,
+          deleted_at: null,
+        },
+      });
+    }
+  }
+
+  for (const [key, value] of Object.entries({
+    events: db.events || [],
+    emails: db.emails || [],
+    sms: db.sms || [],
+  })) {
+    await prisma.appState.upsert({
+      where: { key },
+      create: { key, value },
+      update: { value },
+    });
+  }
 }
 
 const initialEmployees = [
@@ -401,6 +506,33 @@ export async function listEntityNames() {
 }
 
 export async function ensureStore() {
+  if (shouldUsePostgresPersistence()) {
+    const entityNames = await listEntityNames();
+    const db = await readPostgresDb();
+    db.entities ||= {};
+    for (const name of entityNames) {
+      if (!Array.isArray(db.entities[name])) db.entities[name] = [];
+    }
+    if (!db.entities.User?.length) {
+      db.entities.User = initialUsers();
+      db.entities.UserProfile = db.entities.User.map((user) => ({
+        id: crypto.randomUUID(),
+        user_email: user.email,
+        full_name: user.full_name,
+        subsidiary: user.subsidiary,
+        department: user.department,
+        job_title: user.job_title,
+        role: user.job_title,
+        created_date: new Date().toISOString(),
+        updated_date: new Date().toISOString(),
+      }));
+    }
+    upsertInitialEmployees(db);
+    seedJuly2026Workflow(db);
+    await writePostgresDb(db);
+    return;
+  }
+
   if (shouldUseBlobPersistence()) {
     const entityNames = await listEntityNames();
     const store = await getDbBlobStore();
@@ -475,6 +607,9 @@ export async function ensureStore() {
 
 export async function readDb() {
   await ensureStore();
+  if (shouldUsePostgresPersistence()) {
+    return readPostgresDb();
+  }
   if (shouldUseBlobPersistence()) {
     const store = await getDbBlobStore();
     const db = await store.get(DB_BLOB_KEY, { type: "json" });
@@ -485,6 +620,10 @@ export async function readDb() {
 }
 
 export async function writeDb(db) {
+  if (shouldUsePostgresPersistence()) {
+    await writePostgresDb(db);
+    return;
+  }
   if (shouldUseBlobPersistence()) {
     const store = await getDbBlobStore();
     await store.setJSON(DB_BLOB_KEY, db);

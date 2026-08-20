@@ -39,6 +39,8 @@ backend/
 
 Local development data is stored in `.local-data/db.json`. That folder is intentionally git-ignored. Deployed Netlify functions use Netlify Blobs for persistent hosted app data and uploaded files.
 
+Production database foundation is available through Prisma/PostgreSQL. Keep the default `PHAKATHI_STORAGE=local-json` for local development, use `PHAKATHI_STORAGE=netlify-blobs` for the current Netlify pilot, and use `PHAKATHI_STORAGE=postgres` only after running the database migration/seed/import steps. See `docs/deployment/postgres.md`.
+
 Implemented backend capabilities:
 
 - Local sign-in/register by email and password.
@@ -50,6 +52,17 @@ Implemented backend capabilities:
 - Local file upload storage under `.local-data/uploads`; hosted upload storage through Netlify Blobs.
 - Email/SMS queue placeholders plus OpenAI-backed Meeting Studio transcript analysis with safe deterministic fallback when `OPENAI_API_KEY` is not configured.
 - July 2026 seeded working data for Goals → Portfolio → Projects → Kanban → Meeting Studio workflow.
+- Prisma/PostgreSQL production foundation with migrations, seed data, and safe `.local-data/db.json` import tooling.
+
+Database commands:
+
+```bash
+npm run db:generate
+npm run db:migrate
+npm run db:seed
+npm run db:import-local -- --dry-run
+npm run db:import-local
+```
 
 ## Multi-company group-user feature
 
@@ -111,6 +124,8 @@ JWT_SECRET=replace-with-a-long-random-secret
 ```
 
 For office testing, set `JWT_SECRET` before employees begin using the app so sessions remain valid across backend restarts. Provider keys such as `OPENAI_API_KEY`, SMTP, SMS, and future `DATABASE_URL` values are optional until the production backend is hardened. `OPENAI_API_KEY` enables the real Meeting Studio AI flow; without it, Meeting Studio uses the safe fallback.
+
+For production database testing, set `DATABASE_URL` and `PHAKATHI_STORAGE=postgres`, then run the database commands above before starting the API.
 
 ## Netlify always-on office deployment
 

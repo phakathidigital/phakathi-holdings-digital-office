@@ -24,6 +24,8 @@ No destructive changes during this phase.
 
 ## Phase 1: Production database foundation
 
+Status: in progress.
+
 Goals:
 
 - Add Prisma client and migration scripts.
@@ -31,6 +33,15 @@ Goals:
 - Add repository abstraction for local-json, Netlify Blobs, and Postgres.
 - Create idempotent seed scripts.
 - Add local JSON import tooling.
+
+Implemented foundation pieces:
+
+- Expanded Prisma schema for organisation, people, permissions, audit, CRM, business development, work linkage, notifications, and integrations.
+- Initial generated SQL migration under `backend/prisma/migrations/`.
+- `npm run db:generate`, `db:migrate`, `db:migrate:dev`, `db:seed`, `db:reset`, and `db:import-local` scripts.
+- `PHAKATHI_STORAGE=postgres` runtime mode using `EntityRecord` compatibility storage so the existing app can run against PostgreSQL during migration.
+- Production seed script for subsidiaries, departments, roles, permissions, users, opportunity stages, integration records, and existing work-system compatibility seed.
+- Safe `.local-data/db.json` import script with `--dry-run`.
 
 Required scripts:
 

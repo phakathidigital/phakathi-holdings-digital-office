@@ -26,11 +26,12 @@ Current persistence:
 - Uploaded files: `.local-data/uploads`
 - Hosted Netlify app data: Netlify Blobs store `phakathi-flow-db`
 - Hosted Netlify uploads: Netlify Blobs store `phakathi-flow-uploads`
+- Production PostgreSQL foundation: Prisma schema, generated SQL migration, seed script, and local JSON import tooling
 
 Production hardening still recommended:
 
-- Replace JSON storage with Postgres.
-- Add migrations with Prisma, Drizzle, or another migration tool.
+- Configure and verify a live Postgres database.
+- Migrate production runtime from JSON/Netlify Blobs compatibility storage to first-class relational services module by module.
 - Add refresh-token rotation and password reset/invite flows.
 - Extend RBAC middleware across sensitive entity operations and admin-only workflows.
 - Wire email to SMTP/SES/SendGrid.
@@ -60,7 +61,9 @@ Production hardening still recommended:
 - [x] Hosted `/api/*` function configured for Netlify.
 - [x] Netlify Blobs persistence configured for hosted data and uploads.
 - [x] July 2026 realistic work-system seed data added.
-- [ ] Postgres-grade relational production database and migrations implemented.
+- [x] Postgres-grade relational production foundation and initial migration implemented.
+- [x] Safe `.local-data/db.json` import tooling added.
+- [ ] Live production Postgres database provisioned, migrated, seeded, imported, and smoke-tested.
 - [ ] Production OpenAI key configured and tested in deployed environment.
 - [ ] Real email/SMS providers connected.
 - [ ] Netlify production environment variables configured.
