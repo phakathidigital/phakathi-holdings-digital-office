@@ -42,6 +42,7 @@ Implemented foundation pieces:
 - `PHAKATHI_STORAGE=postgres` runtime mode using `EntityRecord` compatibility storage so the existing app can run against PostgreSQL during migration.
 - Production seed script for subsidiaries, departments, roles, permissions, users, opportunity stages, integration records, and existing work-system compatibility seed.
 - Safe `.local-data/db.json` import script with `--dry-run`.
+- Neon Postgres project provisioned for the office-pilot production database, with credentials kept out of Git.
 
 Required scripts:
 

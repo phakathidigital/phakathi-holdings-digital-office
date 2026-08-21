@@ -27,6 +27,7 @@ Current persistence:
 - Hosted Netlify app data: Netlify Blobs store `phakathi-flow-db`
 - Hosted Netlify uploads: Netlify Blobs store `phakathi-flow-uploads`
 - Production PostgreSQL foundation: Prisma schema, generated SQL migration, seed script, and local JSON import tooling
+- Neon Postgres project provisioned for office-pilot production database readiness
 
 Production hardening still recommended:
 
@@ -63,6 +64,7 @@ Production hardening still recommended:
 - [x] July 2026 realistic work-system seed data added.
 - [x] Postgres-grade relational production foundation and initial migration implemented.
 - [x] Safe `.local-data/db.json` import tooling added.
+- [x] Neon Postgres project created for production database testing.
 - [ ] Live production Postgres database provisioned, migrated, seeded, imported, and smoke-tested.
 - [ ] Production OpenAI key configured and tested in deployed environment.
 - [ ] Real email/SMS providers connected.

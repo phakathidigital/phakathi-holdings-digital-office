@@ -60,6 +60,7 @@ Database commands:
 npm run db:generate
 npm run db:migrate
 npm run db:seed
+npm run db:smoke
 npm run db:import-local -- --dry-run
 npm run db:import-local
 ```

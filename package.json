@@ -8,6 +8,7 @@
     "dev:frontend": "vite --configLoader runner",
     "dev:backend": "node backend/src/index.js",
     "build": "vite build --configLoader runner",
+    "deploy:build": "node scripts/netlify-build.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "push:vapid": "node -e \"import('web-push').then(({default: webPush}) => console.log(webPush.generateVAPIDKeys()))\"",
@@ -16,7 +17,8 @@
     "db:migrate:dev": "prisma migrate dev --schema backend/prisma/schema.prisma",
     "db:seed": "node backend/prisma/seed.mjs",
     "db:reset": "prisma migrate reset --schema backend/prisma/schema.prisma",
-    "db:import-local": "node backend/prisma/import-local.mjs"
+    "db:import-local": "node backend/prisma/import-local.mjs",
+    "db:smoke": "node scripts/postgres-smoke.mjs"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",
