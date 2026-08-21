@@ -31,16 +31,21 @@ export default function Roadmaps() {
   const qc = useQueryClient();
   const today = new Date();
 
-  const { data: milestones = [], isLoading } = useQuery({ queryKey: ['milestones'], queryFn: () => api.entities.Milestone.list('due_date') });
-  const { data: projects = [] } = useQuery({ queryKey: ['projects'], queryFn: () => api.entities.Project.list() });
+  const { data: workGraph = {}, isLoading } = useQuery({
+    queryKey: ['workGraph'],
+    queryFn: () => api.work.graph(),
+    initialData: { milestones: [], projects: [] },
+  });
+  const milestones = workGraph.milestones || [];
+  const projects = workGraph.projects || [];
 
   const create = useMutation({
     mutationFn: d => api.entities.Milestone.create(d),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['milestones'] }); setShowCreate(false); setForm(EMPTY); toast.success('Milestone added'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['workGraph'] }); qc.invalidateQueries({ queryKey: ['milestones'] }); setShowCreate(false); setForm(EMPTY); toast.success('Milestone added'); },
   });
   const updateM = useMutation({
     mutationFn: ({ id, ...d }) => api.entities.Milestone.update(id, d),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['milestones'] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['workGraph'] }); qc.invalidateQueries({ queryKey: ['milestones'] }); },
   });
 
   const filtered = filterProject === 'all' ? milestones : milestones.filter(m => m.project_id === filterProject);

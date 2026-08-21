@@ -24,27 +24,19 @@ export default function Projects() {
   
   const queryClient = useQueryClient();
 
-  const { data: projects, isLoading } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => api.entities.Project.list("-updated_date"),
-    initialData: [],
+  const { data: workGraph = {}, isLoading } = useQuery({
+    queryKey: ['workGraph'],
+    queryFn: () => api.work.graph(),
+    initialData: { projects: [], tasks: [], portfolios: [] },
   });
-
-  const { data: tasks } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: () => api.entities.Task.list(),
-    initialData: [],
-  });
-
-  const { data: portfolios = [] } = useQuery({
-    queryKey: ['portfolios'],
-    queryFn: () => api.entities.Portfolio.list(),
-    initialData: [],
-  });
+  const projects = workGraph.projects || [];
+  const tasks = workGraph.tasks || [];
+  const portfolios = workGraph.portfolios || [];
 
   const createProjectMutation = useMutation({
-    mutationFn: (projectData) => api.entities.Project.create(projectData),
+    mutationFn: (projectData) => api.work.projects.create(projectData),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workGraph'] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       setShowDialog(false);
       setEditingProject(null);
@@ -52,8 +44,9 @@ export default function Projects() {
   });
 
   const updateProjectMutation = useMutation({
-    mutationFn: ({ id, data }) => api.entities.Project.update(id, data),
+    mutationFn: ({ id, data }) => api.work.projects.update(id, data),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workGraph'] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       setShowDialog(false);
       setEditingProject(null);
@@ -61,8 +54,9 @@ export default function Projects() {
   });
 
   const deleteProjectMutation = useMutation({
-    mutationFn: (id) => api.entities.Project.delete(id),
+    mutationFn: (id) => api.work.projects.delete(id),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workGraph'] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
     },
   });
@@ -93,6 +87,8 @@ export default function Projects() {
   };
 
   const getProjectProgress = (projectId) => {
+    const project = projects.find((item) => item.id === projectId);
+    if (typeof project?.progress === "number") return project.progress;
     const projectTasks = tasks.filter(t => t.project_id === projectId);
     if (projectTasks.length === 0) return 0;
     const completed = projectTasks.filter(t => t.status === 'completed').length;

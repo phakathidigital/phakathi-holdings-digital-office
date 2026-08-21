@@ -24,8 +24,13 @@ export default function WorkloadPlanner() {
   const [filterProject, setFilterProject] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
 
-  const { data: tasks = [] } = useQuery({ queryKey: ['tasks'], queryFn: () => api.entities.Task.list() });
-  const { data: projects = [] } = useQuery({ queryKey: ['projects'], queryFn: () => api.entities.Project.list() });
+  const { data: workGraph = {} } = useQuery({
+    queryKey: ['workGraph'],
+    queryFn: () => api.work.graph(),
+    initialData: { projects: [], tasks: [] },
+  });
+  const tasks = workGraph.tasks || [];
+  const projects = workGraph.projects || [];
 
   const filtered = tasks.filter(t => {
     if (!t.assigned_to) return false;

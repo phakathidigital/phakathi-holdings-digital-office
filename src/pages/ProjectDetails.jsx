@@ -27,31 +27,21 @@ export default function ProjectDetails() {
   
   const queryClient = useQueryClient();
 
-  const { data: project, isLoading: projectLoading } = useQuery({
-    queryKey: ['project', projectId],
-    queryFn: async () => {
-      const projects = await api.entities.Project.list();
-      return projects.find(p => p.id === projectId);
-    },
+  const { data: workGraph = {}, isLoading: graphLoading } = useQuery({
+    queryKey: ['workGraph'],
+    queryFn: () => api.work.graph(),
+    initialData: { projects: [], tasks: [], portfolios: [] },
     enabled: !!projectId,
   });
 
-  const { data: tasks, isLoading: tasksLoading } = useQuery({
-    queryKey: ['project-tasks', projectId],
-    queryFn: () => api.entities.Task.filter({ project_id: projectId }, "-updated_date"),
-    initialData: [],
-    enabled: !!projectId,
-  });
-
-  const { data: portfolios = [] } = useQuery({
-    queryKey: ['portfolios'],
-    queryFn: () => api.entities.Portfolio.list(),
-    initialData: [],
-  });
+  const project = (workGraph.projects || []).find(p => p.id === projectId);
+  const tasks = (workGraph.tasks || []).filter((task) => task.project_id === projectId);
+  const portfolios = workGraph.portfolios || [];
 
   const createTaskMutation = useMutation({
-    mutationFn: (taskData) => api.entities.Task.create({ ...taskData, project_id: projectId }),
+    mutationFn: (taskData) => api.work.tasks.create({ ...taskData, project_id: projectId }),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workGraph'] });
       queryClient.invalidateQueries({ queryKey: ['project-tasks', projectId] });
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       setShowTaskDialog(false);
@@ -60,8 +50,9 @@ export default function ProjectDetails() {
   });
 
   const updateTaskMutation = useMutation({
-    mutationFn: ({ id, data }) => api.entities.Task.update(id, data),
+    mutationFn: ({ id, data }) => api.work.tasks.update(id, data),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workGraph'] });
       queryClient.invalidateQueries({ queryKey: ['project-tasks', projectId] });
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       setShowTaskDialog(false);
@@ -70,8 +61,9 @@ export default function ProjectDetails() {
   });
 
   const updateProjectMutation = useMutation({
-    mutationFn: ({ id, data }) => api.entities.Project.update(id, data),
+    mutationFn: ({ id, data }) => api.work.projects.update(id, data),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workGraph'] });
       queryClient.invalidateQueries({ queryKey: ['project', projectId] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       setShowProjectDialog(false);
@@ -79,8 +71,9 @@ export default function ProjectDetails() {
   });
 
   const deleteTaskMutation = useMutation({
-    mutationFn: (id) => api.entities.Task.delete(id),
+    mutationFn: (id) => api.work.tasks.delete(id),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workGraph'] });
       queryClient.invalidateQueries({ queryKey: ['project-tasks', projectId] });
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
@@ -122,7 +115,12 @@ export default function ProjectDetails() {
       window.alert("This task cannot be marked Done until its blocking task(s) are completed.");
       return;
     }
-    updateTaskMutation.mutate({ id: task.id, data: { ...task, status: newStatus } });
+    api.work.tasks.move(task.id, newStatus)
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: ['workGraph'] });
+        queryClient.invalidateQueries({ queryKey: ['project-tasks', projectId] });
+      })
+      .catch((error) => window.alert(error?.message || "Could not update task status."));
   };
 
   if (!projectId) {
@@ -136,7 +134,7 @@ export default function ProjectDetails() {
     );
   }
 
-  if (projectLoading) {
+  if (graphLoading) {
     return (
       <div className="p-8">
         <div className="max-w-6xl mx-auto space-y-4">
@@ -221,7 +219,7 @@ export default function ProjectDetails() {
         {/* Tasks Section */}
         <TaskList
           tasks={tasks}
-          isLoading={tasksLoading}
+          isLoading={graphLoading}
           onEditTask={handleEditTask}
           onDeleteTask={handleDeleteTask}
           onStatusChange={handleStatusChange}

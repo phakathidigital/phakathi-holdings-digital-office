@@ -18,7 +18,12 @@ const PRIORITY_COLORS = {
 
 function TaskRow({ task, index, onChange, onRemove }) {
   const [editing, setEditing] = useState(false);
-  const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => api.entities.Project.list("-created_date", 50) });
+  const { data: workGraph = {} } = useQuery({
+    queryKey: ["workGraph"],
+    queryFn: () => api.work.graph(),
+    initialData: { projects: [] },
+  });
+  const projects = workGraph.projects || [];
 
   if (editing) {
     return (
@@ -115,7 +120,12 @@ export default function KanbanSyncPanel({ meeting, onSynced }) {
   const [syncing, setSyncing] = useState(false);
   const [synced, setSynced] = useState(!!meeting.tasks_synced);
 
-  const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => api.entities.Project.list("-created_date", 50) });
+  const { data: workGraph = {} } = useQuery({
+    queryKey: ["workGraph"],
+    queryFn: () => api.work.graph(),
+    initialData: { projects: [] },
+  });
+  const projects = workGraph.projects || [];
   const { data: users = [] } = useQuery({ queryKey: ["users"], queryFn: () => api.entities.User.list() });
 
   const handleChange = (index, updated) => {
@@ -140,7 +150,7 @@ export default function KanbanSyncPanel({ meeting, onSynced }) {
       for (const t of tasks) {
         const projectId = t.project_id || defaultProjectId || "";
         const assignedTo = resolveUserEmail(t.assigned_to, users);
-        await api.entities.Task.create({
+        await api.work.tasks.create({
           title: t.title,
           description: t.description || `Action item from meeting: ${meeting.title}`,
           assigned_to: assignedTo,
@@ -153,6 +163,7 @@ export default function KanbanSyncPanel({ meeting, onSynced }) {
       }
 
       await api.entities.MeetingStudio.update(meeting.id, { tasks_synced: true });
+      qc.invalidateQueries({ queryKey: ["workGraph"] });
       qc.invalidateQueries({ queryKey: ["tasks"] });
       qc.invalidateQueries({ queryKey: ["meeting-studios"] });
       setSynced(true);

@@ -45,12 +45,17 @@ export default function GanttChart() {
   const queryClient = useQueryClient();
   const today = startOfDay(new Date());
 
-  const { data: projects = [] } = useQuery({ queryKey: ['projects'], queryFn: () => api.entities.Project.list() });
-  const { data: rawTasks = [], isLoading } = useQuery({ queryKey: ['tasks'], queryFn: () => api.entities.Task.list('-created_date', 200) });
+  const { data: workGraph = {}, isLoading } = useQuery({
+    queryKey: ['workGraph'],
+    queryFn: () => api.work.graph(),
+    initialData: { projects: [], tasks: [] },
+  });
+  const projects = workGraph.projects || [];
+  const rawTasks = workGraph.tasks || [];
 
   const updateTask = useMutation({
-    mutationFn: ({ id, ...data }) => api.entities.Task.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
+    mutationFn: ({ id, ...data }) => api.work.tasks.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['workGraph'] }),
     onError: () => toast.error('Failed to save changes'),
   });
 

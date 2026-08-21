@@ -18,9 +18,14 @@ export default function TimeTracking() {
   const [selectedProject, setSelectedProject] = useState('all');
   const [period, setPeriod] = useState('30');
 
-  const { data: projects = [] } = useQuery({ queryKey: ['projects'], queryFn: () => api.entities.Project.list() });
-  const { data: tasks = [] } = useQuery({ queryKey: ['tasks'], queryFn: () => api.entities.Task.list() });
-  const { data: logs = [], isLoading } = useQuery({ queryKey: ['timelogs'], queryFn: () => api.entities.TimeLog.list('-log_date', 500) });
+  const { data: workGraph = {}, isLoading } = useQuery({
+    queryKey: ['workGraph'],
+    queryFn: () => api.work.graph(),
+    initialData: { projects: [], tasks: [], time_logs: [] },
+  });
+  const projects = workGraph.projects || [];
+  const tasks = workGraph.tasks || [];
+  const logs = workGraph.time_logs || [];
 
   const days = PERIOD_DAYS[period] || 30;
   const cutoff = subDays(new Date(), days);

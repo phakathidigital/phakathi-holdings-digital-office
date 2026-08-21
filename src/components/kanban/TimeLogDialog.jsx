@@ -19,8 +19,9 @@ export default function TimeLogDialog({ open, onClose, task, user }) {
   const [billable, setBillable] = useState(true);
 
   const createLog = useMutation({
-    mutationFn: (data) => api.entities.TimeLog.create(data),
+    mutationFn: (data) => api.work.timeLogs.create(data),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workGraph'] });
       queryClient.invalidateQueries({ queryKey: ['timelogs'] });
       toast.success(`${hours}h logged for "${task?.title}"`);
       setHours(''); setDescription('');

@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import WorkSystemFlow from "@/components/work/WorkSystemFlow";
-import { getGoalPortfolios, getGoalProgress, getGoalProjects } from "@/lib/workSystem";
+import { getGoalPortfolios, getGoalProjects } from "@/lib/workSystem";
 
 const STATUS = {
   not_started: { label: "Not Started", className: "bg-gray-100 text-gray-600", icon: Clock },
@@ -39,13 +39,14 @@ export default function GoalsOKRs() {
   const [form, setForm] = useState(EMPTY_GOAL);
   const queryClient = useQueryClient();
 
-  const { data: goals = [], isLoading } = useQuery({
-    queryKey: ["okrs"],
-    queryFn: () => api.entities.OKR.list("-created_date", 500),
+  const { data: workGraph = {}, isLoading } = useQuery({
+    queryKey: ["workGraph"],
+    queryFn: () => api.work.graph(),
+    initialData: { goals: [], portfolios: [], projects: [] },
   });
-  const { data: portfolios = [] } = useQuery({ queryKey: ["portfolios"], queryFn: () => api.entities.Portfolio.list() });
-  const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => api.entities.Project.list() });
-  const { data: tasks = [] } = useQuery({ queryKey: ["tasks"], queryFn: () => api.entities.Task.list() });
+  const goals = workGraph.goals || [];
+  const portfolios = workGraph.portfolios || [];
+  const projects = workGraph.projects || [];
 
   const createGoal = useMutation({
     mutationFn: async (data) => {
@@ -68,6 +69,7 @@ export default function GoalsOKRs() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["okrs"] });
+      queryClient.invalidateQueries({ queryKey: ["workGraph"] });
       queryClient.invalidateQueries({ queryKey: ["portfolios"] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       setForm(EMPTY_GOAL);
@@ -79,16 +81,19 @@ export default function GoalsOKRs() {
 
   const updateGoal = useMutation({
     mutationFn: ({ id, ...data }) => api.entities.OKR.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["okrs"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workGraph"] });
+      queryClient.invalidateQueries({ queryKey: ["okrs"] });
+    },
     onError: (error) => toast.error(error?.message || "Could not update goal"),
   });
 
   const goalRows = useMemo(() => goals.map((goal) => {
     const linkedPortfolios = getGoalPortfolios(goal, portfolios);
     const linkedProjects = getGoalProjects(goal, projects, portfolios);
-    const progress = getGoalProgress(goal, portfolios, projects, tasks);
+    const progress = Number(goal.progress || 0);
     return { goal, linkedPortfolios, linkedProjects, progress };
-  }), [goals, portfolios, projects, tasks]);
+  }), [goals, portfolios, projects]);
 
   const stats = [
     { label: "Goals", value: goals.length, color: "text-slate-900" },

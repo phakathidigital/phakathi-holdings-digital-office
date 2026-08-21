@@ -93,7 +93,7 @@ const rolePermissions = {
     "notifications.manage",
     "integrations.manage",
   ],
-  "Employee": ["projects.view", "crm.view"],
+  "Employee": ["projects.view", "projects.create", "projects.edit", "crm.view"],
 };
 
 const opportunityStages = [

@@ -33,12 +33,20 @@ async function request(path, options = {}) {
     : await response.text();
 
   if (!response.ok) {
-    const error = new Error(payload?.message || payload || "API request failed");
+    const error = new Error(payload?.error?.message || payload?.message || payload || "API request failed");
     error.status = response.status;
     error.data = payload;
     throw error;
   }
 
+  return payload;
+}
+
+async function v1Request(path, options = {}) {
+  const payload = await request(`/v1${path}`, options);
+  if (payload && typeof payload === "object" && "data" in payload && "error" in payload) {
+    return payload.data;
+  }
   return payload;
 }
 
@@ -126,6 +134,59 @@ export const api = {
       return target[prop];
     },
   }),
+  work: {
+    overview: (filters = {}) => v1Request(`/work/overview?${new URLSearchParams(filters)}`),
+    graph: (filters = {}) => v1Request(`/work/graph?${new URLSearchParams(filters)}`),
+    goals: (filters = {}) => v1Request(`/work/goals?${new URLSearchParams(filters)}`),
+    portfolios: (filters = {}) => v1Request(`/work/portfolios?${new URLSearchParams(filters)}`),
+    projects: {
+      list: (filters = {}) => v1Request(`/work/projects?${new URLSearchParams(filters)}`),
+      create: (data) => v1Request("/work/projects", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+      update: (id, data) => v1Request(`/work/projects/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+      delete: (id) => v1Request(`/work/projects/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      }),
+    },
+    tasks: {
+      list: (filters = {}) => v1Request(`/work/tasks?${new URLSearchParams(filters)}`),
+      create: (data) => v1Request("/work/tasks", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+      update: (id, data) => v1Request(`/work/tasks/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+      move: (id, status) => v1Request(`/work/tasks/${encodeURIComponent(id)}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
+      }),
+      delete: (id) => v1Request(`/work/tasks/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      }),
+    },
+    kanban: (filters = {}) => v1Request(`/work/kanban?${new URLSearchParams(filters)}`),
+    milestones: (filters = {}) => v1Request(`/work/milestones?${new URLSearchParams(filters)}`),
+    timeLogs: {
+      list: (filters = {}) => v1Request(`/work/time-logs?${new URLSearchParams(filters)}`),
+      create: (data) => v1Request("/work/time-logs", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    },
+    meetings: {
+      list: (filters = {}) => v1Request(`/work/meetings?${new URLSearchParams(filters)}`),
+      syncTasks: (id) => v1Request(`/work/meetings/${encodeURIComponent(id)}/sync-tasks`, {
+        method: "POST",
+      }),
+    },
+  },
   users: {
     inviteUser: (email, role = "user") => request("/auth/invite", {
       method: "POST",

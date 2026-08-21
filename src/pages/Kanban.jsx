@@ -352,25 +352,36 @@ export default function Kanban() {
 
   const { data: user } = useQuery({ queryKey: ["currentUser"], queryFn: () => api.auth.me() });
   const { data: users = [] } = useQuery({ queryKey: ["users"], queryFn: () => api.entities.User.list() });
-  const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => api.entities.Project.list("-created_date", 50) });
-  const { data: tasks = [], isLoading } = useQuery({ queryKey: ["tasks"], queryFn: () => api.entities.Task.list("-created_date", 200) });
+  const { data: workGraph = {}, isLoading } = useQuery({
+    queryKey: ["workGraph"],
+    queryFn: () => api.work.graph(),
+    initialData: { projects: [], tasks: [] },
+  });
+  const projects = workGraph.projects || [];
+  const tasks = workGraph.tasks || [];
 
   const updateTask = useMutation({
-    mutationFn: ({ id, ...data }) => api.entities.Task.update(id, data),
+    mutationFn: ({ id, ...data }) => api.work.tasks.update(id, data),
     onMutate: async ({ id, ...data }) => {
-      await queryClient.cancelQueries({ queryKey: ["tasks"] });
-      const prev = queryClient.getQueryData(["tasks"]);
-      queryClient.setQueryData(["tasks"], (old) => old.map((t) => (t.id === id ? { ...t, ...data } : t)));
+      await queryClient.cancelQueries({ queryKey: ["workGraph"] });
+      const prev = queryClient.getQueryData(["workGraph"]);
+      queryClient.setQueryData(["workGraph"], (old = {}) => ({
+        ...old,
+        tasks: (old.tasks || []).map((t) => (t.id === id ? { ...t, ...data } : t)),
+      }));
       return { prev };
     },
-    onError: (_, __, ctx) => queryClient.setQueryData(["tasks"], ctx.prev),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
+    onError: (error, __, ctx) => {
+      queryClient.setQueryData(["workGraph"], ctx.prev);
+      toast.error(error?.data?.error?.message || error?.message || "Could not update task");
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["workGraph"] }),
   });
 
   const createTask = useMutation({
-    mutationFn: (data) => api.entities.Task.create(data),
+    mutationFn: (data) => api.work.tasks.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["workGraph"] });
       toast.success("Task created");
       setTaskDialogOpen(false);
       setEditingTask(null);
@@ -378,10 +389,28 @@ export default function Kanban() {
     onError: (error) => toast.error(error?.message || "Could not create task"),
   });
 
+  const moveTask = useMutation({
+    mutationFn: ({ id, status }) => api.work.tasks.move(id, status),
+    onMutate: async ({ id, status }) => {
+      await queryClient.cancelQueries({ queryKey: ["workGraph"] });
+      const prev = queryClient.getQueryData(["workGraph"]);
+      queryClient.setQueryData(["workGraph"], (old = {}) => ({
+        ...old,
+        tasks: (old.tasks || []).map((t) => (t.id === id ? { ...t, status } : t)),
+      }));
+      return { prev };
+    },
+    onError: (error, __, ctx) => {
+      queryClient.setQueryData(["workGraph"], ctx.prev);
+      toast.error(error?.data?.error?.message || error?.message || "Could not move task");
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["workGraph"] }),
+  });
+
   const saveTask = useMutation({
-    mutationFn: ({ id, ...data }) => id ? api.entities.Task.update(id, data) : api.entities.Task.create(data),
+    mutationFn: ({ id, ...data }) => id ? api.work.tasks.update(id, data) : api.work.tasks.create(data),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["workGraph"] });
       toast.success(variables.id ? "Task updated" : "Task created");
       setTaskDialogOpen(false);
       setEditingTask(null);
@@ -390,9 +419,9 @@ export default function Kanban() {
   });
 
   const deleteTask = useMutation({
-    mutationFn: (id) => api.entities.Task.delete(id),
+    mutationFn: (id) => api.work.tasks.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["workGraph"] });
       toast.success("Task deleted");
     },
     onError: (error) => toast.error(error?.message || "Could not delete task"),
@@ -433,7 +462,7 @@ export default function Kanban() {
       return;
     }
 
-    updateTask.mutate({ id: draggableId, status: newStatus });
+    moveTask.mutate({ id: draggableId, status: newStatus });
   };
 
   const handleLogTime = (task) => setTimeLogTask(task);

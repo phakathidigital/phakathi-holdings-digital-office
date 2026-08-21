@@ -14,7 +14,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import WorkSystemFlow from '@/components/work/WorkSystemFlow';
-import { getPortfolioProgress, getPortfolioProjects } from '@/lib/workSystem';
+import { getPortfolioProjects } from '@/lib/workSystem';
 
 const STATUS_STYLES = {
   active:     { cls: 'bg-indigo-100 text-indigo-700 border-indigo-200', icon: TrendingUp },
@@ -32,21 +32,25 @@ export default function Portfolios() {
   const [form, setForm] = useState(EMPTY_FORM);
   const qc = useQueryClient();
 
-  const { data: portfolios = [], isLoading } = useQuery({ queryKey: ['portfolios'], queryFn: () => api.entities.Portfolio.list('-created_date') });
-  const { data: projects = [] } = useQuery({ queryKey: ['projects'], queryFn: () => api.entities.Project.list() });
-  const { data: tasks = [] } = useQuery({ queryKey: ['tasks'], queryFn: () => api.entities.Task.list() });
+  const { data: workGraph = {}, isLoading } = useQuery({
+    queryKey: ['workGraph'],
+    queryFn: () => api.work.graph(),
+    initialData: { portfolios: [], projects: [], tasks: [] },
+  });
+  const portfolios = workGraph.portfolios || [];
+  const projects = workGraph.projects || [];
 
   const create = useMutation({
     mutationFn: d => api.entities.Portfolio.create(d),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['portfolios'] }); setShowCreate(false); setForm(EMPTY_FORM); toast.success('Portfolio created'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['workGraph'] }); qc.invalidateQueries({ queryKey: ['portfolios'] }); setShowCreate(false); setForm(EMPTY_FORM); toast.success('Portfolio created'); },
   });
   const remove = useMutation({
     mutationFn: id => api.entities.Portfolio.delete(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['portfolios'] }); toast.success('Portfolio deleted'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['workGraph'] }); qc.invalidateQueries({ queryKey: ['portfolios'] }); toast.success('Portfolio deleted'); },
   });
   const update = useMutation({
     mutationFn: ({ id, ...d }) => api.entities.Portfolio.update(id, d),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['portfolios'] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['workGraph'] }); qc.invalidateQueries({ queryKey: ['portfolios'] }); },
   });
 
   const stats = [
@@ -99,7 +103,7 @@ export default function Portfolios() {
               const stl = STATUS_STYLES[p.status] || STATUS_STYLES.active;
               const SIcon = stl.icon;
               const linked = getPortfolioProjects(p, projects);
-              const progress = getPortfolioProgress(p, projects, tasks);
+              const progress = Number(p.progress || 0);
               return (
                 <motion.div key={p.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}>
                   <Card className="border-0 shadow-sm hover:shadow-md transition-all bg-white h-full flex flex-col">
