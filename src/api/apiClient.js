@@ -137,8 +137,34 @@ export const api = {
   work: {
     overview: (filters = {}) => v1Request(`/work/overview?${new URLSearchParams(filters)}`),
     graph: (filters = {}) => v1Request(`/work/graph?${new URLSearchParams(filters)}`),
-    goals: (filters = {}) => v1Request(`/work/goals?${new URLSearchParams(filters)}`),
-    portfolios: (filters = {}) => v1Request(`/work/portfolios?${new URLSearchParams(filters)}`),
+    goals: {
+      list: (filters = {}) => v1Request(`/work/goals?${new URLSearchParams(filters)}`),
+      create: (data) => v1Request("/work/goals", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+      update: (id, data) => v1Request(`/work/goals/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+      delete: (id) => v1Request(`/work/goals/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      }),
+    },
+    portfolios: {
+      list: (filters = {}) => v1Request(`/work/portfolios?${new URLSearchParams(filters)}`),
+      create: (data) => v1Request("/work/portfolios", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+      update: (id, data) => v1Request(`/work/portfolios/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+      delete: (id) => v1Request(`/work/portfolios/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      }),
+    },
     projects: {
       list: (filters = {}) => v1Request(`/work/projects?${new URLSearchParams(filters)}`),
       create: (data) => v1Request("/work/projects", {
@@ -172,7 +198,20 @@ export const api = {
       }),
     },
     kanban: (filters = {}) => v1Request(`/work/kanban?${new URLSearchParams(filters)}`),
-    milestones: (filters = {}) => v1Request(`/work/milestones?${new URLSearchParams(filters)}`),
+    milestones: {
+      list: (filters = {}) => v1Request(`/work/milestones?${new URLSearchParams(filters)}`),
+      create: (data) => v1Request("/work/milestones", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+      update: (id, data) => v1Request(`/work/milestones/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+      delete: (id) => v1Request(`/work/milestones/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      }),
+    },
     timeLogs: {
       list: (filters = {}) => v1Request(`/work/time-logs?${new URLSearchParams(filters)}`),
       create: (data) => v1Request("/work/time-logs", {
@@ -182,6 +221,17 @@ export const api = {
     },
     meetings: {
       list: (filters = {}) => v1Request(`/work/meetings?${new URLSearchParams(filters)}`),
+      create: (data) => v1Request("/work/meetings", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+      update: (id, data) => v1Request(`/work/meetings/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+      delete: (id) => v1Request(`/work/meetings/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      }),
       syncTasks: (id) => v1Request(`/work/meetings/${encodeURIComponent(id)}/sync-tasks`, {
         method: "POST",
       }),

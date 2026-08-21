@@ -40,11 +40,11 @@ export default function Roadmaps() {
   const projects = workGraph.projects || [];
 
   const create = useMutation({
-    mutationFn: d => api.entities.Milestone.create(d),
+    mutationFn: d => api.work.milestones.create(d),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['workGraph'] }); qc.invalidateQueries({ queryKey: ['milestones'] }); setShowCreate(false); setForm(EMPTY); toast.success('Milestone added'); },
   });
   const updateM = useMutation({
-    mutationFn: ({ id, ...d }) => api.entities.Milestone.update(id, d),
+    mutationFn: ({ id, ...d }) => api.work.milestones.update(id, d),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['workGraph'] }); qc.invalidateQueries({ queryKey: ['milestones'] }); },
   });
 

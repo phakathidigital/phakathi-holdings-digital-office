@@ -64,11 +64,71 @@ router.get(
   }),
 );
 
+router.post(
+  "/goals",
+  requirePermission("projects.create"),
+  asyncHandler(async (req, res) => {
+    const result = await createWorkRecord(WORK_ENTITIES.goals, req.body, req.user);
+    await audit(req, "create_goal", "OKR", result);
+    sendData(res, result, undefined, 201);
+  }),
+);
+
+router.patch(
+  "/goals/:id",
+  requirePermission("projects.edit"),
+  asyncHandler(async (req, res) => {
+    const result = await updateWorkRecord(WORK_ENTITIES.goals, req.params.id, req.body, req.user);
+    await audit(req, "update_goal", "OKR", result);
+    sendData(res, result);
+  }),
+);
+
+router.delete(
+  "/goals/:id",
+  requirePermission("projects.delete"),
+  asyncHandler(async (req, res) => {
+    const result = await deleteWorkRecord(WORK_ENTITIES.goals, req.params.id);
+    await audit(req, "delete_goal", "OKR", result);
+    sendData(res, result);
+  }),
+);
+
 router.get(
   "/portfolios",
   requirePermission("projects.view"),
   asyncHandler(async (req, res) => {
     sendData(res, await listWorkEntity("portfolios", filtersFromQuery(req.query)));
+  }),
+);
+
+router.post(
+  "/portfolios",
+  requirePermission("projects.create"),
+  asyncHandler(async (req, res) => {
+    const result = await createWorkRecord(WORK_ENTITIES.portfolios, req.body, req.user);
+    await audit(req, "create_portfolio", "Portfolio", result);
+    sendData(res, result, undefined, 201);
+  }),
+);
+
+router.patch(
+  "/portfolios/:id",
+  requirePermission("projects.edit"),
+  asyncHandler(async (req, res) => {
+    const result = await updateWorkRecord(WORK_ENTITIES.portfolios, req.params.id, req.body, req.user);
+    await audit(req, "update_portfolio", "Portfolio", result);
+    sendData(res, result);
+  }),
+);
+
+router.delete(
+  "/portfolios/:id",
+  requirePermission("projects.delete"),
+  asyncHandler(async (req, res) => {
+    const result = await deleteWorkRecord(WORK_ENTITIES.portfolios, req.params.id);
+    await audit(req, "delete_portfolio", "Portfolio", result);
+    sendData(res, result);
   }),
 );
 
@@ -181,6 +241,36 @@ router.get(
   }),
 );
 
+router.post(
+  "/milestones",
+  requirePermission("projects.create"),
+  asyncHandler(async (req, res) => {
+    const result = await createWorkRecord(WORK_ENTITIES.milestones, req.body, req.user);
+    await audit(req, "create_milestone", "Milestone", result);
+    sendData(res, result, undefined, 201);
+  }),
+);
+
+router.patch(
+  "/milestones/:id",
+  requirePermission("projects.edit"),
+  asyncHandler(async (req, res) => {
+    const result = await updateWorkRecord(WORK_ENTITIES.milestones, req.params.id, req.body, req.user);
+    await audit(req, "update_milestone", "Milestone", result);
+    sendData(res, result);
+  }),
+);
+
+router.delete(
+  "/milestones/:id",
+  requirePermission("projects.delete"),
+  asyncHandler(async (req, res) => {
+    const result = await deleteWorkRecord(WORK_ENTITIES.milestones, req.params.id);
+    await audit(req, "delete_milestone", "Milestone", result);
+    sendData(res, result);
+  }),
+);
+
 router.get(
   "/time-logs",
   requirePermission("projects.view"),
@@ -204,6 +294,36 @@ router.get(
   requirePermission("projects.view"),
   asyncHandler(async (req, res) => {
     sendData(res, await listWorkEntity("meetings", filtersFromQuery(req.query)));
+  }),
+);
+
+router.post(
+  "/meetings",
+  requirePermission("projects.create"),
+  asyncHandler(async (req, res) => {
+    const result = await createWorkRecord(WORK_ENTITIES.meetings, req.body, req.user);
+    await audit(req, "create_meeting", "MeetingStudio", result);
+    sendData(res, result, undefined, 201);
+  }),
+);
+
+router.patch(
+  "/meetings/:id",
+  requirePermission("projects.edit"),
+  asyncHandler(async (req, res) => {
+    const result = await updateWorkRecord(WORK_ENTITIES.meetings, req.params.id, req.body, req.user);
+    await audit(req, "update_meeting", "MeetingStudio", result);
+    sendData(res, result);
+  }),
+);
+
+router.delete(
+  "/meetings/:id",
+  requirePermission("projects.delete"),
+  asyncHandler(async (req, res) => {
+    const result = await deleteWorkRecord(WORK_ENTITIES.meetings, req.params.id);
+    await audit(req, "delete_meeting", "MeetingStudio", result);
+    sendData(res, result);
   }),
 );
 

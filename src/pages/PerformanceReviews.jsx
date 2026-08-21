@@ -71,13 +71,13 @@ function ReviewCard({ review, user, onUpdate, okrs }) {
   });
 
   const createOKR = useMutation({
-    mutationFn: (data) => api.entities.OKR.create({ ...data, review_id: review.id, employee_email: review.employee_email, period: review.review_period }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["okrs"] }); setShowOKRForm(false); setNewOKR({ objective: "", key_results: [""], progress: 0, status: "not_started", notes: "" }); },
+    mutationFn: (data) => api.work.goals.create({ ...data, review_id: review.id, employee_email: review.employee_email, period: review.review_period }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["workGraph"] }); queryClient.invalidateQueries({ queryKey: ["okrs"] }); setShowOKRForm(false); setNewOKR({ objective: "", key_results: [""], progress: 0, status: "not_started", notes: "" }); },
   });
 
   const updateOKR = useMutation({
-    mutationFn: ({ id, ...data }) => api.entities.OKR.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["okrs"] }),
+    mutationFn: ({ id, ...data }) => api.work.goals.update(id, data),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["workGraph"] }); queryClient.invalidateQueries({ queryKey: ["okrs"] }); },
   });
 
   const handleSelfSubmit = () => {
@@ -324,7 +324,7 @@ export default function PerformanceReviews() {
 
   const { data: okrs = [] } = useQuery({
     queryKey: ["okrs"],
-    queryFn: () => api.entities.OKR.list("-created_date", 500),
+    queryFn: () => api.work.goals.list(),
   });
 
   const createMutation = useMutation({

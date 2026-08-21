@@ -41,15 +41,15 @@ export default function Portfolios() {
   const projects = workGraph.projects || [];
 
   const create = useMutation({
-    mutationFn: d => api.entities.Portfolio.create(d),
+    mutationFn: d => api.work.portfolios.create(d),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['workGraph'] }); qc.invalidateQueries({ queryKey: ['portfolios'] }); setShowCreate(false); setForm(EMPTY_FORM); toast.success('Portfolio created'); },
   });
   const remove = useMutation({
-    mutationFn: id => api.entities.Portfolio.delete(id),
+    mutationFn: id => api.work.portfolios.delete(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['workGraph'] }); qc.invalidateQueries({ queryKey: ['portfolios'] }); toast.success('Portfolio deleted'); },
   });
   const update = useMutation({
-    mutationFn: ({ id, ...d }) => api.entities.Portfolio.update(id, d),
+    mutationFn: ({ id, ...d }) => api.work.portfolios.update(id, d),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['workGraph'] }); qc.invalidateQueries({ queryKey: ['portfolios'] }); },
   });
 

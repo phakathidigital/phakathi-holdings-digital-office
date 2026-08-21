@@ -30,7 +30,7 @@ export default function EvaluationReport({ review, open, onClose }) {
 
   const { data: okrs = [] } = useQuery({
     queryKey: ["okrs"],
-    queryFn: () => api.entities.OKR.list("-created_date", 500),
+    queryFn: () => api.work.goals.list(),
     enabled: !!review?.id,
   });
 

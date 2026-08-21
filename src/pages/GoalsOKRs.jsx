@@ -50,7 +50,7 @@ export default function GoalsOKRs() {
 
   const createGoal = useMutation({
     mutationFn: async (data) => {
-      const goal = await api.entities.OKR.create({
+      const goal = await api.work.goals.create({
         objective: data.objective,
         key_results: data.key_results.split("\n").map((line) => line.trim()).filter(Boolean),
         period: data.period || "2026",
@@ -63,8 +63,8 @@ export default function GoalsOKRs() {
         notes: data.notes,
         progress: 0,
       });
-      if (data.portfolio_id) await api.entities.Portfolio.update(data.portfolio_id, { okr_id: goal.id });
-      if (data.project_id) await api.entities.Project.update(data.project_id, { okr_id: goal.id });
+      if (data.portfolio_id) await api.work.portfolios.update(data.portfolio_id, { okr_id: goal.id });
+      if (data.project_id) await api.work.projects.update(data.project_id, { okr_id: goal.id });
       return goal;
     },
     onSuccess: () => {
@@ -80,7 +80,7 @@ export default function GoalsOKRs() {
   });
 
   const updateGoal = useMutation({
-    mutationFn: ({ id, ...data }) => api.entities.OKR.update(id, data),
+    mutationFn: ({ id, ...data }) => api.work.goals.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workGraph"] });
       queryClient.invalidateQueries({ queryKey: ["okrs"] });

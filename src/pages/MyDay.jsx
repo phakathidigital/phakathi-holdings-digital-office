@@ -22,7 +22,7 @@ export default function MyDay() {
     queryFn: () => api.entities.Task.filter({ assigned_to: user.email }, '-created_date', 150),
     enabled: !!user?.email,
   });
-  const { data: meetings = [] } = useQuery({ queryKey: ['meetings'], queryFn: () => api.entities.MeetingStudio.list('-meeting_date', 15) });
+  const { data: meetings = [] } = useQuery({ queryKey: ['meetings'], queryFn: () => api.work.meetings.list() });
   const { data: notifications = [] } = useQuery({ queryKey: ['notifications'], queryFn: () => api.entities.Notification.list('-created_date', 20) });
   const { data: announcements = [] } = useQuery({ queryKey: ['announcements'], queryFn: () => api.entities.Announcement.list('-created_date', 4) });
   const { data: presences = [] } = useQuery({ queryKey: ['presences'], queryFn: () => api.entities.UserPresence.list('-last_seen', 12) });

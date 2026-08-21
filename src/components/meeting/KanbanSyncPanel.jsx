@@ -162,7 +162,7 @@ export default function KanbanSyncPanel({ meeting, onSynced }) {
         });
       }
 
-      await api.entities.MeetingStudio.update(meeting.id, { tasks_synced: true });
+      await api.work.meetings.update(meeting.id, { tasks_synced: true });
       qc.invalidateQueries({ queryKey: ["workGraph"] });
       qc.invalidateQueries({ queryKey: ["tasks"] });
       qc.invalidateQueries({ queryKey: ["meeting-studios"] });

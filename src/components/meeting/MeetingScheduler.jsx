@@ -28,7 +28,7 @@ export default function MeetingScheduler({ open, onClose, onScheduled }) {
     mutationFn: async (data) => {
       const attendees = data.attendees_raw.split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
       const attendeeEmails = attendees.filter(a => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a));
-      const record = await api.entities.MeetingStudio.create({
+      const record = await api.work.meetings.create({
         title: data.title,
         meeting_date: data.meeting_date,
         subsidiary: data.subsidiary,
@@ -53,6 +53,7 @@ export default function MeetingScheduler({ open, onClose, onScheduled }) {
     },
     onSuccess: (record) => {
       qc.invalidateQueries({ queryKey: ["meeting-studios"] });
+      qc.invalidateQueries({ queryKey: ["workGraph"] });
       onScheduled?.(record);
       onClose();
       setForm({ title: "", meeting_date: today, start_time: "09:00", end_time: "10:00", meeting_type: "", subsidiary: "", attendees_raw: "", agenda: "" });

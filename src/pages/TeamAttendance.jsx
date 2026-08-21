@@ -205,7 +205,7 @@ export default function TeamAttendance() {
 
   const { data: users = [] } = useQuery({ queryKey: ["users"], queryFn: () => api.entities.User.list() });
   const { data: leaveRequests = [] } = useQuery({ queryKey: ["leaveRequests"], queryFn: () => api.entities.LeaveRequest.list("-start_date", 200) });
-  const { data: meetings = [] } = useQuery({ queryKey: ["meetingStudio"], queryFn: () => api.entities.MeetingStudio.list("-meeting_date", 200) });
+  const { data: meetings = [] } = useQuery({ queryKey: ["meetingStudio"], queryFn: () => api.work.meetings.list() });
 
   const approvedLeave = leaveRequests.filter((l) => l.status === "approved");
 

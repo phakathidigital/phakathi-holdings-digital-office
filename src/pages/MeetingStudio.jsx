@@ -110,7 +110,7 @@ ${personalSummary ? `<h3>🎯 Your Personal Summary</h3><p>${personalSummary}</p
           `,
         });
       }
-      await api.entities.MeetingStudio.update(meeting.id, { emails_sent: true });
+      await api.work.meetings.update(meeting.id, { emails_sent: true });
     },
     onSuccess: () => {
       setEmailsSent(true);
@@ -233,7 +233,7 @@ export default function MeetingStudioPage() {
 
   const { data: meetings = [], isLoading } = useQuery({
     queryKey: ["meeting-studios"],
-    queryFn: () => api.entities.MeetingStudio.list("-meeting_date"),
+    queryFn: () => api.work.meetings.list(),
   });
 
   const handleFileUpload = (e) => {
@@ -258,7 +258,7 @@ export default function MeetingStudioPage() {
       .filter(Boolean);
 
     // Create record first
-    const record = await api.entities.MeetingStudio.create({
+    const record = await api.work.meetings.create({
       title: form.title,
       meeting_date: form.meeting_date,
       subsidiary: form.subsidiary,
@@ -276,7 +276,7 @@ export default function MeetingStudioPage() {
         transcript: form.transcript,
       });
 
-      await api.entities.MeetingStudio.update(record.id, {
+      await api.work.meetings.update(record.id, {
         summary: result.summary,
         decisions: result.decisions,
         action_items: result.action_items,
@@ -297,7 +297,7 @@ export default function MeetingStudioPage() {
       setSelectedMeeting(updated);
       setView("list");
     } catch (err) {
-      await api.entities.MeetingStudio.update(record.id, { status: "pending" });
+      await api.work.meetings.update(record.id, { status: "pending" });
     } finally {
       setProcessing(false);
       setForm({ title: "", meeting_date: new Date().toISOString().split("T")[0], subsidiary: "", attendees_raw: "", transcript: "" });
