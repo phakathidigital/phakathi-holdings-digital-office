@@ -28,4 +28,4 @@ if (shouldPreparePostgres) {
   console.log(`Skipping PostgreSQL migration because PHAKATHI_STORAGE=${storage}.`);
 }
 
-run("npm", ["run", "build"]);
+run("npm", ["run", "build:frontend"]);
