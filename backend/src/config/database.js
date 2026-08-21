@@ -19,13 +19,13 @@ async function getDbBlobStore() {
   return getStore({ name: DB_BLOB_STORE, consistency: "strong" });
 }
 
-function shouldUsePostgresPersistence() {
+export function shouldUsePostgresPersistence() {
   return process.env.PHAKATHI_STORAGE === "postgres";
 }
 
 let prismaClient;
 
-async function getPrismaClient() {
+export async function getPrismaClient() {
   if (!process.env.DATABASE_URL) {
     throw new Error("DATABASE_URL is required when PHAKATHI_STORAGE=postgres.");
   }

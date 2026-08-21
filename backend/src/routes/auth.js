@@ -1,6 +1,7 @@
 import express from "express";
 import { makeToken, requireAuth } from "../middleware/auth.js";
 import { nowStamped, readDb, writeDb } from "../config/database.js";
+import { syncUserToRelational } from "../services/v1/organisationService.js";
 import { hashPassword, isStrongEnoughPassword, sanitizeUser, verifyPassword } from "../utils/authSecurity.js";
 
 const router = express.Router();
@@ -16,6 +17,7 @@ router.patch("/me", requireAuth, async (req, res) => {
   users[index] = nowStamped(safePatch, users[index]);
   req.db.entities.User = users;
   await writeDb(req.db);
+  await syncUserToRelational(users[index]);
   res.json(sanitizeUser(users[index]));
 });
 
@@ -60,6 +62,7 @@ router.post("/login-or-register", async (req, res) => {
   }
 
   await writeDb(db);
+  await syncUserToRelational(user);
   res.json({ token: makeToken(user), user: sanitizeUser(user) });
 });
 
@@ -73,6 +76,7 @@ router.post("/invite", async (req, res) => {
     user = nowStamped({ email, role: req.body.role || "user", full_name: email.split("@")[0], invited: true });
     db.entities.User.push(user);
     await writeDb(db);
+    await syncUserToRelational(user);
   }
   res.json(sanitizeUser(user));
 });

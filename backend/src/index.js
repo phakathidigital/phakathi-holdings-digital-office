@@ -9,6 +9,7 @@ import integrationRoutes from "./routes/integrations.js";
 import functionRoutes from "./routes/functions.js";
 import analyticsRoutes from "./routes/analytics.js";
 import pushRoutes from "./routes/push.js";
+import v1Routes from "./routes/v1/index.js";
 import { startNotificationScheduler } from "./services/scheduler.js";
 
 export const app = express();
@@ -29,6 +30,7 @@ app.use("/api/integrations", integrationRoutes);
 app.use("/api/functions", functionRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/push", pushRoutes);
+app.use("/api/v1", v1Routes);
 
 // README-style resource route aliases. The frontend compatibility client uses
 // /api/entities/:EntityName, while these aliases keep the backend ready for
