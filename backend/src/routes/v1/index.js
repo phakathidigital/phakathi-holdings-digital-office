@@ -3,6 +3,7 @@ import { requireAuth } from "../../middleware/auth.js";
 import { requirePermission } from "../../middleware/permissions.js";
 import { asyncHandler, sendData, sendError } from "../../utils/apiResponse.js";
 import { writeAuditLog } from "../../services/auditLogService.js";
+import workRoutes from "./work.js";
 import {
   backfillRelationalUsers,
   listDepartments,
@@ -22,6 +23,7 @@ router.get("/health", (_req, res) => {
 });
 
 router.use(requireAuth);
+router.use("/work", workRoutes);
 
 router.get(
   "/me",
