@@ -2,88 +2,98 @@
 
 ## Current state
 
-Phakathi Flow is currently a responsive React/Vite web application. It already includes browser-compatible UI, a sidebar and mobile header, browser push service worker, localStorage auth token storage, and browser file uploads.
+Phakathi Flow is a browser-based React/Vite app using:
 
-The application is not yet packaged as a mobile or desktop app.
+- Browser routing.
+- `localStorage` auth token.
+- Browser service worker push.
+- Browser Notification API.
+- Browser file uploads.
 
-## Target architecture
+It is not yet packaged for Android, iOS, or desktop.
 
-Use one business backend for all clients:
+## Target platform strategy
 
 ```text
-             API
-              |
-       ----------------
-       |       |      |
-      Web   Mobile  Desktop
-     Vite  Capacitor Tauri
+React/Vite Web
+  -> Capacitor Android
+  -> Capacitor iOS
+  -> Tauri Desktop
+
+All clients use the same API and business data layer.
 ```
 
-Business logic stays server-side. Permissions, authentication, notifications, and audit logging must behave consistently across web, mobile, and desktop.
+## Required abstraction layer
+
+Before mobile/desktop packaging, add:
+
+- `src/platform/authStorage`
+- `src/platform/notifications`
+- `src/platform/files`
+- `src/platform/device`
+- `src/platform/links`
+- `src/platform/offline`
+- `src/platform/authCallbacks`
+
+Each defaults to browser behavior and can later use Capacitor/Tauri implementations.
 
 ## Mobile target
 
-Recommended wrapper:
+Use Capacitor for:
 
-- Capacitor.
-
-Mobile-specific areas to abstract:
-
-- Push notifications.
-- Deep links.
-- Authentication callbacks.
-- File picking/camera uploads.
-- Offline cache strategy.
-- Device/session tracking.
+- Android/iOS packaging.
+- Native push.
 - Secure token storage.
+- File picker/camera.
+- Deep links.
+- App lifecycle.
+- Device/session identity.
 
-Mobile UX requirements include touch-friendly controls, mobile drawer or bottom navigation where appropriate, responsive tables/charts/Kanban/forms/modals, no horizontal overflow, and a notification centre usable on small screens.
+Mobile UI must support stacked dashboard cards, touch-friendly Kanban, mobile table/card views, drawer/bottom navigation, small-screen forms, and resilient notifications.
 
 ## Desktop target
 
-Recommended wrapper:
+Use Tauri for:
 
-- Tauri.
-
-Desktop-specific areas to abstract:
-
-- File system access.
-- External links.
-- Deep links.
+- Desktop packaging.
 - Native notifications.
-- Window behaviour.
-- Authentication callbacks.
-- Local secure storage.
+- Secure token storage.
+- File system adapters.
+- External link handling.
+- Deep links.
+- Window behavior.
 
-## Shared client abstraction
+## Auth target
 
-Add small abstraction modules before mobile/desktop packaging:
+- Web: improve beyond localStorage for production where possible.
+- Mobile: secure storage.
+- Desktop: OS secure storage/keychain.
+- API: refresh tokens, sessions, device revocation.
 
-- `src/platform/notifications`
-- `src/platform/storage`
-- `src/platform/files`
-- `src/platform/links`
-- `src/platform/authCallbacks`
-- `src/platform/device`
+## Notification target
 
-Each abstraction should default to browser behaviour and allow Capacitor/Tauri implementations later.
+- Web: current browser push.
+- Android/iOS: native push adapter.
+- Desktop: Tauri notification adapter.
+- Server: one Notification/Delivery model, multiple delivery channels.
 
-## Current risks
+## Offline target
 
-- Browser APIs are used directly in several places.
-- Auth token is stored in localStorage.
-- Push notification setup is browser/service-worker specific.
-- File upload and camera scanning are browser-first.
-- Large tables and boards may overflow on mobile.
+Start small:
 
-## Recommended mobile/desktop sequence
+1. Offline read cache.
+2. Queue simple task status updates.
+3. Conflict detection.
+4. Broader offline document/work support later.
 
-1. Audit all direct browser APIs.
-2. Add platform abstraction layer.
-3. Fix mobile responsiveness for Dashboard, My Day, CRM, Projects, Kanban, Calendar, Notifications, Meetings, DAM, HR, Analytics, and forms.
-4. Add Capacitor shell.
-5. Add mobile push provider strategy.
-6. Add Tauri shell.
-7. Add native notification/file/deep-link adapters.
-8. Add device/session management.
-9. Test on real mobile and desktop devices.
+## Implementation order
+
+1. Audit direct browser APIs.
+2. Add platform abstractions.
+3. Fix mobile responsiveness.
+4. Add device/session model.
+5. Add secure-token design.
+6. Add Capacitor shell.
+7. Add native mobile push.
+8. Add Tauri shell.
+9. Add native desktop notification/file adapters.

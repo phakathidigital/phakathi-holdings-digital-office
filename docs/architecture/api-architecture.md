@@ -2,12 +2,12 @@
 
 ## Current API
 
-Current base:
+Current bases:
 
 - Local: `http://127.0.0.1:4000/api`
 - Netlify: `/api`
 
-Current route groups:
+Current routes:
 
 - `/api/health`
 - `/api/auth`
@@ -17,120 +17,105 @@ Current route groups:
 - `/api/analytics`
 - `/api/push`
 
-Current compatibility aliases include `/api/projects`, `/api/tasks`, `/api/portfolios`, `/api/meeting-studio`, `/api/notifications`, `/api/push-subscriptions`, `/api/hr-documents`, and other entity-backed resources.
+The frontend dynamically uses `api.entities.EntityName` clients.
 
-## Current API strengths
+## Strengths
 
-- One API client shape preserves existing frontend functionality.
-- Generic entity CRUD allows all migrated pages to keep working.
-- Auth is enforced for generic entity operations.
-- Notification hooks run when records are created/updated.
-- Meeting Studio AI has a real backend endpoint with fallback.
-- Netlify Functions can wrap the Express API.
+- Existing pages work through one compatibility layer.
+- Auth is enforced for generic entities.
+- Users and push subscriptions are sanitized.
+- Task/project anti-cheating rules exist.
+- Meeting Studio AI backend exists.
+- Netlify wraps the Express API successfully.
 
-## Current API gaps
+## Gaps
 
-- No `/api/v1` namespace yet.
-- Generic entity CRUD does not enforce granular permissions per resource/action.
-- No first-class CRM/sales endpoints.
-- `/api/functions/:functionName` returns placeholder success.
-- Analytics endpoint is not a full BI/event pipeline.
-- No central audit logging on all mutating operations.
-- No input validation layer per resource.
-- No pagination standard for large tables/timelines.
-- No rate limiting or CSRF/session hardening yet.
+- No `/api/v1`.
+- Generic CRUD is too broad for production.
+- No domain CRM APIs.
+- No domain Business Development APIs.
+- Limited validation.
+- Limited pagination.
+- Limited granular authorization.
+- AuditLog is not consistently written.
+- `/api/functions/:functionName` is placeholder-style.
 
-## Target API namespace
-
-New production routes should be introduced under `/api/v1` while preserving the current `/api` compatibility layer.
-
-```text
-/api/v1/auth
-/api/v1/users
-/api/v1/organisations
-/api/v1/subsidiaries
-/api/v1/departments
-/api/v1/crm/accounts
-/api/v1/crm/contacts
-/api/v1/crm/leads
-/api/v1/crm/opportunities
-/api/v1/crm/activities
-/api/v1/crm/interactions
-/api/v1/crm/timeline
-/api/v1/crm/health
-/api/v1/sales/pipeline
-/api/v1/sales/proposals
-/api/v1/sales/deals
-/api/v1/projects
-/api/v1/portfolios
-/api/v1/milestones
-/api/v1/tasks
-/api/v1/kanban
-/api/v1/meetings
-/api/v1/calendar
-/api/v1/documents
-/api/v1/dam
-/api/v1/hr
-/api/v1/performance
-/api/v1/leave
-/api/v1/payroll
-/api/v1/notifications
-/api/v1/push
-/api/v1/analytics
-/api/v1/ai
-/api/v1/integrations
-/api/v1/audit
-```
-
-## Service-layer target
-
-Routes should call services, not manipulate storage directly:
+## Target API flow
 
 ```text
 Route
-  ↓
-Validation
-  ↓
-Auth + permission check
-  ↓
-Service
-  ↓
-Repository
-  ↓
-Database/object storage/integration provider
-  ↓
-Audit log + notifications
+  -> authenticate
+  -> authorize
+  -> validate
+  -> service
+  -> repository/Prisma
+  -> audit log
+  -> notifications/events
+  -> response
 ```
+
+## Target `/api/v1` map
+
+- `/api/v1/auth`
+- `/api/v1/sessions`
+- `/api/v1/organisations`
+- `/api/v1/subsidiaries`
+- `/api/v1/departments`
+- `/api/v1/users`
+- `/api/v1/roles`
+- `/api/v1/permissions`
+- `/api/v1/work`
+- `/api/v1/projects`
+- `/api/v1/tasks`
+- `/api/v1/meetings`
+- `/api/v1/crm/accounts`
+- `/api/v1/crm/contacts`
+- `/api/v1/crm/activities`
+- `/api/v1/crm/timeline`
+- `/api/v1/crm/health`
+- `/api/v1/business-development/leads`
+- `/api/v1/business-development/opportunities`
+- `/api/v1/business-development/proposals`
+- `/api/v1/business-development/deals`
+- `/api/v1/documents`
+- `/api/v1/notifications`
+- `/api/v1/integrations`
+- `/api/v1/ai`
+- `/api/v1/audit`
 
 ## Permission model
 
-Every route should be protected by both authentication and action permissions. Examples include `crm.view`, `crm.create`, `crm.edit`, `crm.delete`, `sales.view`, `sales.manage`, `projects.view`, `projects.create`, `projects.edit`, `projects.delete`, `employees.view`, `employees.manage`, `finance.view`, `finance.manage`, `reports.view`, `audit.view`, and `admin.manage`.
+Move beyond `admin` and `user`.
 
-Roles should be bundles of permissions, not the only authorization mechanism.
+Examples:
 
-## CRM endpoint responsibilities
+- `group.view`
+- `users.manage`
+- `projects.view`
+- `projects.edit`
+- `tasks.assign`
+- `crm.view`
+- `crm.edit`
+- `crm.private_relationships.view`
+- `business_development.manage`
+- `finance.manage`
+- `documents.manage`
+- `integrations.manage`
+- `audit.view`
 
-CRM routes should support account list/search/filter, Account 360 detail, contact list/detail, relationship intelligence fields with privacy controls, notes, interactions, timeline aggregation, health calculation, and follow-up reminders.
+Permissions should be scoped to group, subsidiary, department, account, project, or self.
 
-## Sales endpoint responsibilities
+## Validation standard
 
-Sales routes should support lead creation/qualification, opportunity pipeline drag/drop stage changes, forecast calculations, proposal tracking, won/lost conversion, and create-project-from-opportunity using the existing project engine.
+Every mutating route needs schema validation and relationship checks.
 
-## AI endpoint responsibilities
+Examples:
 
-AI routes must only answer from data the user is permitted to access. The existing Meeting Studio AI service should be extended for client briefing, opportunity analysis, project intelligence, executive summaries, relationship intelligence, and business questions.
+- Project cannot complete with open tasks.
+- Task assignee must be an active user.
+- Opportunity cannot be won without required account/deal fields.
+- Private relationship fields require permission and audit reason.
 
-If an AI provider key is absent, the route should return a safe fallback or a clear "AI provider not configured" response.
+## Compatibility policy
 
-## API hardening checklist
-
-- Add `/api/v1` routes.
-- Add request validation with schemas.
-- Add permission middleware.
-- Add audit logging middleware/service.
-- Replace placeholder function route.
-- Add pagination: `limit`, `cursor`, `sort`.
-- Add consistent error shape.
-- Add rate limiting.
-- Add API tests.
-- Preserve current `/api/entities` compatibility during migration.
+Do not remove `/api/entities` yet. Add `/api/v1`, migrate page by page, then lock down generic writes after domain services are complete.

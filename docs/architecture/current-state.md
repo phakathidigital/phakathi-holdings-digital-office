@@ -1,60 +1,30 @@
 # Phakathi Flow current-state audit
 
-Last audited: 2026-08-20
+Last audited: 2026-08-21
 
 ## Executive summary
 
-Phakathi Flow is an existing React/Vite application with a self-hosted Node/Express API and Netlify Functions deployment support. It already contains many office-work modules: authentication, multi-company profile setup, projects, Kanban, goals/OKRs, portfolios, meetings, Meeting Studio AI, HR, leave, payroll/payslips, performance, attendance, notifications, browser push, DAM/document vault, integrations foundations, and dashboards.
+Phakathi Flow is now a React/Vite office operating system with a Node/Express API, Netlify Functions deployment, scheduled notifications, OpenAI-backed Meeting Studio with fallback, password authentication, browser push foundations, and a PostgreSQL/Prisma production foundation.
 
-The current system is suitable as an office-pilot foundation, but it is not yet a production-grade Group Business Operating System comparable to Monday.com, ClickUp, Salesforce/HubSpot, Teams, and Sage HR combined. The main blockers are the generic JSON-style data layer, limited relational modelling, incomplete permissions, missing CRM/business-development entities, placeholder generic function routes, and incomplete production database/migration/test coverage.
+The key finding is that the app is usable as an office pilot, but the business system is still partly disconnected:
 
-## Current repository structure
+- Most pages still use generic compatibility CRUD through `/api/entities/:EntityName`.
+- PostgreSQL exists, but much live app data still flows through the `EntityRecord` compatibility table.
+- The Prisma schema already contains many target CRM/business-development/work models, but most are not yet wired to dedicated production APIs or UI flows.
 
-```text
-.
-├── backend/
-│   ├── src/
-│   │   ├── config/
-│   │   ├── middleware/
-│   │   ├── routes/
-│   │   ├── services/
-│   │   └── utils/
-│   └── prisma/
-│       ├── schema.prisma
-│       └── entities/
-├── docs/
-│   └── brand/
-├── netlify/
-│   └── functions/
-├── public/
-├── scripts/
-├── src/
-│   ├── api/
-│   ├── assets/
-│   ├── components/
-│   ├── lib/
-│   └── pages/
-├── Dockerfile
-├── MIGRATION.md
-├── README.md
-├── netlify.toml
-├── package.json
-└── vite.config.js
-```
+## What currently exists
 
-## Existing frontend modules
+### Frontend modules
 
-The full route map is in `src/App.jsx`, not `src/pages.config.js`. The app currently routes to Dashboard, My Day, Notifications, Calendar, Projects, Project Details, Kanban, Portfolios, Workload Planner, Roadmaps, Gantt Timeline, Time Tracking, Goals & OKRs, Messaging, Company Feed, Meeting Studio, AI Assistant, Org Chart, Performance Reviews, Onboarding, Team Attendance, Support Tickets, Assets, Document Vault, Expenses, Room Booking, Noticeboard, Culture Hub, HR Hub, Meeting Notes, Executive Dashboard, Payroll, Auto Payroll, Sage Integration, Integrations, Profile, and Settings.
+Existing routed pages include Dashboard, My Day, Notifications, Calendar, Projects, Project Details, Kanban, Portfolios, Workload Planner, Roadmaps, Gantt Timeline, Time Tracking, Goals & OKRs, Messaging, Company Feed, Meeting Studio, AI Assistant, Org Chart, Performance, Onboarding, Team Attendance, Tickets, Assets, Document Vault, Expenses, Room Booking/Resource Calendar, Noticeboard, Culture Hub, HR Hub, Meeting Notes, Executive Dashboard, Payroll, Auto Payroll, Sage Integration, Integrations, Profile, and Settings.
 
-`src/pages.config.js` is stale/incomplete and only lists Dashboard, Projects, ProjectDetails, Profile, Settings, and AIAssistant. This is a duplicate routing/configuration source that should either be removed or regenerated from the canonical route map.
+The product surface is broad. The next problem is not missing pages; it is missing relationships between the pages.
 
-## Existing backend/API modules
+### Backend/API
 
-Current backend entrypoint:
+Current backend entrypoint: `backend/src/index.js`.
 
-- `backend/src/index.js`
-
-Current API groups:
+Current route groups:
 
 - `/api/health`
 - `/api/auth`
@@ -63,182 +33,273 @@ Current API groups:
 - `/api/functions`
 - `/api/analytics`
 - `/api/push`
-- README-style aliases such as `/api/projects`, `/api/tasks`, `/api/notifications`, etc.
 
-The generic entity route is the main compatibility layer. It supports schema reads, list/filter/get/create/update/delete/bulk operations for entity names under `backend/prisma/entities/`.
+Netlify wraps the Express API through `netlify/functions/api.mjs`.
 
-## Existing entities
+### Authentication
 
-Entity schema files currently exist for users/profiles, project/work management, meetings, notifications, DAM/documents, HR/leave/payroll/performance, messaging/feed, support/assets/resources, Sage, and Google Drive foundations.
-
-Current local `.local-data/db.json` entity counts at audit time:
-
-| Entity | Count |
-| --- | ---: |
-| User | 10 |
-| UserProfile | 10 |
-| Project | 4 |
-| Task | 11 |
-| Portfolio | 1 |
-| OKR | 1 |
-| MeetingStudio | 1 |
-| Milestone | 3 |
-| TimeLog | 1 |
-| Notification | 6 |
-| NotificationDelivery | 5 |
-| PushSubscription | 1 |
-| Most HR/operations/document/feed entities | 0 |
-
-One local pilot/test-style user remains in `.local-data/db.json`: `test@admin.com`. This should be removed or converted before real office rollout, but not during Phase 0 documentation.
-
-## Existing authentication
-
-Current implementation:
+Implemented:
 
 - Email/password login-or-register.
 - PBKDF2 password hashing.
-- Signed local auth tokens using `JWT_SECRET`.
-- Seeded employees can claim existing profiles by setting a first password.
-- Generic entity routes require authentication.
-- User records are sanitized before returning to the browser.
+- Signed auth tokens.
+- First-login company/profile completion.
+- Sanitized user responses.
+- Protected generic entity routes.
 
-Current gaps:
+Gaps:
 
-- No refresh-token rotation.
-- No password reset flow.
+- No password reset.
 - No email verification.
 - No MFA.
-- No device/session management screen.
-- Role handling is mostly `admin` vs `user`.
-- Granular permissions such as `crm.view`, `projects.edit`, or `finance.manage` are not yet implemented.
-- Tokens appear to be stored client-side in localStorage, which is acceptable for pilot simplicity but not ideal for high-security production.
+- No live refresh-token/session rotation flow.
+- No device/session management UI.
+- Token storage is still browser `localStorage`.
+- RBAC is not yet granular across entities/actions.
 
-## Existing multi-company implementation
+### Multi-company support
 
-Reusable current pieces:
+Implemented:
 
-- Canonical subsidiary list in `src/lib/subsidiaries.js`.
-- First-login profile completion for missing subsidiary.
-- User/profile records store subsidiary, department, and job title.
-- Group overview helper in `src/lib/accessControl.js` gives visibility to admin, Group CEO, Operations Manager, and HR.
+- Canonical subsidiaries in `src/lib/subsidiaries.js`.
+- First-login subsidiary selection.
+- User fields for subsidiary, department, and job title.
+- Group overview helper for Group CEO, Operations Manager, HR/admin-style access.
 
-Current gap:
+Gaps:
 
-- Organisation → Subsidiary → Department is not a true relational hierarchy yet.
-- Company/subsidiary grouping is mostly string-based.
-- Some departments are still hard-coded per page/component.
+- Most UI still uses string company names instead of relational `subsidiary_id`.
+- Department taxonomy is not canonical.
+- Subsidiary visibility is not consistently enforced server-side.
 
-## Existing work-management implementation
+### Work management
 
-Reusable current pieces:
+Implemented:
 
-- Work system roll-up helpers in `src/lib/workSystem.js`.
-- Project progress is calculated from linked tasks, not manually trusted.
-- Task status changes record history fields.
-- Project completion is blocked if linked tasks are incomplete.
-- Kanban, projects, portfolios, OKRs, workload, Gantt, roadmaps, and time tracking already exist.
-- Meeting Studio can extract Kanban-ready tasks.
+- Goals/OKRs, Portfolios, Projects, Kanban Tasks, Milestones, Gantt, Roadmaps, Workload Planner, Time Tracking, Meeting Studio.
+- Project progress cannot simply be manually overwritten because backend strips `progress` fields.
+- Project completion is blocked while linked tasks are incomplete.
+- Task status history, completion user/date, and reopen user/date are tracked.
+- Production smoke check found seeded pilot work data: 4 projects, 11 tasks, 1 portfolio, 1 meeting.
 
-Current gaps:
+Gaps:
 
-- No CRM/opportunity/client relationships on Project yet.
-- No unified activity timeline.
-- No formal audit log.
-- Some project/task operations depend on generic entity CRUD rather than first-class project services.
+- Work records still mostly live as compatibility JSON records.
+- Portfolio/OKR/project/task relationships are not fully relational in live UI.
+- Task dependencies and meeting action items need first-class models.
+- Time tracking is not yet required for project health/accountability.
 
-## Existing notification implementation
+### Notifications
 
-Reusable current pieces:
+Implemented:
 
-- `public/sw.js` service worker.
-- `backend/src/services/pushService.js`.
-- `backend/src/services/scheduler.js`.
-- `backend/src/services/notificationContent.js`.
-- `backend/src/services/notificationHooks.js`.
-- `netlify/functions/scheduled-notifications.mjs`.
-- `Notification`, `PushSubscription`, and `NotificationDelivery` entities.
+- Browser service worker.
+- VAPID/web-push.
+- Notification, PushSubscription, NotificationDelivery concepts.
+- Birthday, SA holiday/special day, Monday alignment, DAM usage, break/wellness, Did You Know/fun fact notifications.
+- Netlify scheduled function and `/api/push/run-scan`.
 
-Supported current notification categories include birthdays, South African public/special holidays, Monday alignment reminders, DAM usage reminders, break/wellness reminders, Did You Know/fun facts, and workflow-generated notifications for several entity changes.
+Gaps:
 
-Current gaps:
+- Mobile-native push is not implemented.
+- Desktop-native notifications are not implemented.
+- Email/SMS provider delivery is not connected.
+- Notification preferences and delivery logs need stronger production modelling.
 
-- Browser/device push depends on user permission, HTTPS/localhost, stable VAPID keys, and a running backend/scheduled function.
-- Email and SMS routes currently queue locally but are not connected to real providers.
-- No mobile-native push provider yet.
+### AI
 
-## Existing AI implementation
+Implemented:
 
-Reusable current pieces:
+- Meeting Studio uses OpenAI Responses API when `OPENAI_API_KEY` is configured.
+- Meeting Studio has deterministic fallback.
+- Output includes summaries, decisions, action items, attendee summaries, and extracted tasks.
 
-- `backend/src/services/meetingStudioAi.js` uses OpenAI Responses API when `OPENAI_API_KEY` exists.
-- Meeting Studio has deterministic local fallback.
-- Meeting processing returns summary, decisions, action items, structured notes, attendee summaries, and extracted tasks.
+Gaps:
 
-Current gaps:
+- General AI Assistant remains partly placeholder.
+- AI does not yet query permission-filtered CRM/work data.
+- No client briefing, opportunity analysis, or executive data intelligence yet.
 
-- General `/api/integrations/ai/:operation` still has local placeholder responses except for Meeting Studio-style prompts.
-- AI Assistant and BI features do not yet query a permission-aware CRM/business data layer.
-- No AI client briefing or opportunity analysis yet.
+### Database/storage
 
-## Existing integrations
+Supported modes:
 
-Reusable current pieces:
+- `local-json`: `.local-data/db.json`.
+- `netlify-blobs`: transitional hosted pilot mode.
+- `postgres`: Prisma/PostgreSQL production mode.
 
-- Google Drive connector foundations.
-- Sage integration foundations.
-- Integration page/component foundations.
-- Upload support through local file storage or Netlify Blobs.
+Prisma currently includes organisation, subsidiary, department, user, profile, role, permission, session, refresh token, audit, CRM, business-development, project, task, meeting, document, notification, integration, webhook, `EntityRecord`, and `AppState` models.
 
-Current gaps:
+Gaps:
 
-- Microsoft 365/Outlook architecture is not yet present as a real module.
-- Integration credentials/status/sync logs are not represented by first-class relational entities.
-- Integrations should show "not configured" when credentials are absent.
+- Most live data uses `EntityRecord`.
+- First-class Prisma tables are not yet the primary service layer for most UI flows.
+- Automated test coverage is still missing.
 
-## Existing storage
+### Deployment
 
-Current storage modes:
+Implemented:
 
-- Local development: `.local-data/db.json` and `.local-data/uploads`.
-- Netlify deployment: Netlify Blobs for app data and uploads.
-- Prisma schema exists but is very thin: `User`, `EntityRecord`, `PushSubscription`, and `NotificationDelivery`.
+- Netlify frontend and functions deploy.
+- API health verified live.
+- Scheduled notification function deployed.
+- Netlify currently builds from `Phathu87/phakathi-flow`; fixes are also pushed to `phakathidigital/phakathi-holdings-digital-office`.
 
-Current gaps:
+Gaps:
 
-- PostgreSQL is not yet the authoritative production system of record.
-- Prisma migrations/scripts are not yet wired into `package.json`.
-- Most business data remains generic JSON records, not relational tables with constraints and foreign keys.
+- Netlify should be reconnected to the organisation repo.
+- Dockerfile is static-frontend oriented and not a full API/scheduler deployment.
+- Android/iOS/Desktop packaging is not started.
 
-## Existing deployment support
+## What can be reused
 
-Current support:
+- React/Vite UI and route map.
+- Current sidebar/module groupings.
+- Generic API client during migration.
+- Auth hashing/token foundation.
+- First-login company onboarding.
+- Canonical subsidiaries and branding defaults.
+- Work-management pages and roll-up logic.
+- Meeting Studio AI service.
+- Notification scheduler and push foundation.
+- Netlify function wrapper.
+- Prisma production schema foundation.
 
-- Vite production build.
-- Netlify frontend deployment.
-- Netlify `/api/*` function wrapper.
-- Netlify scheduled notification function.
-- Dockerfile exists.
+## What is duplicated or inconsistent
 
-Current gaps:
+- `/api/entities` and alias routes expose the same compatibility data.
+- Relational Prisma models and `EntityRecord` compatibility storage coexist.
+- Company/user fields exist as strings and relational IDs.
+- Meeting concepts are split across MeetingStudio, MeetingNote, and relational Meeting.
+- Documents exist as compatibility document vault records and relational Document.
+- Tickets exist as compatibility Ticket/TicketComment and relational SupportTicket.
+- `/api/functions/:functionName` is placeholder-style and should not pretend workflows exist.
 
-- Dockerfile serves only static frontend through nginx and does not run the Node API.
-- Render/Railway/Fly/AWS/Azure/DigitalOcean/VPS deployment docs are not yet implemented.
-- Netlify Blobs are useful for hosted pilot persistence but should not be the only production database option.
+## What needs migration
 
-## Duplicate or conflicting implementation areas
+- Users/profiles to relational organisation/subsidiary/department IDs.
+- Work data to relational projects/tasks/meetings/timelogs/milestones.
+- Meeting Studio records to relational meetings/action items/tasks.
+- Documents/DAM to relational metadata plus object storage.
+- Notifications to direct relational notification services.
+- Integrations to Integration/IntegrationCredential/IntegrationSyncLog/WebhookEvent.
+- New CRM and Business Development UI/API on top of existing schema.
 
-- `src/App.jsx` and `src/pages.config.js` both define page/routing concepts, but `pages.config.js` is stale.
-- Generic `/api/entities/:entityName` and README-style aliases both expose the same data, which is acceptable for compatibility but should be documented.
-- `/api/functions/:functionName` returns `{ placeholder: true }`, which is unsafe for production because it can make missing workflows look successful.
-- Several pages/components still hard-code department lists instead of using a canonical organisation/department model.
-- Project/work progress logic is improving, but still spread between frontend helpers and backend generic entity rules.
+## What needs refactoring
 
-## Immediate Phase 0 recommendations
+- Add `/api/v1` domain APIs.
+- Add service/repository layers.
+- Add validation schemas.
+- Add granular permissions.
+- Add audit logging.
+- Replace critical generic writes with domain services.
+- Add platform abstraction before mobile/desktop packaging.
+- Separate local/dev/demo seed logic from production seed logic.
 
-1. Preserve the existing app, routes, and compatibility entity layer.
-2. Introduce first-class production architecture around PostgreSQL/Prisma without deleting `.local-data`.
-3. Create relational CRM/business-development entities as an extension of the existing work system.
-4. Add granular permissions and audit logging before exposing relationship intelligence.
-5. Replace placeholder function endpoints with explicit "not implemented/configured" responses or real handlers.
-6. Remove/convert local test user data before live office use.
-7. Keep Netlify support, but define Postgres as the production source of truth.
+## CRM entities missing or not fully wired
+
+Needs first-class UI/API wiring:
+
+- CRM dashboard.
+- Account list/detail.
+- Account 360.
+- Contacts.
+- Contact relationships.
+- Preferences, interests, important dates.
+- Notes.
+- Interactions.
+- Activity timeline.
+- Client health.
+- Follow-ups/reminders.
+- Privacy/visibility controls.
+
+## Business Development entities missing or not fully wired
+
+Needs first-class UI/API wiring:
+
+- Lead capture/qualification.
+- Lead sources.
+- Opportunity pipeline.
+- Opportunity stages.
+- Opportunity activities.
+- Proposals.
+- Deals.
+- Deal products/services.
+- Contracts.
+- Sales targets and forecasts.
+- Win/loss reasons.
+- Create project from opportunity.
+
+## Project relationships needing modification
+
+Projects must connect to:
+
+- Subsidiary.
+- Client account.
+- Primary contact.
+- Opportunity.
+- Contract.
+- Account manager.
+- Portfolio.
+- OKR.
+- Project value.
+- Client status.
+- Expected start/end dates.
+- Documents, meetings, tickets, and activity timeline.
+
+## Integrations already present
+
+- OpenAI Meeting Studio.
+- Browser push.
+- Netlify scheduled functions.
+- Netlify Functions API.
+- Netlify Blobs upload support.
+- Sage UI foundation.
+- Google Drive UI foundation.
+- Email/SMS queue placeholders.
+
+## Integrations missing/incomplete
+
+- Real SMTP/email provider.
+- Real SMS provider.
+- Microsoft 365/Outlook.
+- Google Drive production sync.
+- Sage production sync.
+- Webhook verification.
+- Encrypted credential workflow.
+- Sync logs and retry UI.
+
+## Database changes required
+
+Required next database work:
+
+1. Move live services from `EntityRecord` to first-class relational tables.
+2. Add missing relational models: Portfolio, OKR, TaskDependency, MeetingActionItem, CalendarEvent, DocumentFolder, DocumentVersion, TicketComment, EmailActivity, SMSActivity, Device, NotificationPreference, FileAsset/Attachment.
+3. Backfill relational IDs.
+4. Add audit writes on sensitive changes.
+5. Add indexes for dashboards/timelines.
+6. Add migration and seed tests.
+
+## Security issues
+
+- Tokens in localStorage.
+- No password reset/email verification/MFA.
+- No live refresh-token/session revocation flow.
+- Generic CRUD too broad for production.
+- AuditLog schema exists but is not consistently used.
+- Integration credential security is not implemented end-to-end.
+- Smoke-test users should be cleaned before office rollout.
+- Netlify repo connection should move to the organisation repo.
+
+## What should be done first
+
+Do not add more disconnected screens first.
+
+Start with:
+
+1. `/api/v1` skeleton.
+2. Permissions and audit logging.
+3. Organisation/subsidiary/department/user services.
+4. Backfill relational IDs.
+5. First-class work services.
+6. Then CRM Account + Contact + Activity as the first new business module.

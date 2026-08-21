@@ -1,105 +1,131 @@
 # Phakathi Flow target architecture
 
-## Product target
+## Target product
 
-Phakathi Flow should evolve into the Phakathi Holdings Group Business Operating System: a central intelligence and workflow layer that connects people, work, customers, growth, communications, governance, documents, and integrations.
+Phakathi Flow should become the Phakathi Holdings Group Business Operating System: one secure system for people, subsidiaries, execution, CRM, business development, documents, meetings, notifications, integrations, AI, and management visibility.
 
-It must extend the current app rather than replacing it.
+## Non-negotiable architecture
 
-## Core principle
-
-CRM becomes the relationship layer:
+PostgreSQL is the authoritative production database.
 
 ```text
-Client Account
-  ↓
-Contacts
-  ↓
-Relationships
-  ↓
-Leads
-  ↓
-Opportunities
-  ↓
-Proposals
-  ↓
-Deals
-  ↓
-Projects
-  ↓
-Tasks / Kanban
-  ↓
-Meetings
-  ↓
-Documents
-  ↓
-Delivery
-  ↓
-Client Health
-  ↓
-Next Opportunity
-```
-
-The existing project, Kanban, Meeting Studio, DAM, notification, and AI systems should be reused and extended.
-
-## Target logical domains
-
-- People: users, profiles, subsidiaries, departments, HR, leave, attendance, payroll, performance, recognition, onboarding.
-- Work: OKRs, portfolios, projects, milestones, tasks, Kanban, dependencies, workload, time tracking, meetings, documents.
-- Customers: CRM hub, accounts, contacts, relationship intelligence, notes, interactions, timeline, health.
-- Growth: leads, opportunities, sales pipeline, proposals, deals, forecasting, win/loss tracking.
-- Intelligence: AI assistant, meeting AI, client briefings, opportunity analysis, project intelligence, executive summaries.
-- Communication: messaging, notifications, browser push, email, calendar, Microsoft 365/Outlook, Google services.
-- Governance: roles, permissions, audit logs, security, retention, privacy controls.
-- Integrations: integration manager, Sage, Google Drive, Microsoft 365/Outlook, APIs, webhooks.
-
-## Target runtime architecture
-
-```text
-React/Vite web app
-        ↓
-Versioned API (/api/v1)
-        ↓
-Node.js service layer
-        ↓
+React/Vite Web
+Capacitor Android/iOS
+Tauri Desktop
+        |
+        v
+Shared API + business service layer
+        |
+        v
 Prisma
-        ↓
+        |
+        v
 PostgreSQL
 
-Object storage:
-documents, images, PDFs, DAM assets, attachments
-
-Schedulers/workers:
-notifications, integration syncs, reminders, reports
+Object storage handles files.
+Schedulers/workers handle reminders, syncs, notifications, and reports.
 ```
 
-## Deployment target
+Local JSON and Netlify Blobs are transitional/dev/pilot options only.
 
-Phakathi Flow should support local development, Netlify web/functions/scheduled functions, a standalone Node API on common hosting platforms, PostgreSQL as the production system of record, object storage for files, and future Capacitor mobile apps/Tauri desktop apps using the same API.
+## Core business relationship model
 
-## Navigation target
+```text
+Organisation
+  -> Subsidiaries
+    -> Departments
+      -> Users / roles / permissions
 
-The current sidebar should be extended, not redesigned from scratch:
+Client Account
+  -> Contacts
+  -> Relationships / notes / interactions
+  -> Leads
+  -> Opportunities
+  -> Proposals
+  -> Deals / Contracts
+  -> Projects
+    -> Milestones
+    -> Tasks / Kanban
+    -> Time logs
+    -> Meetings
+    -> Documents
+    -> Support tickets
+  -> Account health
+  -> Next opportunity
+```
 
-- My Day
-- Dashboard
-- Work
-- Customers
-- Business Development
-- People
-- Documents
-- Communication
-- Analytics
-- AI Assistant
-- Executive Dashboard
-- Settings
+## Target domains
 
-Modules must be permission-aware. Users should only see features they are allowed to access.
+- People: users, profiles, subsidiaries, departments, roles, permissions, HR, leave, attendance, payroll, performance, onboarding.
+- Work: OKRs, portfolios, projects, milestones, tasks, Kanban, dependencies, workload, time, meetings.
+- CRM: accounts, contacts, relationship intelligence, notes, interactions, account health, follow-ups.
+- Business Development: leads, opportunities, pipeline, proposals, deals, targets, forecasts.
+- Documents/DAM: folders, files, versions, metadata, permissions, links to business records.
+- Communication: messaging, notifications, browser/mobile/desktop push, email, SMS, calendars.
+- Intelligence: Meeting Studio, client briefings, opportunity analysis, project intelligence, executive summaries.
+- Governance: audit logs, permissions, privacy controls, retention, integration logs.
 
-## Data principle
+## Target API principle
 
-Do not create static dashboards to make the app look complete. Every CRM, sales, project, notification, AI, and analytics feature must use the actual data layer. If an external integration is not configured, the UI must clearly say "Integration not configured."
+Existing `/api/entities` remains a compatibility layer.
 
-## Compatibility principle
+New production work should use `/api/v1`:
 
-The current generic entity API and JSON/Netlify Blobs persistence can remain as transitional compatibility infrastructure. New production capabilities should use first-class services and relational models while existing pages continue working.
+```text
+/api/v1/auth
+/api/v1/organisation
+/api/v1/users
+/api/v1/work
+/api/v1/crm
+/api/v1/business-development
+/api/v1/documents
+/api/v1/notifications
+/api/v1/integrations
+/api/v1/ai
+/api/v1/audit
+```
+
+Every route should follow:
+
+```text
+authenticate -> authorize -> validate -> service -> repository -> audit -> notify -> respond
+```
+
+## Target client strategy
+
+- Web: React/Vite.
+- Android/iOS: Capacitor over the same React app.
+- Desktop: Tauri over the same React app.
+- All clients use the same API.
+- Business rules live server-side.
+
+## Target deployment path
+
+- Local development: local JSON or local Postgres.
+- Office pilot: Netlify + Neon/Postgres + browser push.
+- Production web: Postgres + object storage + real email + stronger auth.
+- Android/iOS/Desktop: same API plus platform-specific adapters.
+
+## Target navigation
+
+The current sidebar should evolve into permission-aware areas:
+
+- Home / My Day.
+- Work.
+- CRM / Customers.
+- Business Development.
+- People.
+- Operations.
+- Company.
+- Documents.
+- Insights.
+- Integrations.
+- Settings.
+
+## Target data principle
+
+No static dashboards. Every visible metric, project status, client relationship, notification, and AI answer must be explainable from the data model.
+
+## Target migration principle
+
+Move one domain at a time from compatibility storage into first-class relational services while keeping the office pilot working.

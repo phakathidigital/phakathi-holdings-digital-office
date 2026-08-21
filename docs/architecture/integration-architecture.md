@@ -2,100 +2,108 @@
 
 ## Current integrations
 
-Existing foundations:
+Existing:
 
-- Google Drive connector UI/components.
-- Sage integration UI/components.
-- Upload support through local file storage and Netlify Blobs.
-- Placeholder email and SMS queues.
-- Meeting Studio AI via OpenAI with fallback.
-- Netlify scheduled notification function.
+- OpenAI Meeting Studio.
+- Deterministic Meeting Studio fallback.
+- Browser push with VAPID/web-push.
+- Netlify scheduled notifications.
+- Netlify Functions API.
+- Netlify Blobs upload support.
+- Local file upload support.
+- Sage UI foundation.
+- Google Drive UI foundation.
+- Email/SMS queue placeholders.
 
-## Current gaps
+## Missing/incomplete integrations
 
-- No universal integration registry with status, sync logs, retry, or credentials status.
-- No Microsoft 365/Outlook integration yet.
-- No real SMTP/email provider.
-- No real SMS provider.
-- Sage and Google are foundations, not fully verified production syncs.
-- Credentials are not modelled in a secure production credential store.
+- Real SMTP/email provider.
+- Real SMS provider.
+- Microsoft 365/Outlook OAuth, calendar, and email capture.
+- Google Drive production sync.
+- Sage production sync.
+- Encrypted credential workflow.
+- Webhook signature verification.
+- Retryable sync logs.
+- Admin integration status screens backed by real data.
 
-## Target Integration Manager
+## Target integration control plane
 
-Create first-class integration records with name, provider, status, enabled flag, last sync, last error, credentials configured flag, sync direction, sync frequency, webhook status, supported modules, and owner/admin.
+Use relational tables:
 
-Create sync logs with integration ID, run ID, start/end timestamps, status, records read/written, error message, and metadata.
+- Integration.
+- IntegrationCredential.
+- IntegrationSyncLog.
+- WebhookEvent.
 
-Create webhook event records with provider, event type, received timestamp, signature status, payload metadata, processing status, and related entity references.
+Every integration should expose:
 
-## Microsoft 365 / Outlook target
+- Provider.
+- Status.
+- Enabled flag.
+- Credentials configured flag.
+- Last sync.
+- Last error.
+- Sync direction/frequency.
+- Webhook status.
+- Supported modules.
 
-Support architecture for Outlook email, Outlook Calendar, Microsoft 365 contacts where permitted, meeting creation, and follow-up creation.
+## Credential policy
 
-No UI should claim Microsoft 365 is connected unless credentials and OAuth configuration are present.
+Credentials must be server-side only, secret/encrypted, never committed, never returned to the browser, rotatable, and audited.
 
-Minimum environment variables:
+## Email target
+
+Use cases:
+
+- HR/performance emails.
+- Meeting summaries.
+- Notification emails.
+- Client follow-ups.
+
+Current route queues only. Target route should use SMTP/provider adapter, EmailActivity records, delivery logs, and clear not-configured responses.
+
+## Microsoft 365 target
+
+Needed:
 
 - `MICROSOFT_CLIENT_ID`
 - `MICROSOFT_CLIENT_SECRET`
 - `MICROSOFT_TENANT_ID`
-- Redirect/callback URL.
+- OAuth callback.
+- Outlook Calendar and email capture where permitted.
 
 ## Google target
 
-Extend existing Google Drive foundations to sync client/project/DAM documents, store file metadata, avoid duplicate imports, respect permissions, log sync results, and support "not configured" status.
-
-Minimum environment variables:
+Needed:
 
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
-- Redirect/callback URL.
+- Drive sync status.
+- Folder mapping.
+- File metadata import.
+- Duplicate detection.
+- Sync logs.
 
 ## Sage target
 
-Sage should remain an integration, not be replaced by Phakathi Flow. Integration areas include employee data, leave balances, payroll/payslip data where permitted, and HR/attendance fields where available.
-
-Minimum environment variables:
+Needed:
 
 - `SAGE_API_URL`
 - `SAGE_API_KEY`
-
-## Email target
-
-Email should support notification emails, performance-related HR copies, client interaction capture, and later proposal/follow-up sending.
-
-Until SMTP/provider credentials are present, routes should queue locally or return "Email provider not configured" depending on workflow criticality.
-
-Minimum environment variables:
-
-- `SMTP_HOST`
-- `SMTP_PORT`
-- `SMTP_USER`
-- `SMTP_PASSWORD`
-- `SMTP_FROM`
+- Employee/leave/payroll metadata sync where permitted.
 
 ## AI target
 
-Keep the existing Meeting Studio AI service and extend it. AI integrations must use server-side API keys only, respect permissions, use actual database data, avoid fabricated metrics, and fall back safely when provider credentials are absent.
+OpenAI must remain server-side, permission-aware, and non-fabricating. Extend beyond Meeting Studio only after `/api/v1` services can provide permission-filtered data.
 
-Minimum environment variables:
+## Implementation order
 
-- `OPENAI_API_KEY`
-- `OPENAI_MODEL`
-- `OPENAI_MEETING_MODEL`
-
-## Notification scheduler target
-
-Preserve existing scheduler logic and support local in-process scheduling, Netlify scheduled functions, and a future standalone worker/cron process for non-Netlify deployments.
-
-The scheduler must use the same data store as the deployed API.
-
-## Integration implementation order
-
-1. Create Integration, IntegrationCredential, IntegrationSyncLog, and WebhookEvent entities.
-2. Replace placeholder statuses with real "not configured" checks.
-3. Add Microsoft 365 configuration screen and backend status endpoint.
-4. Harden Google Drive and Sage as configured/not configured integrations.
-5. Wire SMTP provider for real email.
-6. Add sync logs and retry support.
-7. Add integration audit logs.
+1. Integration status API.
+2. Connect Integrations UI to real Integration records.
+3. Replace placeholder success with configured/not-configured states.
+4. Email provider adapter.
+5. Microsoft 365 foundation.
+6. Google/Sage sync hardening.
+7. Webhook verification.
+8. Sync log UI.
