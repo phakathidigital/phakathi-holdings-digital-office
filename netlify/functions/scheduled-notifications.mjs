@@ -4,6 +4,10 @@ function getEnv(name) {
   return globalThis.Netlify?.env?.get?.(name) || process.env[name];
 }
 
+function getStorageMode() {
+  return getEnv("PHAKATHI_STORAGE") || (getEnv("NETLIFY") === "true" ? "netlify-blobs" : "local-json");
+}
+
 export default async (req) => {
   const configuredApiUrl = getEnv("PHAKATHI_API_BASE_URL");
   const schedulerSecret = getEnv("SCHEDULED_NOTIFICATION_SECRET");
@@ -29,7 +33,7 @@ export default async (req) => {
   const created = await runNotificationScan(date);
   return Response.json({
     ok: true,
-    mode: getEnv("NETLIFY") === "true" || getEnv("PHAKATHI_STORAGE") === "netlify-blobs" ? "netlify-blobs" : "local-json-store",
+    mode: getStorageMode(),
     created: created.length,
     note: "Scheduled scan completed against the configured backend store.",
   });
