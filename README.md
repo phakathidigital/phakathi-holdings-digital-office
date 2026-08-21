@@ -37,9 +37,9 @@ backend/
     └── entities/
 ```
 
-Local development data is stored in `.local-data/db.json`. That folder is intentionally git-ignored. Deployed Netlify functions use Netlify Blobs for persistent hosted app data and uploaded files.
+Local development data is stored in `.local-data/db.json`. That folder is intentionally git-ignored. Deployed Netlify functions now use PostgreSQL through Prisma for persistent production app data. Netlify Blobs can still be used as a transitional hosted pilot/storage option where needed.
 
-Production database foundation is available through Prisma/PostgreSQL. Keep the default `PHAKATHI_STORAGE=local-json` for local development, use `PHAKATHI_STORAGE=netlify-blobs` for the current Netlify pilot, and use `PHAKATHI_STORAGE=postgres` only after running the database migration/seed/import steps. See `docs/deployment/postgres.md`.
+Production database foundation is available through Prisma/PostgreSQL. Keep the default `PHAKATHI_STORAGE=local-json` for local development and use `PHAKATHI_STORAGE=postgres` for the Netlify production deployment after running the database migration/seed/import steps. See `docs/deployment/postgres.md`.
 
 Implemented backend capabilities:
 
@@ -133,8 +133,8 @@ For production database testing, set `DATABASE_URL` and `PHAKATHI_STORAGE=postgr
 The deployed Netlify setup now includes:
 
 - `/api/*` served by `netlify/functions/api.mjs`.
-- Persistent hosted app data in Netlify Blobs store `phakathi-flow-db`.
-- Persistent hosted uploads in Netlify Blobs store `phakathi-flow-uploads`.
+- Persistent hosted app data in PostgreSQL when `PHAKATHI_STORAGE=postgres`.
+- Hosted uploads can still use the configured file/blob storage provider while production data moves to PostgreSQL.
 - Scheduled notification scans in `netlify/functions/scheduled-notifications.mjs`.
 - Production frontend API base set to `/api` in `netlify.toml`.
 
@@ -150,7 +150,7 @@ OPENAI_API_KEY=...
 OPENAI_MEETING_MODEL=gpt-4.1-mini
 ```
 
-`PHAKATHI_STORAGE=netlify-blobs` is configured in `netlify.toml` for deployed builds. If a separate external API is later used, set `PHAKATHI_API_BASE_URL`; otherwise the scheduled function scans the Netlify Blobs-backed store directly.
+`PHAKATHI_STORAGE=postgres` is configured in `netlify.toml` for deployed builds. If a separate external API is later used, set `PHAKATHI_API_BASE_URL`; otherwise the scheduled function scans the same Netlify Functions/PostgreSQL-backed application data.
 
 ## Device push notifications
 
@@ -196,7 +196,7 @@ For deployment, notification scans are prepared for Netlify scheduled functions:
 
 - `netlify.toml` configures `netlify/functions/scheduled-notifications.mjs`.
 - The function runs at 07:00, 11:00, and 14:00 UTC.
-- By default, the scheduled function scans the Netlify Blobs-backed store directly.
+- By default, the scheduled function scans the same PostgreSQL-backed application data used by the Netlify Functions API.
 - Optionally set `PHAKATHI_API_BASE_URL` to a separate deployed backend/API URL if you later move the API away from Netlify Functions.
 - Set `SCHEDULED_NOTIFICATION_SECRET` on both Netlify and the backend to allow secure cron triggering of `/api/push/run-scan`.
 
