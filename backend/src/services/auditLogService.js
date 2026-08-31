@@ -1,4 +1,4 @@
-import { getPrismaClient, nowStamped, shouldUsePostgresPersistence, writeDb } from "../config/database.js";
+import { getPrismaClient, nowStamped, readDb, shouldUsePostgresPersistence, writeDb } from "../config/database.js";
 
 export async function writeAuditLog(db, {
   actor,
@@ -31,10 +31,9 @@ export async function writeAuditLog(db, {
     return;
   }
 
-  if (db) {
-    db.entities ||= {};
-    db.entities.AuditLog ||= [];
-    db.entities.AuditLog.push(nowStamped(payload));
-    await writeDb(db);
-  }
+  const auditDb = await readDb();
+  auditDb.entities ||= {};
+  auditDb.entities.AuditLog ||= [];
+  auditDb.entities.AuditLog.push(nowStamped(payload));
+  await writeDb(auditDb);
 }

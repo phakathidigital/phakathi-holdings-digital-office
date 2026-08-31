@@ -1,4 +1,4 @@
-import { nowStamped, writeDb } from "../config/database.js";
+import { nowStamped } from "../config/database.js";
 import { PERFORMANCE_NOTIFICATION_EMAILS } from "../config/officeContacts.js";
 import { deliverNotification } from "./pushService.js";
 
@@ -122,7 +122,6 @@ export async function handleEntityCreated(db, entityName, record) {
         created_by: "system",
       });
     }
-    await writeDb(db);
   }
 }
 
@@ -259,7 +258,6 @@ export async function handleEntityUpdated(db, entityName, before, after) {
           created_by: "system",
         });
       }
-      await writeDb(db);
     }
   }
 }

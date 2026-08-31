@@ -255,8 +255,8 @@ export async function createWorkRecord(entityName, data, actor) {
   if (entityName === WORK_ENTITIES.projects) validateProjectCompletion(db, prepared.id, prepared);
   const created = nowStamped(prepared);
   records.push(created);
-  await writeDb(db);
   await handleEntityCreated(db, entityName, created);
+  await writeDb(db);
   return created;
 }
 
@@ -270,8 +270,8 @@ export async function updateWorkRecord(entityName, id, data, actor) {
   if (entityName === WORK_ENTITIES.projects) delete prepared.progress;
   if (entityName === WORK_ENTITIES.projects) validateProjectCompletion(db, id, { ...records[index], ...prepared });
   records[index] = nowStamped(prepared, records[index]);
-  await writeDb(db);
   await handleEntityUpdated(db, entityName, previous, records[index]);
+  await writeDb(db);
   return records[index];
 }
 
@@ -298,8 +298,8 @@ export async function moveTask(taskId, status, actor) {
   }
   const previous = clone(tasks[index]);
   tasks[index] = nowStamped(prepareTaskData({ status }, tasks[index], actor?.email), tasks[index]);
-  await writeDb(db);
   await handleEntityUpdated(db, WORK_ENTITIES.tasks, previous, tasks[index]);
+  await writeDb(db);
   return tasks[index];
 }
 
@@ -346,8 +346,8 @@ export async function syncMeetingTasks(meetingId, actor) {
   }
   meeting.kanban_synced_at = new Date().toISOString();
   meeting.kanban_synced_by = actor?.email;
-  await writeDb(db);
   for (const task of created) await handleEntityCreated(db, WORK_ENTITIES.tasks, task);
+  await writeDb(db);
   return { meeting_id: meeting.id, created_count: created.length, tasks: created };
 }
 

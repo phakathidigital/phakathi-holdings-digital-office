@@ -161,9 +161,9 @@ router.post("/:entityName", async (req, res) => {
   }
   const created = nowStamped(body);
   records.push(created);
-  await writeDb(db);
   if (req.params.entityName === "Notification") await deliverNotification(db, created);
   else await handleEntityCreated(db, req.params.entityName, created);
+  await writeDb(db);
   res.status(201).json(sanitizeRecord(req.params.entityName, created));
 });
 
@@ -179,12 +179,12 @@ router.post("/:entityName/bulk", async (req, res) => {
     created.push(nowStamped(prepared));
   }
   records.push(...created);
-  await writeDb(db);
   if (req.params.entityName === "Notification") {
     for (const item of created) await deliverNotification(db, item);
   } else {
     for (const item of created) await handleEntityCreated(db, req.params.entityName, item);
   }
+  await writeDb(db);
   res.status(201).json(sanitizeRecords(req.params.entityName, created));
 });
 
@@ -258,8 +258,8 @@ router.patch("/:entityName/:id", async (req, res) => {
     if (completionError) return res.status(400).json({ message: completionError });
   }
   records[index] = nowStamped(prepared, records[index]);
-  await writeDb(db);
   await handleEntityUpdated(db, req.params.entityName, previous, records[index]);
+  await writeDb(db);
   res.json(sanitizeRecord(req.params.entityName, records[index]));
 });
 

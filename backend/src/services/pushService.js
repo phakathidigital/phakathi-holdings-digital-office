@@ -1,5 +1,5 @@
 import { webPush } from "../config/push.js";
-import { nowStamped, writeDb } from "../config/database.js";
+import { nowStamped } from "../config/database.js";
 
 function isTargetedToUser(notification, userEmail) {
   return !notification.target_users?.length || notification.target_users.includes(userEmail);
@@ -53,6 +53,4 @@ export async function deliverNotification(db, notification) {
     }
     db.entities.NotificationDelivery.push(delivery);
   }
-
-  await writeDb(db);
 }

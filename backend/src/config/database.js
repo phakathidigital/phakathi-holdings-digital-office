@@ -629,7 +629,10 @@ export async function writeDb(db) {
     await store.setJSON(DB_BLOB_KEY, db);
     return;
   }
-  await fs.writeFile(dbPath, JSON.stringify(db, null, 2));
+  const tempPath = `${dbPath}.${process.pid}.${Date.now()}.tmp`;
+  await fs.writeFile(tempPath, JSON.stringify(db, null, 2));
+  await fs.copyFile(tempPath, dbPath);
+  await fs.unlink(tempPath).catch(() => {});
 }
 
 export function nowStamped(data, existing = {}) {
