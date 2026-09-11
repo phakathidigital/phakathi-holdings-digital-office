@@ -1,109 +1,126 @@
-# Phakathi Flow integration architecture
+# Phakathi Flow Integration Architecture
 
-## Current integrations
+Phase: 0 integration audit only.
 
-Existing:
+## Current integration foundations
 
-- OpenAI Meeting Studio.
-- Deterministic Meeting Studio fallback.
-- Browser push with VAPID/web-push.
-- Netlify scheduled notifications.
-- Netlify Functions API.
-- Netlify Blobs upload support.
-- Local file upload support.
-- Sage UI foundation.
-- Google Drive UI foundation.
-- Email/SMS queue placeholders.
+The repository already contains integration foundations for:
 
-## Missing/incomplete integrations
+- OpenAI Meeting Studio processing with deterministic fallback.
+- Browser push notifications through VAPID and `web-push`.
+- Netlify scheduled notification scans.
+- Netlify Functions API wrapper.
+- Local upload storage and Netlify Blobs support.
+- Sage configuration UI/placeholders.
+- Google Drive DAM sync configuration UI/placeholders.
+- Microsoft 365 / Outlook integration seed/config placeholders.
+- Email and SMS queue placeholders.
 
-- Real SMTP/email provider.
-- Real SMS provider.
-- Microsoft 365/Outlook OAuth, calendar, and email capture.
-- Google Drive production sync.
-- Sage production sync.
-- Encrypted credential workflow.
-- Webhook signature verification.
-- Retryable sync logs.
-- Admin integration status screens backed by real data.
+## OpenAI / AI
 
-## Target integration control plane
+Current state:
 
-Use relational tables:
+- Meeting transcripts can be sent to a backend integration endpoint.
+- If `OPENAI_API_KEY` is configured, OpenAI is used.
+- If no key exists, deterministic fallback parsing keeps the app usable.
 
-- Integration.
-- IntegrationCredential.
-- IntegrationSyncLog.
-- WebhookEvent.
+Production needs:
 
-Every integration should expose:
+- Provider/admin settings.
+- Cost controls.
+- Prompt/version logging.
+- Sensitive-data handling.
+- User consent and meeting retention rules.
+- Failure dashboards.
 
-- Provider.
-- Status.
-- Enabled flag.
-- Credentials configured flag.
-- Last sync.
-- Last error.
-- Sync direction/frequency.
-- Webhook status.
-- Supported modules.
+## Notifications
 
-## Credential policy
+Current state:
 
-Credentials must be server-side only, secret/encrypted, never committed, never returned to the browser, rotatable, and audited.
+- In-app notifications.
+- Browser push registration.
+- Service worker notification display.
+- Notification delivery tracking.
+- Scheduler logic for holidays, birthdays, Monday alignment, DAM, and wellness/break/fact reminders.
+- Netlify scheduled function.
 
-## Email target
+Production needs:
 
-Use cases:
+- Stable deployed API and database.
+- Stable VAPID keys.
+- Retry and failure dashboards.
+- Native push strategy for Android, iOS, Huawei, and desktop.
+- Per-device troubleshooting.
 
-- HR/performance emails.
-- Meeting summaries.
-- Notification emails.
-- Client follow-ups.
+## Email and SMS
 
-Current route queues only. Target route should use SMTP/provider adapter, EmailActivity records, delivery logs, and clear not-configured responses.
+Current state:
 
-## Microsoft 365 target
+- Environment placeholders and queue concepts exist.
+- Real provider delivery is not complete.
 
-Needed:
+Production needs:
 
-- `MICROSOFT_CLIENT_ID`
-- `MICROSOFT_CLIENT_SECRET`
-- `MICROSOFT_TENANT_ID`
-- OAuth callback.
-- Outlook Calendar and email capture where permitted.
+- SMTP or transactional email provider.
+- SMS provider.
+- Templates.
+- Delivery logs.
+- Bounce/failure handling.
+- HR/performance recipient rules.
 
-## Google target
+## Sage
 
-Needed:
+Current state:
 
-- `GOOGLE_CLIENT_ID`
-- `GOOGLE_CLIENT_SECRET`
-- Drive sync status.
-- Folder mapping.
-- File metadata import.
-- Duplicate detection.
-- Sync logs.
+- Sage Integration page exists.
+- Config placeholders and entity records exist.
+- Seed data includes Sage integration metadata.
 
-## Sage target
+Production needs:
 
-Needed:
+- Real Sage API contract.
+- Auth/credential storage.
+- Sync jobs.
+- Field mapping.
+- Conflict handling.
+- Audit history.
 
-- `SAGE_API_URL`
-- `SAGE_API_KEY`
-- Employee/leave/payroll metadata sync where permitted.
+## Google Drive / DAM
 
-## AI target
+Current state:
 
-OpenAI must remain server-side, permission-aware, and non-fabricating. Extend beyond Meeting Studio only after `/api/v1` services can provide permission-filtered data.
+- Google Drive connector UI and sync entity records exist.
+- DAM/document pages exist.
 
-## Implementation order
+Production needs:
 
-1. Integration status API.
-2. Connect Integrations UI to real Integration records.
-3. Replace placeholder success with configured/not-configured states.
-4. Email provider adapter.
-5. Microsoft 365 foundation.
-6. Google/Sage sync hardening.
-7. Webhook verification.
-8. Sync log UI.
+- OAuth.
+- Drive folder mapping.
+- Background sync.
+- Object metadata mapping.
+- Permissions and retention.
+
+## Microsoft 365 / Outlook
+
+Current state:
+
+- Integration seed/config placeholders exist.
+
+Production needs:
+
+- Microsoft Graph OAuth.
+- Calendar sync.
+- Email/contacts integration.
+- Meeting invite sync.
+- Admin consent.
+
+## Recommended integration order
+
+1. Lock production environment/secrets and PostgreSQL.
+2. Stabilise browser push and scheduled notifications.
+3. Configure transactional email.
+4. Harden OpenAI Meeting Studio.
+5. Implement Sage read-only sync.
+6. Implement Google Drive DAM sync.
+7. Add Microsoft calendar/email integration.
+8. Add native push providers during mobile/desktop packaging.

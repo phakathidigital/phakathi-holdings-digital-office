@@ -1,99 +1,102 @@
-# Phakathi Flow mobile and desktop architecture
+# Phakathi Flow Mobile and Desktop Architecture
+
+Phase: 0 platform audit only.
 
 ## Current state
 
-Phakathi Flow is a browser-based React/Vite app using:
+The current repository is a web application. It is not yet packaged as Android, iOS, Huawei, or desktop applications.
 
-- Browser routing.
-- `localStorage` auth token.
-- Browser service worker push.
-- Browser Notification API.
-- Browser file uploads.
+The web app already has useful foundations for future native packaging:
 
-It is not yet packaged for Android, iOS, or desktop.
+- React/Vite frontend.
+- Service worker.
+- Browser push foundation.
+- API-first backend direction.
+- Responsive UI components.
+- Phakathi brand assets.
 
-## Target platform strategy
+However, app-store distribution requires more than a working web build.
+
+## Target platform model
+
+Recommended platform approach:
 
 ```text
-React/Vite Web
-  -> Capacitor Android
-  -> Capacitor iOS
-  -> Tauri Desktop
-
-All clients use the same API and business data layer.
+React/Vite web app
+  -> Capacitor Android/iOS/Huawei wrappers
+  -> Tauri desktop wrapper
+  -> shared API and shared auth
+  -> PostgreSQL/object storage backend
 ```
 
-## Required abstraction layer
+The mobile and desktop clients should not fork the business logic. They should use the same API, permissions, notification records, and audit rules as the web app.
 
-Before mobile/desktop packaging, add:
+## Android
 
-- `src/platform/authStorage`
-- `src/platform/notifications`
-- `src/platform/files`
-- `src/platform/device`
-- `src/platform/links`
-- `src/platform/offline`
-- `src/platform/authCallbacks`
+Target:
 
-Each defaults to browser behavior and can later use Capacitor/Tauri implementations.
+- Capacitor wrapper.
+- FCM push notifications.
+- Android signing.
+- Play Store data-safety documentation.
+- Runtime permission handling.
+- Deep links to notifications/tasks/meetings.
 
-## Mobile target
+## iOS
 
-Use Capacitor for:
+Target:
 
-- Android/iOS packaging.
-- Native push.
-- Secure token storage.
-- File picker/camera.
-- Deep links.
-- App lifecycle.
-- Device/session identity.
+- Capacitor iOS wrapper.
+- APNs push notifications.
+- Apple signing/provisioning.
+- App Store privacy labels.
+- Background notification handling.
+- iOS-specific permission messaging.
 
-Mobile UI must support stacked dashboard cards, touch-friendly Kanban, mobile table/card views, drawer/bottom navigation, small-screen forms, and resilient notifications.
+## Huawei
 
-## Desktop target
+Target:
 
-Use Tauri for:
+- Huawei-compatible Android build.
+- HMS push if Google Play Services cannot be assumed.
+- Huawei AppGallery metadata and privacy disclosures.
 
-- Desktop packaging.
-- Native notifications.
-- Secure token storage.
-- File system adapters.
-- External link handling.
-- Deep links.
-- Window behavior.
+## Microsoft desktop
 
-## Auth target
+Target:
 
-- Web: improve beyond localStorage for production where possible.
-- Mobile: secure storage.
-- Desktop: OS secure storage/keychain.
-- API: refresh tokens, sessions, device revocation.
+- Tauri desktop app.
+- Native desktop notifications.
+- Installer/signing.
+- Auto-update strategy.
+- Windows notification routing.
 
-## Notification target
+## Offline expectations
 
-- Web: current browser push.
-- Android/iOS: native push adapter.
-- Desktop: Tauri notification adapter.
-- Server: one Notification/Delivery model, multiple delivery channels.
+Public/office users will expect some offline tolerance. Target behavior should be:
 
-## Offline target
+- Read cached recent records.
+- Queue safe writes locally.
+- Sync when online.
+- Clearly mark unsynced records.
+- Do not pretend integration actions succeeded offline.
 
-Start small:
+The current app is not yet an offline-first system.
 
-1. Offline read cache.
-2. Queue simple task status updates.
-3. Conflict detection.
-4. Broader offline document/work support later.
+## Store readiness gaps
 
-## Implementation order
+Before app-store distribution, the project needs:
 
-1. Audit direct browser APIs.
-2. Add platform abstractions.
-3. Fix mobile responsiveness.
-4. Add device/session model.
-5. Add secure-token design.
-6. Add Capacitor shell.
-7. Add native mobile push.
-8. Add Tauri shell.
-9. Add native desktop notification/file adapters.
+- Production API URL.
+- Production auth and password reset.
+- Native push providers.
+- Privacy policy and data deletion process.
+- App icons/splash screens.
+- Device QA matrix.
+- Crash/error reporting.
+- Release signing and store metadata.
+- Security review.
+
+## Recommendation
+
+Do not package for public app stores until the production backend, notification delivery, permissions, and QA foundations are stable. A controlled internal office pilot should come first, followed by mobile wrappers.

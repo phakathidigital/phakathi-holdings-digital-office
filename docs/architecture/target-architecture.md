@@ -1,131 +1,143 @@
-# Phakathi Flow target architecture
+# Phakathi Flow Target Architecture
 
-## Target product
+Phase: 0 target architecture definition only.
 
-Phakathi Flow should become the Phakathi Holdings Group Business Operating System: one secure system for people, subsidiaries, execution, CRM, business development, documents, meetings, notifications, integrations, AI, and management visibility.
+## Product target
 
-## Non-negotiable architecture
+Phakathi Flow should evolve into a group business operating system for Phakathi Holdings and its subsidiaries. It should connect internal office operations, project execution, people management, CRM, business development, meetings, documents, analytics, notifications, and integrations through one shared backend and one authoritative data model.
 
-PostgreSQL is the authoritative production database.
-
-```text
-React/Vite Web
-Capacitor Android/iOS
-Tauri Desktop
-        |
-        v
-Shared API + business service layer
-        |
-        v
-Prisma
-        |
-        v
-PostgreSQL
-
-Object storage handles files.
-Schedulers/workers handle reminders, syncs, notifications, and reports.
-```
-
-Local JSON and Netlify Blobs are transitional/dev/pilot options only.
-
-## Core business relationship model
+The target platform path is:
 
 ```text
-Organisation
-  -> Subsidiaries
-    -> Departments
-      -> Users / roles / permissions
-
-Client Account
-  -> Contacts
-  -> Relationships / notes / interactions
-  -> Leads
-  -> Opportunities
-  -> Proposals
-  -> Deals / Contracts
-  -> Projects
-    -> Milestones
-    -> Tasks / Kanban
-    -> Time logs
-    -> Meetings
-    -> Documents
-    -> Support tickets
-  -> Account health
-  -> Next opportunity
+React/Vite web
+  -> Capacitor Android/iOS/Huawei
+  -> Tauri desktop
+  -> shared API
+  -> PostgreSQL + object storage + scheduled jobs + integrations
 ```
 
-## Target domains
+The web app remains the primary client, but mobile and desktop clients should reuse the same business rules and APIs rather than duplicating logic.
 
-- People: users, profiles, subsidiaries, departments, roles, permissions, HR, leave, attendance, payroll, performance, onboarding.
-- Work: OKRs, portfolios, projects, milestones, tasks, Kanban, dependencies, workload, time, meetings.
-- CRM: accounts, contacts, relationship intelligence, notes, interactions, account health, follow-ups.
-- Business Development: leads, opportunities, pipeline, proposals, deals, targets, forecasts.
-- Documents/DAM: folders, files, versions, metadata, permissions, links to business records.
-- Communication: messaging, notifications, browser/mobile/desktop push, email, SMS, calendars.
-- Intelligence: Meeting Studio, client briefings, opportunity analysis, project intelligence, executive summaries.
-- Governance: audit logs, permissions, privacy controls, retention, integration logs.
+## Non-negotiable production direction
 
-## Target API principle
+PostgreSQL should be the authoritative production database. Local JSON and Netlify Blobs are useful for development and pilot fallback, but the final CRM/business system should not depend on them as the source of truth.
 
-Existing `/api/entities` remains a compatibility layer.
+Documents and binary files should live in object storage. PostgreSQL should store metadata, ownership, access rules, audit history, and relationships.
 
-New production work should use `/api/v1`:
+## Core business domains
+
+### Organisation and people
+
+Organisation, subsidiaries, departments, users, profiles, roles, permissions, employee lifecycle, performance, and HR records.
+
+### Work management
+
+Goals/OKRs, portfolios, projects, milestones, tasks, Kanban state, Gantt dependencies, workload capacity, time logs, and meeting action items.
+
+### CRM and relationship management
+
+Client accounts, contacts, contact relationships, preferences, interests, notes, interactions, activities, health snapshots, and relationship-to-project links.
+
+### Business development
+
+Leads, lead sources, opportunities, opportunity stages, proposal records, deals, deal products/services, forecasts, sales targets, and contracts.
+
+### Operations
+
+Support tickets, assets, expenses, documents, rooms/resources, DAM, and compliance records.
+
+### Communications and intelligence
+
+Notifications, push subscriptions, delivery logs, Meeting Studio AI, AI Assistant, audit logs, and integration sync logs.
+
+## Target client architecture
+
+Frontend pages should stop owning business workflows directly. Pages should call domain APIs:
+
+- `api.auth`
+- `api.organisation`
+- `api.work`
+- `api.crm`
+- `api.businessDevelopment`
+- `api.people`
+- `api.documents`
+- `api.notifications`
+- `api.integrations`
+- `api.analytics`
+
+The compatibility entity API can remain temporarily for migration, but it should not be the long-term public contract.
+
+## Target backend architecture
+
+The backend should be layered:
 
 ```text
-/api/v1/auth
-/api/v1/organisation
-/api/v1/users
-/api/v1/work
-/api/v1/crm
-/api/v1/business-development
-/api/v1/documents
-/api/v1/notifications
-/api/v1/integrations
-/api/v1/ai
-/api/v1/audit
+HTTP routes
+  -> request validation
+  -> auth/context
+  -> permission checks
+  -> domain services
+  -> Prisma repositories
+  -> audit hooks
+  -> notification hooks
+  -> integration jobs
 ```
 
-Every route should follow:
+Every production write should validate input, check permissions, write through Prisma, record audit history where business-relevant, and trigger notifications or integration jobs through a queue-like service.
 
-```text
-authenticate -> authorize -> validate -> service -> repository -> audit -> notify -> respond
-```
+## Target deployment architecture
 
-## Target client strategy
+Office pilot:
 
-- Web: React/Vite.
-- Android/iOS: Capacitor over the same React app.
-- Desktop: Tauri over the same React app.
-- All clients use the same API.
-- Business rules live server-side.
+- Netlify web/functions or local Express.
+- PostgreSQL database.
+- Stable VAPID keys.
+- Real JWT secrets.
+- Controlled users only.
 
-## Target deployment path
+Production web:
 
-- Local development: local JSON or local Postgres.
-- Office pilot: Netlify + Neon/Postgres + browser push.
-- Production web: Postgres + object storage + real email + stronger auth.
-- Android/iOS/Desktop: same API plus platform-specific adapters.
+- Hosted web app.
+- Hosted API/functions.
+- Managed PostgreSQL.
+- Object storage.
+- Scheduled jobs.
+- Monitoring and logs.
+- Backup/restore.
 
-## Target navigation
+Android/iOS/Huawei/Desktop:
 
-The current sidebar should evolve into permission-aware areas:
+- Capacitor for mobile builds.
+- Tauri for desktop builds.
+- Native notification adapters where required.
+- Shared API and auth.
+- Store-specific signing, privacy, and release processes.
 
-- Home / My Day.
-- Work.
-- CRM / Customers.
-- Business Development.
-- People.
-- Operations.
-- Company.
-- Documents.
-- Insights.
-- Integrations.
-- Settings.
+## Target security posture
 
-## Target data principle
+- Verified email and password reset.
+- Refresh-token/session lifecycle.
+- Role-based and subsidiary-aware permissions.
+- Rate limiting.
+- Secure upload validation.
+- Audit log coverage.
+- Secrets only in server runtime environments.
+- Principle-of-least-privilege integration credentials.
+- App-store privacy and data-safety documentation.
 
-No static dashboards. Every visible metric, project status, client relationship, notification, and AI answer must be explainable from the data model.
+## What should be reused
 
-## Target migration principle
+- Existing React page structure and components.
+- Existing work-management UI.
+- Existing `/api/v1/work` direction.
+- Existing Prisma schema as a strong first production draft.
+- Existing scheduler and notification content logic.
+- Existing Meeting Studio OpenAI/fallback design.
+- Existing Phakathi brand assets and subsidiary constants.
 
-Move one domain at a time from compatibility storage into first-class relational services while keeping the office pilot working.
+## What should be replaced or retired
+
+- Generic entity writes as the default backend contract.
+- Local JSON as anything more than development/import tooling.
+- Placeholder integration flows that appear connected but do not call real providers.
+- Duplicated business logic in pages that should live in domain services.
