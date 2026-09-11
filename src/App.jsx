@@ -60,6 +60,10 @@ import SageIntegration from './pages/SageIntegration';
 import GoalsOKRs from './pages/GoalsOKRs';
 import Account360 from './pages/Account360';
 import ClientIntelligence from './pages/ClientIntelligence';
+import BusinessDevelopment from './pages/BusinessDevelopment';
+import SalesPipeline from './pages/SalesPipeline';
+import Proposals from './pages/Proposals';
+import Deals from './pages/Deals';
 
 setupIframeMessaging();
 
@@ -211,6 +215,10 @@ const AuthenticatedApp = () => {
         <Route path="/GoalsOKRs" element={<GoalsOKRs />} />
         <Route path="/Account360" element={<Account360 />} />
         <Route path="/ClientIntelligence" element={<ClientIntelligence />} />
+        <Route path="/BusinessDevelopment" element={<BusinessDevelopment />} />
+        <Route path="/SalesPipeline" element={<SalesPipeline />} />
+        <Route path="/Proposals" element={<Proposals />} />
+        <Route path="/Deals" element={<Deals />} />
         <Route path="/PayrollDashboard" element={<PayrollDashboard />} />
         <Route path="/Expenses" element={<Expenses />} />
         <Route path="/Assets" element={<Assets />} />

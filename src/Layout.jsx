@@ -40,6 +40,11 @@ const navigationItems = [
   // CLIENTS
   { title: "Account 360",       url: "/Account360",          icon: Briefcase,       group: "clients" },
   { title: "Client Intelligence", url: "/ClientIntelligence", icon: Users,          group: "clients" },
+  // GROWTH
+  { title: "Business Development", url: "/BusinessDevelopment", icon: TrendingUp,   group: "growth" },
+  { title: "Sales Pipeline",     url: "/SalesPipeline",      icon: Columns,         group: "growth" },
+  { title: "Proposals",          url: "/Proposals",          icon: FileText,        group: "growth" },
+  { title: "Deals",              url: "/Deals",              icon: Briefcase,       group: "growth" },
   // COLLABORATION
   { title: "Messaging",         url: "/Messaging",          icon: MessageCircle,   group: "collaboration" },
   { title: "Company Feed",      url: "/CompanyFeed",        icon: Rss,             group: "collaboration" },
@@ -76,6 +81,7 @@ const sidebarGroups = [
   { key: 'home',          label: 'Home',          collapsible: false },
   { key: 'work',          label: 'Work',          collapsible: true },
   { key: 'clients',       label: 'Clients',       collapsible: true },
+  { key: 'growth',        label: 'Growth',        collapsible: true },
   { key: 'collaboration', label: 'Collaboration', collapsible: true },
   { key: 'people',        label: 'People',        collapsible: true },
   { key: 'operations',    label: 'Operations',    collapsible: true },

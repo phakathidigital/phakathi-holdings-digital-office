@@ -68,6 +68,7 @@ const rolePermissions = {
     "reports.view",
     "crm.view",
     "sales.view",
+    "sales.manage",
     "projects.view",
     "projects.create",
     "projects.edit",
@@ -87,13 +88,14 @@ const rolePermissions = {
     "reports.view",
     "crm.view",
     "sales.view",
+    "sales.manage",
     "projects.view",
     "projects.create",
     "projects.edit",
     "notifications.manage",
     "integrations.manage",
   ],
-  "Employee": ["projects.view", "projects.create", "projects.edit", "crm.view"],
+  "Employee": ["projects.view", "projects.create", "projects.edit", "crm.view", "sales.view"],
 };
 
 const opportunityStages = [
@@ -313,6 +315,8 @@ async function main() {
   const percity = await prisma.user.findUnique({ where: { email: "percity.mavimbela@phakathiholdings.local" } });
   const sarah = await prisma.user.findUnique({ where: { email: "sarah.ngwenya@phakathiholdings.local" } });
   const leadStage = await prisma.opportunityStage.findUnique({ where: { name: "Lead" } });
+  const discoveryStage = await prisma.opportunityStage.findUnique({ where: { name: "Discovery" } });
+  const proposalStage = await prisma.opportunityStage.findUnique({ where: { name: "Proposal" } });
 
   const kaeloAccount = await prisma.clientAccount.upsert({
     where: { id: "client-account-kaelo-education-growth" },
@@ -439,14 +443,87 @@ async function main() {
     },
   });
 
+  const groupReferralSource = await prisma.leadSource.upsert({
+    where: { name: "Group Referral" },
+    create: {
+      id: "lead-source-group-referral",
+      name: "Group Referral",
+      description: "Lead created from internal subsidiary or group-company referral.",
+      metadata: {},
+    },
+    update: {
+      description: "Lead created from internal subsidiary or group-company referral.",
+    },
+  });
+
+  const mondaySource = await prisma.leadSource.upsert({
+    where: { name: "Monday Alignment" },
+    create: {
+      id: "lead-source-monday-alignment",
+      name: "Monday Alignment",
+      description: "Lead raised during weekly Monday alignment meetings.",
+      metadata: {},
+    },
+    update: {
+      description: "Lead raised during weekly Monday alignment meetings.",
+    },
+  });
+
+  const kaeloLead = await prisma.lead.upsert({
+    where: { id: "lead-kaelo-education-expansion" },
+    create: {
+      id: "lead-kaelo-education-expansion",
+      title: "Kaelo Education July growth expansion",
+      source_id: mondaySource.id,
+      owner_user_id: percity?.id,
+      client_account_id: kaeloAccount.id,
+      status: "qualified",
+      qualification: "Education ecosystem expansion discussed in the 6 July Monday alignment workflow.",
+      estimated_value: 150000,
+      description: "Potential execution package for education-growth coordination across Kaelo Education and Baby Geniuses.",
+      metadata: { focus: "education", cadence: "Monday alignment" },
+    },
+    update: {
+      source_id: mondaySource.id,
+      owner_user_id: percity?.id,
+      client_account_id: kaeloAccount.id,
+      status: "qualified",
+      estimated_value: 150000,
+    },
+  });
+
+  const empowerystLead = await prisma.lead.upsert({
+    where: { id: "lead-empoweryst-bbbee-retainer" },
+    create: {
+      id: "lead-empoweryst-bbbee-retainer",
+      title: "Empoweryst BBBEE delivery retainer",
+      source_id: groupReferralSource.id,
+      owner_user_id: sarah?.id,
+      client_account_id: empowerystAccount.id,
+      status: "qualified",
+      qualification: "Client delivery register and consultant capacity need recurring monthly coordination.",
+      estimated_value: 220000,
+      description: "Business-development opportunity to package BBBEE consulting delivery into a monthly retainer workflow.",
+      metadata: { focus: "consulting", subsidiary: "Empoweryst" },
+    },
+    update: {
+      source_id: groupReferralSource.id,
+      owner_user_id: sarah?.id,
+      client_account_id: empowerystAccount.id,
+      status: "qualified",
+      estimated_value: 220000,
+    },
+  });
+
   await prisma.opportunity.upsert({
     where: { id: "opportunity-kaelo-education-growth-july" },
     create: {
       id: "opportunity-kaelo-education-growth-july",
       title: "July Education Growth Execution Package",
+      lead_id: kaeloLead.id,
       client_account_id: kaeloAccount.id,
       owner_user_id: percity?.id,
-      stage_id: leadStage?.id,
+      stage_id: discoveryStage?.id || leadStage?.id,
       value: 150000,
       probability: 35,
       weighted_value: 52500,
@@ -460,14 +537,150 @@ async function main() {
     },
     update: {
       title: "July Education Growth Execution Package",
+      lead_id: kaeloLead.id,
       client_account_id: kaeloAccount.id,
       owner_user_id: percity?.id,
-      stage_id: leadStage?.id,
+      stage_id: discoveryStage?.id || leadStage?.id,
       value: 150000,
       probability: 35,
       weighted_value: 52500,
       expected_close_date: new Date("2026-07-31"),
       status: "open",
+    },
+  });
+
+  const empowerystOpportunity = await prisma.opportunity.upsert({
+    where: { id: "opportunity-empoweryst-bbbee-retainer" },
+    create: {
+      id: "opportunity-empoweryst-bbbee-retainer",
+      title: "Empoweryst BBBEE Monthly Delivery Retainer",
+      lead_id: empowerystLead.id,
+      client_account_id: empowerystAccount.id,
+      owner_user_id: sarah?.id,
+      stage_id: proposalStage?.id || leadStage?.id,
+      value: 220000,
+      probability: 55,
+      weighted_value: 121000,
+      expected_close_date: new Date("2026-07-24"),
+      source: "Group referral",
+      industry: "BBBEE Consulting",
+      description: "Recurring retainer for BBBEE client administration, evidence follow-up, and weekly delivery visibility.",
+      next_action: "Send proposal for July retainer approval.",
+      next_follow_up_at: new Date("2026-07-17"),
+      status: "open",
+    },
+    update: {
+      lead_id: empowerystLead.id,
+      client_account_id: empowerystAccount.id,
+      owner_user_id: sarah?.id,
+      stage_id: proposalStage?.id || leadStage?.id,
+      value: 220000,
+      probability: 55,
+      weighted_value: 121000,
+      expected_close_date: new Date("2026-07-24"),
+      status: "open",
+    },
+  });
+
+  await prisma.opportunityActivity.upsert({
+    where: { id: "opportunity-activity-empoweryst-proposal" },
+    create: {
+      id: "opportunity-activity-empoweryst-proposal",
+      opportunity_id: empowerystOpportunity.id,
+      user_id: sarah?.id,
+      activity_type: "proposal_preparation",
+      subject: "Prepared retainer proposal outline",
+      description: "Mapped consultant follow-ups, evidence collection and weekly reporting into a retainer proposal.",
+      occurred_at: new Date("2026-07-10T09:00:00.000Z"),
+      metadata: {},
+    },
+    update: {
+      subject: "Prepared retainer proposal outline",
+      description: "Mapped consultant follow-ups, evidence collection and weekly reporting into a retainer proposal.",
+    },
+  });
+
+  await prisma.proposal.upsert({
+    where: { id: "proposal-kaelo-education-growth" },
+    create: {
+      id: "proposal-kaelo-education-growth",
+      client_account_id: kaeloAccount.id,
+      opportunity_id: "opportunity-kaelo-education-growth-july",
+      owner_user_id: percity?.id,
+      proposal_value: 150000,
+      expiry_date: new Date("2026-07-31"),
+      status: "draft",
+      notes: "Draft education-growth execution package for Group CEO review.",
+      next_action: "Convert Monday action items into a proposal appendix.",
+      metadata: { focus: "education" },
+    },
+    update: {
+      client_account_id: kaeloAccount.id,
+      opportunity_id: "opportunity-kaelo-education-growth-july",
+      owner_user_id: percity?.id,
+      proposal_value: 150000,
+      status: "draft",
+    },
+  });
+
+  const empowerystProposal = await prisma.proposal.upsert({
+    where: { id: "proposal-empoweryst-bbbee-retainer" },
+    create: {
+      id: "proposal-empoweryst-bbbee-retainer",
+      client_account_id: empowerystAccount.id,
+      opportunity_id: empowerystOpportunity.id,
+      owner_user_id: sarah?.id,
+      proposal_value: 220000,
+      submission_date: new Date("2026-07-13"),
+      expiry_date: new Date("2026-07-31"),
+      status: "sent",
+      notes: "Includes BBBEE evidence follow-up, client delivery register and weekly accountability reports.",
+      next_action: "Follow up for verbal commitment before the next Monday alignment.",
+      metadata: { focus: "BBBEE consulting delivery" },
+    },
+    update: {
+      client_account_id: empowerystAccount.id,
+      opportunity_id: empowerystOpportunity.id,
+      owner_user_id: sarah?.id,
+      proposal_value: 220000,
+      status: "sent",
+    },
+  });
+
+  const empowerystDeal = await prisma.deal.upsert({
+    where: { id: "deal-empoweryst-delivery-retainer" },
+    create: {
+      id: "deal-empoweryst-delivery-retainer",
+      client_account_id: empowerystAccount.id,
+      opportunity_id: empowerystOpportunity.id,
+      proposal_id: empowerystProposal.id,
+      status: "open",
+      value: 220000,
+      metadata: { expected_start: "2026-08-01" },
+    },
+    update: {
+      client_account_id: empowerystAccount.id,
+      opportunity_id: empowerystOpportunity.id,
+      proposal_id: empowerystProposal.id,
+      status: "open",
+      value: 220000,
+    },
+  });
+
+  await prisma.dealProductService.upsert({
+    where: { id: "deal-service-bbbee-delivery-register" },
+    create: {
+      id: "deal-service-bbbee-delivery-register",
+      deal_id: empowerystDeal.id,
+      name: "BBBEE delivery register and weekly reporting",
+      description: "Monthly coordination service for evidence tracking, consultant allocation and client reporting.",
+      value: 120000,
+      metadata: {},
+    },
+    update: {
+      deal_id: empowerystDeal.id,
+      name: "BBBEE delivery register and weekly reporting",
+      value: 120000,
     },
   });
 

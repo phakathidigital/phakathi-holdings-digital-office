@@ -216,12 +216,78 @@ async function main() {
     const intelligence = await request(baseUrl, "/v1/crm/client-intelligence", { token });
     expect(Number(intelligence.data.summary.accounts) > 0, "Client Intelligence summary is empty.");
 
+    const bdOverview = await request(baseUrl, "/v1/business-development/overview", { token });
+    expect(Number(bdOverview.data.summary.leads) >= 0, "Business Development overview did not return a lead count.");
+
+    const salesPipeline = await request(baseUrl, "/v1/business-development/pipeline", { token });
+    expect(Array.isArray(salesPipeline.data.columns), "Sales pipeline did not return Kanban columns.");
+
+    const lead = await request(baseUrl, "/v1/business-development/leads", {
+      method: "POST",
+      token,
+      body: JSON.stringify({
+        title: `Smoke growth lead ${unique}`,
+        estimated_value: 50000,
+        client_account_id: crmAccount.data.id,
+        status: "new",
+      }),
+    });
+    expect(lead.data.id, "Business Development lead was not created.");
+
+    const opportunity = await request(baseUrl, "/v1/business-development/opportunities", {
+      method: "POST",
+      token,
+      body: JSON.stringify({
+        title: `Smoke sales opportunity ${unique}`,
+        lead_id: lead.data.id,
+        client_account_id: crmAccount.data.id,
+        value: 50000,
+        expected_close_date: "2026-07-31",
+      }),
+    });
+    expect(opportunity.data.id, "Sales opportunity was not created.");
+
+    const targetStage = salesPipeline.data.stages?.find((stage) => stage.name === "Proposal") || salesPipeline.data.stages?.[1];
+    if (targetStage) {
+      const movedOpportunity = await request(baseUrl, `/v1/business-development/opportunities/${opportunity.data.id}/stage`, {
+        method: "PATCH",
+        token,
+        body: JSON.stringify({ stage_id: targetStage.id }),
+      });
+      expect(movedOpportunity.data.stage_id === targetStage.id || movedOpportunity.data.stage?.id === targetStage.id, "Sales opportunity did not move stages.");
+    }
+
+    const proposal = await request(baseUrl, "/v1/business-development/proposals", {
+      method: "POST",
+      token,
+      body: JSON.stringify({
+        client_account_id: crmAccount.data.id,
+        opportunity_id: opportunity.data.id,
+        proposal_value: 50000,
+        status: "draft",
+      }),
+    });
+    expect(proposal.data.id, "Proposal was not created.");
+
+    const deal = await request(baseUrl, "/v1/business-development/deals", {
+      method: "POST",
+      token,
+      body: JSON.stringify({
+        client_account_id: crmAccount.data.id,
+        opportunity_id: opportunity.data.id,
+        proposal_id: proposal.data.id,
+        value: 50000,
+        status: "open",
+      }),
+    });
+    expect(deal.data.id, "Deal was not created.");
+
     await request(baseUrl, "/auth/logout", {
       method: "POST",
       body: JSON.stringify({ refresh_token: refreshed.refresh_token }),
     });
 
-    console.log(JSON.stringify({ ok: true, checks: 18 }, null, 2));
+    console.log(JSON.stringify({ ok: true, checks: 25 }, null, 2));
   } finally {
     await new Promise((resolve) => server.close(resolve));
     if (originalDb === null) {

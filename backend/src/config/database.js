@@ -500,7 +500,7 @@ function seedJuly2026Workflow(db) {
 
 function seedCrmFoundation(db) {
   db.entities ||= {};
-  for (const name of ["ClientAccount", "ClientContact", "ClientInteraction", "ClientNote", "ClientActivity", "ClientHealthSnapshot", "Opportunity"]) {
+  for (const name of ["ClientAccount", "ClientContact", "ClientInteraction", "ClientNote", "ClientActivity", "ClientHealthSnapshot", "LeadSource", "Lead", "OpportunityStage", "Opportunity", "OpportunityActivity", "Proposal", "Deal", "DealProductService"]) {
     db.entities[name] ||= [];
   }
 
@@ -570,8 +570,11 @@ function seedCrmFoundation(db) {
   upsertById(db.entities.Opportunity, {
     id: "opportunity-kaelo-education-growth-july",
     title: "July Education Growth Execution Package",
+    lead_id: "lead-kaelo-education-expansion",
     client_account_id: "client-account-kaelo-education-growth",
     owner_email: "percity.mavimbela@phakathiholdings.local",
+    stage_id: "stage-discovery",
+    stage_name: "Discovery",
     value: 150000,
     probability: 35,
     weighted_value: 52500,
@@ -582,6 +585,135 @@ function seedCrmFoundation(db) {
     next_action: "Prepare pipeline dashboard for Group CEO review.",
     next_follow_up_at: "2026-07-20",
     status: "open",
+  });
+
+  const leadSources = [
+    ["lead-source-group-referral", "Group Referral", "Lead created from internal subsidiary or group-company referral."],
+    ["lead-source-monday-alignment", "Monday Alignment", "Lead raised during weekly Monday alignment meetings."],
+    ["lead-source-client-referral", "Client Referral", "Lead referred by an existing client or partner."],
+  ];
+  for (const [id, name, description] of leadSources) {
+    upsertById(db.entities.LeadSource, { id, name, description, metadata: {} });
+  }
+
+  const stages = [
+    ["stage-lead", "Lead", 10, 10, false, false],
+    ["stage-qualified", "Qualified", 20, 25, false, false],
+    ["stage-discovery", "Discovery", 30, 35, false, false],
+    ["stage-proposal", "Proposal", 40, 55, false, false],
+    ["stage-negotiation", "Negotiation", 50, 75, false, false],
+    ["stage-verbal-commitment", "Verbal Commitment", 60, 90, false, false],
+    ["stage-won", "Won", 70, 100, true, false],
+    ["stage-lost", "Lost", 80, 0, false, true],
+  ];
+  for (const [id, name, order_index, probability, is_won_stage, is_lost_stage] of stages) {
+    upsertById(db.entities.OpportunityStage, { id, name, order_index, probability, is_won_stage, is_lost_stage, metadata: {} });
+  }
+
+  upsertById(db.entities.Lead, {
+    id: "lead-kaelo-education-expansion",
+    title: "Kaelo Education July growth expansion",
+    source_id: "lead-source-monday-alignment",
+    owner_email: "percity.mavimbela@phakathiholdings.local",
+    client_account_id: "client-account-kaelo-education-growth",
+    status: "qualified",
+    qualification: "Education ecosystem expansion discussed in the 6 July Monday alignment workflow.",
+    estimated_value: 150000,
+    description: "Potential execution package for education-growth coordination across Kaelo Education and Baby Geniuses.",
+    metadata: { focus: "education", cadence: "Monday alignment" },
+  });
+
+  upsertById(db.entities.Lead, {
+    id: "lead-empoweryst-bbbee-retainer",
+    title: "Empoweryst BBBEE delivery retainer",
+    source_id: "lead-source-group-referral",
+    owner_email: "sarah.ngwenya@phakathiholdings.local",
+    client_account_id: "client-account-empoweryst-bbbee-pipeline",
+    status: "qualified",
+    qualification: "Client delivery register and consultant capacity need recurring monthly coordination.",
+    estimated_value: 220000,
+    description: "Business-development opportunity to package BBBEE consulting delivery into a monthly retainer workflow.",
+    metadata: { focus: "consulting", subsidiary: "Empoweryst" },
+  });
+
+  upsertById(db.entities.Opportunity, {
+    id: "opportunity-empoweryst-bbbee-retainer",
+    title: "Empoweryst BBBEE Monthly Delivery Retainer",
+    lead_id: "lead-empoweryst-bbbee-retainer",
+    client_account_id: "client-account-empoweryst-bbbee-pipeline",
+    owner_email: "sarah.ngwenya@phakathiholdings.local",
+    stage_id: "stage-proposal",
+    stage_name: "Proposal",
+    value: 220000,
+    probability: 55,
+    weighted_value: 121000,
+    expected_close_date: "2026-07-24",
+    source: "Group referral",
+    industry: "BBBEE Consulting",
+    description: "Recurring retainer for BBBEE client administration, evidence follow-up, and weekly delivery visibility.",
+    next_action: "Send proposal for July retainer approval.",
+    next_follow_up_at: "2026-07-17",
+    status: "open",
+  });
+
+  upsertById(db.entities.OpportunityActivity, {
+    id: "opportunity-activity-empoweryst-proposal",
+    opportunity_id: "opportunity-empoweryst-bbbee-retainer",
+    user_email: "sarah.ngwenya@phakathiholdings.local",
+    activity_type: "proposal_preparation",
+    subject: "Prepared retainer proposal outline",
+    description: "Mapped consultant follow-ups, evidence collection and weekly reporting into a retainer proposal.",
+    occurred_at: "2026-07-10T09:00:00.000Z",
+    metadata: {},
+  });
+
+  upsertById(db.entities.Proposal, {
+    id: "proposal-empoweryst-bbbee-retainer",
+    client_account_id: "client-account-empoweryst-bbbee-pipeline",
+    opportunity_id: "opportunity-empoweryst-bbbee-retainer",
+    owner_email: "sarah.ngwenya@phakathiholdings.local",
+    proposal_value: 220000,
+    submission_date: "2026-07-13",
+    expiry_date: "2026-07-31",
+    status: "sent",
+    notes: "Includes BBBEE evidence follow-up, client delivery register and weekly accountability reports.",
+    next_action: "Follow up for verbal commitment before the next Monday alignment.",
+    metadata: { focus: "BBBEE consulting delivery" },
+  });
+
+  upsertById(db.entities.Proposal, {
+    id: "proposal-kaelo-education-growth",
+    client_account_id: "client-account-kaelo-education-growth",
+    opportunity_id: "opportunity-kaelo-education-growth-july",
+    owner_email: "percity.mavimbela@phakathiholdings.local",
+    proposal_value: 150000,
+    submission_date: null,
+    expiry_date: "2026-07-31",
+    status: "draft",
+    notes: "Draft education-growth execution package for Group CEO review.",
+    next_action: "Convert Monday action items into a proposal appendix.",
+    metadata: { focus: "education" },
+  });
+
+  upsertById(db.entities.Deal, {
+    id: "deal-empoweryst-delivery-retainer",
+    client_account_id: "client-account-empoweryst-bbbee-pipeline",
+    opportunity_id: "opportunity-empoweryst-bbbee-retainer",
+    proposal_id: "proposal-empoweryst-bbbee-retainer",
+    status: "open",
+    value: 220000,
+    closed_at: null,
+    lost_reason: null,
+    metadata: { expected_start: "2026-08-01" },
+  });
+
+  upsertById(db.entities.DealProductService, {
+    id: "deal-service-bbbee-delivery-register",
+    deal_id: "deal-empoweryst-delivery-retainer",
+    name: "BBBEE delivery register and weekly reporting",
+    description: "Monthly coordination service for evidence tracking, consultant allocation and client reporting.",
+    value: 120000,
+    metadata: {},
   });
 }
 

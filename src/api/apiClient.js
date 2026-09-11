@@ -317,6 +317,58 @@ export const api = {
       }),
     },
   },
+  businessDevelopment: {
+    overview: () => v1Request("/business-development/overview"),
+    pipeline: () => v1Request("/business-development/pipeline"),
+    leads: {
+      list: () => v1Request("/business-development/leads"),
+      create: (data) => v1Request("/business-development/leads", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+      update: (id, data) => v1Request(`/business-development/leads/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+    },
+    opportunities: {
+      list: () => v1Request("/business-development/opportunities"),
+      create: (data) => v1Request("/business-development/opportunities", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+      update: (id, data) => v1Request(`/business-development/opportunities/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+      move: (id, stageId) => v1Request(`/business-development/opportunities/${encodeURIComponent(id)}/stage`, {
+        method: "PATCH",
+        body: JSON.stringify({ stage_id: stageId }),
+      }),
+    },
+    proposals: {
+      list: () => v1Request("/business-development/proposals"),
+      create: (data) => v1Request("/business-development/proposals", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+      update: (id, data) => v1Request(`/business-development/proposals/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+    },
+    deals: {
+      list: () => v1Request("/business-development/deals"),
+      create: (data) => v1Request("/business-development/deals", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+      update: (id, data) => v1Request(`/business-development/deals/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+    },
+  },
   users: {
     inviteUser: (email, role = "user") => request("/auth/invite", {
       method: "POST",
