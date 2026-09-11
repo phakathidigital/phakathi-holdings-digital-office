@@ -64,6 +64,7 @@ async function readPostgresDb() {
     events: states.get("events") || [],
     emails: states.get("emails") || [],
     sms: states.get("sms") || [],
+    auth: states.get("auth") || { sessions: [], refresh_tokens: [] },
   };
 }
 
@@ -114,6 +115,7 @@ async function writePostgresDb(db) {
     events: db.events || [],
     emails: db.emails || [],
     sms: db.sms || [],
+    auth: db.auth || { sessions: [], refresh_tokens: [] },
   })) {
     await prisma.appState.upsert({
       where: { key },

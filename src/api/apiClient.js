@@ -1,5 +1,6 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:4000/api";
 const TOKEN_KEY = "phakathi_auth_token";
+const REFRESH_TOKEN_KEY = "phakathi_refresh_token";
 
 function getToken() {
   return localStorage.getItem(TOKEN_KEY);
@@ -9,11 +10,42 @@ function setToken(token) {
   if (token) localStorage.setItem(TOKEN_KEY, token);
 }
 
+function getRefreshToken() {
+  return localStorage.getItem(REFRESH_TOKEN_KEY);
+}
+
+function setRefreshToken(token) {
+  if (token) localStorage.setItem(REFRESH_TOKEN_KEY, token);
+}
+
+function clearAuthTokens() {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+}
+
 export function getAuthToken() {
   return getToken();
 }
 
-async function request(path, options = {}) {
+async function refreshAccessToken() {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return null;
+  const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refresh_token: refreshToken }),
+  });
+  if (!response.ok) {
+    clearAuthTokens();
+    return null;
+  }
+  const result = await response.json();
+  setToken(result.token);
+  setRefreshToken(result.refresh_token);
+  return result.token;
+}
+
+async function request(path, options = {}, retrying = false) {
   const headers = {
     "Content-Type": "application/json",
     ...(options.headers || {}),
@@ -31,6 +63,11 @@ async function request(path, options = {}) {
   const payload = contentType.includes("application/json")
     ? await response.json()
     : await response.text();
+
+  if (response.status === 401 && !retrying && path !== "/auth/refresh") {
+    const refreshedToken = await refreshAccessToken();
+    if (refreshedToken) return request(path, options, true);
+  }
 
   if (!response.ok) {
     const error = new Error(payload?.error?.message || payload?.message || payload || "API request failed");
@@ -113,10 +150,18 @@ export const api = {
         body: JSON.stringify({ email, full_name, password }),
       });
       setToken(result.token);
+      setRefreshToken(result.refresh_token);
       return result.user;
     },
     logout: () => {
-      localStorage.removeItem(TOKEN_KEY);
+      const refresh_token = getRefreshToken();
+      clearAuthTokens();
+      if (refresh_token) {
+        request("/auth/logout", {
+          method: "POST",
+          body: JSON.stringify({ refresh_token }),
+        }).catch(() => null);
+      }
       window.location.reload();
     },
     redirectToLogin: async () => {

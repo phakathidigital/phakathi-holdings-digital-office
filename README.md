@@ -17,8 +17,11 @@ npm run dev
 Production build check:
 
 ```bash
+npm test
 npm run build
 ```
+
+`npm test` runs a backend smoke workflow against local JSON storage, backs up/restores `.local-data/db.json`, and verifies auth, refresh-token rotation, connected work graph, project completion controls, time logging, and Meeting Studio task sync.
 
 ## Backend
 
@@ -46,6 +49,8 @@ Implemented backend capabilities:
 - Local sign-in/register by email and password.
 - First password setup for seeded employees: if an employee already exists in the seeded roster but has no password yet, their first successful sign-in/register attempt sets their password on that staff record.
 - Signed local auth tokens using `JWT_SECRET`.
+- Refresh-token rotation and logout support using `JWT_REFRESH_SECRET`.
+- Basic auth rate limiting and production CORS/security-header hardening.
 - Current user profile read/update.
 - Auth-protected generic entity CRUD for all migrated entity schemas in `backend/prisma/entities/`.
 - Seed users for Phakathi Holdings and Empoweryst.
@@ -122,9 +127,11 @@ Copy `.env.example` to `.env.local` if you need to override defaults.
 ```bash
 VITE_API_BASE_URL=http://127.0.0.1:4000/api
 JWT_SECRET=replace-with-a-long-random-secret
+JWT_REFRESH_SECRET=replace-with-a-different-long-random-secret
+CORS_ORIGINS=http://127.0.0.1:5173,http://localhost:5173
 ```
 
-For office testing, set `JWT_SECRET` before employees begin using the app so sessions remain valid across backend restarts. Provider keys such as `OPENAI_API_KEY`, SMTP, SMS, and future `DATABASE_URL` values are optional until the production backend is hardened. `OPENAI_API_KEY` enables the real Meeting Studio AI flow; without it, Meeting Studio uses the safe fallback.
+For office testing, set `JWT_SECRET` and `JWT_REFRESH_SECRET` before employees begin using the app so sessions remain valid across backend restarts. In production, both secrets must be 32+ characters. Provider keys such as `OPENAI_API_KEY`, SMTP, SMS, and future `DATABASE_URL` values are optional until those providers are configured. `OPENAI_API_KEY` enables the real Meeting Studio AI flow; without it, Meeting Studio uses the safe fallback.
 
 For production database testing, set `DATABASE_URL` and `PHAKATHI_STORAGE=postgres`, then run the database commands above before starting the API.
 
@@ -142,6 +149,8 @@ Set these sensitive variables in Netlify site environment variables, not in Git:
 
 ```bash
 JWT_SECRET=...
+JWT_REFRESH_SECRET=...
+CORS_ORIGINS=https://your-netlify-site.netlify.app,https://your-custom-domain.example
 VAPID_PUBLIC_KEY=...
 VAPID_PRIVATE_KEY=...
 VAPID_SUBJECT=mailto:notifications@phakathiholdings.local

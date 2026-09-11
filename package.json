@@ -11,6 +11,7 @@
     "build:frontend": "vite build --configLoader runner",
     "deploy:build": "node scripts/netlify-build.mjs",
     "lint": "eslint .",
+    "test": "node scripts/backend-smoke.mjs",
     "preview": "vite preview",
     "push:vapid": "node -e \"import('web-push').then(({default: webPush}) => console.log(webPush.generateVAPIDKeys()))\"",
     "db:generate": "prisma generate --schema backend/prisma/schema.prisma",

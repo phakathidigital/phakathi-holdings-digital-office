@@ -3,6 +3,7 @@ import cors from "cors";
 import path from "node:path";
 import { ensureStore } from "./config/database.js";
 import { uploadDir } from "./config/paths.js";
+import { assertProductionConfig, corsOptions, securityHeaders } from "./config/security.js";
 import authRoutes from "./routes/auth.js";
 import entityRoutes from "./routes/entities.js";
 import integrationRoutes from "./routes/integrations.js";
@@ -16,7 +17,11 @@ export const app = express();
 const PORT = Number(process.env.PORT || 4000);
 let prepared = false;
 
-app.use(cors({ origin: true, credentials: true }));
+assertProductionConfig();
+
+app.disable("x-powered-by");
+app.use(securityHeaders);
+app.use(cors(corsOptions()));
 app.use(express.json({ limit: "25mb" }));
 app.use("/uploads", express.static(uploadDir));
 
@@ -85,7 +90,8 @@ for (const [route, entityName] of Object.entries(resourceAliases)) {
 
 app.use((err, _req, res, _next) => {
   console.error(err);
-  res.status(500).json({ message: err.message || "Internal server error" });
+  const status = err.status || (String(err.message || "").startsWith("CORS origin not allowed") ? 403 : 500);
+  res.status(status).json({ message: status === 500 ? "Internal server error" : err.message });
 });
 
 export async function prepareApp() {

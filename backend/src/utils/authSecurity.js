@@ -3,17 +3,26 @@ import crypto from "node:crypto";
 
 const TOKEN_ALGORITHM = "HS256";
 const TOKEN_TTL_SECONDS = Number(process.env.AUTH_TOKEN_TTL_SECONDS || 60 * 60 * 12);
+const REFRESH_TOKEN_TTL_SECONDS = Number(process.env.AUTH_REFRESH_TOKEN_TTL_SECONDS || 60 * 60 * 24 * 30);
 const PBKDF2_ITERATIONS = Number(process.env.PASSWORD_HASH_ITERATIONS || 210000);
 const PBKDF2_KEYLEN = 32;
 const PBKDF2_DIGEST = "sha256";
 
 const fallbackJwtSecret = "phakathi-flow-local-office-pilot-change-this-secret";
+const fallbackRefreshSecret = "phakathi-flow-local-office-pilot-change-this-refresh-secret";
 
 export function getJwtSecret() {
   if (!process.env.JWT_SECRET) {
     console.warn("JWT_SECRET is not configured. Using local office-pilot fallback secret; set JWT_SECRET in .env.local before wider testing.");
   }
   return process.env.JWT_SECRET || fallbackJwtSecret;
+}
+
+export function getJwtRefreshSecret() {
+  if (!process.env.JWT_REFRESH_SECRET) {
+    console.warn("JWT_REFRESH_SECRET is not configured. Using local office-pilot fallback refresh secret; set JWT_REFRESH_SECRET before wider testing.");
+  }
+  return process.env.JWT_REFRESH_SECRET || fallbackRefreshSecret;
 }
 
 function base64UrlJson(value) {
@@ -27,13 +36,15 @@ function signTokenInput(input) {
     .digest("base64url");
 }
 
-export function makeSignedToken(user) {
+export function makeSignedToken(user, options = {}) {
   const issuedAt = Math.floor(Date.now() / 1000);
   const header = base64UrlJson({ alg: TOKEN_ALGORITHM, typ: "JWT" });
   const payload = base64UrlJson({
     sub: user.id,
     email: user.email,
     role: user.role || "user",
+    sid: options.sessionId,
+    jti: options.jwtId || crypto.randomUUID(),
     iat: issuedAt,
     exp: issuedAt + TOKEN_TTL_SECONDS,
   });
@@ -64,6 +75,22 @@ export function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString("base64url");
   const hash = crypto.pbkdf2Sync(String(password), salt, PBKDF2_ITERATIONS, PBKDF2_KEYLEN, PBKDF2_DIGEST).toString("base64url");
   return `pbkdf2:${PBKDF2_DIGEST}:${PBKDF2_ITERATIONS}:${salt}:${hash}`;
+}
+
+export function makeRefreshToken() {
+  return crypto.randomBytes(48).toString("base64url");
+}
+
+export function makeTokenHash(token, secret = getJwtRefreshSecret()) {
+  return crypto.createHmac("sha256", secret).update(String(token)).digest("base64url");
+}
+
+export function refreshTokenExpiryDate() {
+  return new Date(Date.now() + REFRESH_TOKEN_TTL_SECONDS * 1000);
+}
+
+export function getTokenTtlSeconds() {
+  return TOKEN_TTL_SECONDS;
 }
 
 export function verifyPassword(password, storedHash = "") {

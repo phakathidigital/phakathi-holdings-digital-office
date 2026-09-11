@@ -1,10 +1,27 @@
 import express from "express";
 import { makeToken, requireAuth } from "../middleware/auth.js";
 import { nowStamped, readDb, writeDb } from "../config/database.js";
+import { rateLimit } from "../middleware/rateLimit.js";
+import { createAuthSession, revokeRefreshToken, rotateRefreshToken } from "../services/authSessionService.js";
 import { syncUserToRelational } from "../services/v1/organisationService.js";
-import { hashPassword, isStrongEnoughPassword, sanitizeUser, verifyPassword } from "../utils/authSecurity.js";
+import { getTokenTtlSeconds, hashPassword, isStrongEnoughPassword, sanitizeUser, verifyPassword } from "../utils/authSecurity.js";
 
 const router = express.Router();
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, scope: "auth" });
+
+function normalizeEmail(value = "") {
+  return String(value || "").trim().toLowerCase();
+}
+
+function issueAuthResponse(db, user, req) {
+  const { sessionId, refreshToken } = createAuthSession(db, user, req);
+  return {
+    token: makeToken(user, { sessionId }),
+    refresh_token: refreshToken,
+    expires_in: getTokenTtlSeconds(),
+    user: sanitizeUser(user),
+  };
+}
 
 router.get("/me", requireAuth, (req, res) => {
   res.json(req.user);
@@ -21,9 +38,9 @@ router.patch("/me", requireAuth, async (req, res) => {
   res.json(sanitizeUser(users[index]));
 });
 
-router.post("/login-or-register", async (req, res) => {
+router.post("/login-or-register", authLimiter, async (req, res) => {
   const db = await readDb();
-  const email = String(req.body.email || "").trim().toLowerCase();
+  const email = normalizeEmail(req.body.email);
   const password = String(req.body.password || "");
   if (!email) return res.status(400).json({ message: "Email is required" });
   if (!isStrongEnoughPassword(password)) {
@@ -61,14 +78,38 @@ router.post("/login-or-register", async (req, res) => {
     user.updated_date = new Date().toISOString();
   }
 
-  await writeDb(db);
   await syncUserToRelational(user);
-  res.json({ token: makeToken(user), user: sanitizeUser(user) });
+  const payload = issueAuthResponse(db, user, req);
+  await writeDb(db);
+  res.json(payload);
+});
+
+router.post("/refresh", authLimiter, async (req, res) => {
+  const db = await readDb();
+  const refreshToken = String(req.body.refresh_token || "");
+  if (!refreshToken) return res.status(400).json({ message: "Refresh token is required" });
+  const rotated = rotateRefreshToken(db, refreshToken, req);
+  if (!rotated) return res.status(401).json({ message: "Invalid or expired refresh token." });
+  await writeDb(db);
+  res.json({
+    token: makeToken(rotated.user, { sessionId: rotated.sessionId }),
+    refresh_token: rotated.refreshToken,
+    expires_in: getTokenTtlSeconds(),
+    user: sanitizeUser(rotated.user),
+  });
+});
+
+router.post("/logout", async (req, res) => {
+  const db = await readDb();
+  const refreshToken = String(req.body.refresh_token || "");
+  const result = refreshToken ? revokeRefreshToken(db, refreshToken) : { revoked: false };
+  await writeDb(db);
+  res.json(result);
 });
 
 router.post("/invite", async (req, res) => {
   const db = await readDb();
-  const email = String(req.body.email || "").trim().toLowerCase();
+  const email = normalizeEmail(req.body.email);
   if (!email) return res.status(400).json({ message: "Email is required" });
   db.entities.User ||= [];
   let user = db.entities.User.find((item) => item.email?.toLowerCase() === email);

@@ -163,6 +163,64 @@ function getTaskBlockers(task, tasks = []) {
     .filter((blocker) => !isTaskDone(blocker));
 }
 
+function hasRecord(db, entityName, id) {
+  if (!id) return true;
+  return visibleRecords(getRecords(db, entityName)).some((record) => record.id === id);
+}
+
+function assertValidDate(value, field) {
+  if (!value) return;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    throw new ApiError(400, "validation_error", `${field} must be a valid date.`, { field });
+  }
+}
+
+function assertLinkedWorkReferences(db, entityName, data = {}, existing = {}) {
+  const next = { ...existing, ...data };
+  if (next.okr_id && !hasRecord(db, WORK_ENTITIES.goals, next.okr_id)) {
+    throw new ApiError(400, "invalid_work_reference", "Linked goal/OKR does not exist.", { field: "okr_id" });
+  }
+  if (next.portfolio_id && !hasRecord(db, WORK_ENTITIES.portfolios, next.portfolio_id)) {
+    throw new ApiError(400, "invalid_work_reference", "Linked portfolio does not exist.", { field: "portfolio_id" });
+  }
+  if (next.project_id && !hasRecord(db, WORK_ENTITIES.projects, next.project_id)) {
+    throw new ApiError(400, "invalid_work_reference", "Linked project does not exist.", { field: "project_id" });
+  }
+
+  if (["due_date", "start_date", "end_date", "meeting_date", "log_date"].some((field) => next[field])) {
+    for (const field of ["due_date", "start_date", "end_date", "meeting_date", "log_date"]) assertValidDate(next[field], field);
+  }
+
+  if (entityName === WORK_ENTITIES.tasks) {
+    const users = getRecords(db, "User");
+    if (next.assigned_to && !users.some((user) => user.email === next.assigned_to)) {
+      throw new ApiError(400, "invalid_assignee", "Assigned user does not exist.", { field: "assigned_to" });
+    }
+    const tasks = getRecords(db, WORK_ENTITIES.tasks);
+    const blockerIds = Array.isArray(next.blocked_by) ? next.blocked_by : [];
+    if (blockerIds.includes(next.id)) {
+      throw new ApiError(400, "invalid_dependency", "A task cannot block itself.", { field: "blocked_by" });
+    }
+    const missingBlockers = blockerIds.filter((id) => !tasks.some((task) => task.id === id));
+    if (missingBlockers.length) {
+      throw new ApiError(400, "invalid_dependency", "One or more task blockers do not exist.", { blockers: missingBlockers });
+    }
+    if (TASK_DONE_STATUSES.has(next.status) && getTaskBlockers(next, tasks).length) {
+      throw new ApiError(400, "task_blocked", "This task cannot be completed until its blockers are done.");
+    }
+  }
+}
+
+function syncProjectPortfolioLink(db, project = {}) {
+  if (!project.portfolio_id || !project.id) return;
+  const portfolios = getRecords(db, WORK_ENTITIES.portfolios);
+  const portfolio = portfolios.find((item) => item.id === project.portfolio_id);
+  if (!portfolio) return;
+  portfolio.project_ids = [...new Set([...(portfolio.project_ids || []), project.id])];
+  portfolio.updated_date = new Date().toISOString();
+}
+
 function validateProjectCompletion(db, projectId, projectData) {
   if (!TASK_DONE_STATUSES.has(projectData.status)) return;
   const tasks = getProjectTasks(getRecords(db, WORK_ENTITIES.tasks), projectId);
@@ -252,9 +310,11 @@ export async function createWorkRecord(entityName, data, actor) {
   const records = getRecords(db, entityName);
   const prepared = entityName === WORK_ENTITIES.tasks ? prepareTaskData(data, {}, actor?.email) : { ...data };
   if (entityName === WORK_ENTITIES.projects) delete prepared.progress;
+  assertLinkedWorkReferences(db, entityName, prepared);
   if (entityName === WORK_ENTITIES.projects) validateProjectCompletion(db, prepared.id, prepared);
   const created = nowStamped(prepared);
   records.push(created);
+  if (entityName === WORK_ENTITIES.projects) syncProjectPortfolioLink(db, created);
   await handleEntityCreated(db, entityName, created);
   await writeDb(db);
   return created;
@@ -268,8 +328,10 @@ export async function updateWorkRecord(entityName, id, data, actor) {
   const previous = clone(records[index]);
   const prepared = entityName === WORK_ENTITIES.tasks ? prepareTaskData(data, records[index], actor?.email) : { ...data };
   if (entityName === WORK_ENTITIES.projects) delete prepared.progress;
+  assertLinkedWorkReferences(db, entityName, prepared, records[index]);
   if (entityName === WORK_ENTITIES.projects) validateProjectCompletion(db, id, { ...records[index], ...prepared });
   records[index] = nowStamped(prepared, records[index]);
+  if (entityName === WORK_ENTITIES.projects) syncProjectPortfolioLink(db, records[index]);
   await handleEntityUpdated(db, entityName, previous, records[index]);
   await writeDb(db);
   return records[index];
@@ -305,7 +367,16 @@ export async function moveTask(taskId, status, actor) {
 
 export async function logTaskTime(data, actor) {
   if (!data.task_id && !data.project_id) throw new ApiError(400, "validation_error", "Time logs must be linked to a task or project.");
-  if (!Number(data.hours || 0)) throw new ApiError(400, "validation_error", "Time log hours are required.");
+  const hours = Number(data.hours || 0);
+  if (!hours || hours <= 0) throw new ApiError(400, "validation_error", "Time log hours are required.");
+  if (hours > 24) throw new ApiError(400, "validation_error", "A single time log cannot exceed 24 hours.");
+  const db = await readDb();
+  if (data.task_id && !hasRecord(db, WORK_ENTITIES.tasks, data.task_id)) {
+    throw new ApiError(400, "invalid_work_reference", "Linked task does not exist.", { field: "task_id" });
+  }
+  if (data.project_id && !hasRecord(db, WORK_ENTITIES.projects, data.project_id)) {
+    throw new ApiError(400, "invalid_work_reference", "Linked project does not exist.", { field: "project_id" });
+  }
   const payload = {
     ...data,
     employee_email: data.employee_email || actor?.email,

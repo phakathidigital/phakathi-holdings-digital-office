@@ -1,8 +1,8 @@
 import { readDb } from "../config/database.js";
 import { makeSignedToken, sanitizeUser, verifySignedToken } from "../utils/authSecurity.js";
 
-export function makeToken(user) {
-  return makeSignedToken(user);
+export function makeToken(user, options = {}) {
+  return makeSignedToken(user, options);
 }
 
 export function userFromToken(req, db) {
@@ -11,7 +11,12 @@ export function userFromToken(req, db) {
   if (!token) return null;
   const payload = verifySignedToken(token);
   if (!payload?.email) return null;
-  return db.entities.User?.find((user) => user.email === payload.email) || null;
+  return db.entities.User?.find((user) =>
+    user.email === payload.email &&
+    (!payload.sub || user.id === payload.sub) &&
+    !user.deleted_at &&
+    !user.deleted_date
+  ) || null;
 }
 
 export async function requireAuth(req, res, next) {
