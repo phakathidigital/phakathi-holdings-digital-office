@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Building2, MessageSquare, NotebookPen, Plus, RefreshCcw, Target, UserPlus } from "lucide-react";
+import { Activity, Building2, MessageSquare, NotebookPen, Plus, RefreshCcw, Target, UserPlus } from "lucide-react";
 
 function emptyAccount() {
   return { name: "", industry: "", relationship_status: "healthy", estimated_value: "" };
@@ -166,6 +166,35 @@ export default function Account360() {
                   </CardContent>
                 </Card>
               </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Activity className="w-4 h-4" />
+                    Unified activity timeline
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {(account360.timeline || []).map((item) => (
+                    <div key={`${item.related_entity_type}-${item.related_entity_id}-${item.type}`} className="rounded-xl border bg-white p-4">
+                      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">{String(item.type || "activity").replaceAll("_", " ")}</Badge>
+                            <span className="text-xs text-gray-400">{item.source || "system"}</span>
+                          </div>
+                          <p className="font-semibold mt-2">{item.title}</p>
+                          {item.description && <p className="text-sm text-gray-500 mt-1">{item.description}</p>}
+                        </div>
+                        <p className="text-xs text-gray-400 whitespace-nowrap">{String(item.occurred_at || "").slice(0, 10)}</p>
+                      </div>
+                    </div>
+                  ))}
+                  {!account360.timeline?.length && (
+                    <p className="text-sm text-gray-500">No timeline activity yet. Interactions, proposals, deals, project creation, tasks, and time logs will appear here.</p>
+                  )}
+                </CardContent>
+              </Card>
             </>
           )}
         </div>

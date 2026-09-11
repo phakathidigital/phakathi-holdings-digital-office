@@ -282,12 +282,30 @@ async function main() {
     });
     expect(deal.data.id, "Deal was not created.");
 
+    const conversion = await request(baseUrl, `/v1/business-development/opportunities/${opportunity.data.id}/create-project`, {
+      method: "POST",
+      token,
+      body: JSON.stringify({
+        name: `Smoke delivery project ${unique}`,
+        expected_start_date: "2026-08-01",
+        expected_end_date: "2026-08-31",
+      }),
+    });
+    expect(conversion.data.project?.opportunity_id === opportunity.data.id, "Won opportunity did not create a linked project.");
+    expect(conversion.data.opportunity?.status === "won", "Opportunity was not marked as won during project conversion.");
+
+    const linkedProjects = await request(baseUrl, "/v1/work/projects", { token });
+    expect(linkedProjects.data.some((item) => item.opportunity_id === opportunity.data.id), "Linked project was not visible in the work system.");
+
+    const timeline = await request(baseUrl, `/v1/crm/accounts/${crmAccount.data.id}/timeline`, { token });
+    expect(timeline.data.some((item) => item.related_entity_type === "Project" && item.related_entity_id === conversion.data.project.id), "Unified client timeline did not include the linked project.");
+
     await request(baseUrl, "/auth/logout", {
       method: "POST",
       body: JSON.stringify({ refresh_token: refreshed.refresh_token }),
     });
 
-    console.log(JSON.stringify({ ok: true, checks: 25 }, null, 2));
+    console.log(JSON.stringify({ ok: true, checks: 29 }, null, 2));
   } finally {
     await new Promise((resolve) => server.close(resolve));
     if (originalDb === null) {

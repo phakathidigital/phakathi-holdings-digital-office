@@ -75,6 +75,160 @@ function publicRecord(record = {}) {
   };
 }
 
+function timelineDate(value) {
+  return toIso(value) || new Date().toISOString();
+}
+
+function timelineItem({ id, type, title, description, occurred_at, source, related_entity_type, related_entity_id, metadata = {} }) {
+  return {
+    id,
+    type,
+    title,
+    description: description || "",
+    occurred_at: timelineDate(occurred_at),
+    source: source || "system",
+    related_entity_type,
+    related_entity_id,
+    metadata,
+  };
+}
+
+function sortTimeline(items = []) {
+  return [...items].sort((a, b) => String(b.occurred_at || "").localeCompare(String(a.occurred_at || "")));
+}
+
+function buildLocalTimeline(db, accountId) {
+  const projects = visible(getRecords(db, "Project")).filter((item) => item.client_account_id === accountId);
+  const projectIds = new Set(projects.map((project) => project.id));
+  const opportunities = visible(getRecords(db, "Opportunity")).filter((item) => item.client_account_id === accountId);
+  const opportunityIds = new Set(opportunities.map((opportunity) => opportunity.id));
+  const proposals = visible(getRecords(db, "Proposal")).filter((item) => item.client_account_id === accountId || opportunityIds.has(item.opportunity_id));
+  const deals = visible(getRecords(db, "Deal")).filter((item) => item.client_account_id === accountId || opportunityIds.has(item.opportunity_id));
+  const tasks = visible(getRecords(db, "Task")).filter((item) => projectIds.has(item.project_id));
+  const timeLogs = visible(getRecords(db, "TimeLog")).filter((item) => projectIds.has(item.project_id) || tasks.some((task) => task.id === item.task_id));
+
+  const items = [
+    ...visible(getRecords(db, CRM_ENTITIES.interactions))
+      .filter((item) => item.client_account_id === accountId)
+      .map((item) => timelineItem({
+        id: item.id,
+        type: "interaction",
+        title: item.subject,
+        description: item.description,
+        occurred_at: item.occurred_at || item.created_at || item.created_date,
+        source: item.source || "crm",
+        related_entity_type: "ClientInteraction",
+        related_entity_id: item.id,
+        metadata: { interaction_type: item.interaction_type },
+      })),
+    ...visible(getRecords(db, CRM_ENTITIES.notes))
+      .filter((item) => item.client_account_id === accountId)
+      .map((item) => timelineItem({
+        id: item.id,
+        type: "note",
+        title: item.subject || "Account note",
+        description: item.body,
+        occurred_at: item.created_at || item.created_date,
+        source: "crm",
+        related_entity_type: "ClientNote",
+        related_entity_id: item.id,
+      })),
+    ...visible(getRecords(db, CRM_ENTITIES.activities))
+      .filter((item) => item.client_account_id === accountId)
+      .map((item) => timelineItem({
+        id: item.id,
+        type: item.activity_type || "activity",
+        title: item.subject,
+        description: item.description,
+        occurred_at: item.occurred_at || item.created_at || item.created_date,
+        source: item.source || "crm",
+        related_entity_type: item.related_entity_type || "ClientActivity",
+        related_entity_id: item.related_entity_id || item.id,
+        metadata: item.metadata,
+      })),
+    ...opportunities.map((item) => timelineItem({
+      id: item.id,
+      type: "opportunity",
+      title: item.title,
+      description: item.next_action || item.description,
+      occurred_at: item.updated_at || item.updated_date || item.created_at || item.created_date,
+      source: "business_development",
+      related_entity_type: "Opportunity",
+      related_entity_id: item.id,
+      metadata: { status: item.status, probability: item.probability, stage: item.stage_name },
+    })),
+    ...visible(getRecords(db, "OpportunityActivity"))
+      .filter((item) => opportunityIds.has(item.opportunity_id))
+      .map((item) => timelineItem({
+        id: item.id,
+        type: item.activity_type || "opportunity_activity",
+        title: item.subject,
+        description: item.description,
+        occurred_at: item.occurred_at || item.created_at || item.created_date,
+        source: "sales_pipeline",
+        related_entity_type: "Opportunity",
+        related_entity_id: item.opportunity_id,
+      })),
+    ...proposals.map((item) => timelineItem({
+      id: item.id,
+      type: "proposal",
+      title: `Proposal ${item.status || "draft"}`,
+      description: item.notes || item.next_action,
+      occurred_at: item.submission_date || item.updated_at || item.updated_date || item.created_at || item.created_date,
+      source: "business_development",
+      related_entity_type: "Proposal",
+      related_entity_id: item.id,
+      metadata: { status: item.status, proposal_value: item.proposal_value },
+    })),
+    ...deals.map((item) => timelineItem({
+      id: item.id,
+      type: "deal",
+      title: `Deal ${item.status || "open"}`,
+      description: item.lost_reason || "",
+      occurred_at: item.closed_at || item.updated_at || item.updated_date || item.created_at || item.created_date,
+      source: "business_development",
+      related_entity_type: "Deal",
+      related_entity_id: item.id,
+      metadata: { status: item.status, value: item.value },
+    })),
+    ...projects.map((item) => timelineItem({
+      id: item.id,
+      type: "project",
+      title: item.name,
+      description: item.description,
+      occurred_at: item.updated_at || item.updated_date || item.created_at || item.created_date,
+      source: item.source || "project_management",
+      related_entity_type: "Project",
+      related_entity_id: item.id,
+      metadata: { status: item.status, progress: item.progress, opportunity_id: item.opportunity_id },
+    })),
+    ...tasks.map((item) => timelineItem({
+      id: item.id,
+      type: "task",
+      title: item.title,
+      description: item.description,
+      occurred_at: item.completed_at || item.updated_at || item.updated_date || item.created_at || item.created_date,
+      source: "project_management",
+      related_entity_type: "Task",
+      related_entity_id: item.id,
+      metadata: { status: item.status, project_id: item.project_id, assigned_to: item.assigned_to },
+    })),
+    ...timeLogs.map((item) => timelineItem({
+      id: item.id,
+      type: "time_log",
+      title: `Time logged: ${item.hours || 0} hour(s)`,
+      description: item.description,
+      occurred_at: item.log_date || item.created_at || item.created_date,
+      source: "project_management",
+      related_entity_type: "TimeLog",
+      related_entity_id: item.id,
+      metadata: { project_id: item.project_id, task_id: item.task_id, employee_email: item.employee_email },
+    })),
+  ];
+
+  return sortTimeline(items);
+}
+
 function buildHealthSnapshot(account, data = {}) {
   const contacts = data.contacts || [];
   const interactions = data.interactions || [];
@@ -145,7 +299,134 @@ function localAccount360(db, accountId) {
     opportunities: sortDesc(opportunities).map(publicOpportunity),
     projects: sortDesc(projects),
     health: publicRecord(latestHealth),
+    timeline: buildLocalTimeline(db, accountId),
   };
+}
+
+async function buildPrismaTimeline(accountId) {
+  const prisma = await getPrismaClient();
+  const [interactions, notes, activities, opportunities, proposals, deals, prismaProjects] = await Promise.all([
+    prisma.clientInteraction.findMany({ where: { client_account_id: accountId, deleted_at: null }, orderBy: { occurred_at: "desc" } }),
+    prisma.clientNote.findMany({ where: { client_account_id: accountId, deleted_at: null }, orderBy: { created_at: "desc" } }),
+    prisma.clientActivity.findMany({ where: { client_account_id: accountId }, orderBy: { occurred_at: "desc" } }),
+    prisma.opportunity.findMany({ where: { client_account_id: accountId, deleted_at: null }, include: { activities: true, stage: true }, orderBy: { updated_at: "desc" } }),
+    prisma.proposal.findMany({ where: { client_account_id: accountId, deleted_at: null }, orderBy: { updated_at: "desc" } }),
+    prisma.deal.findMany({ where: { client_account_id: accountId, deleted_at: null }, orderBy: { updated_at: "desc" } }),
+    prisma.project.findMany({ where: { client_account_id: accountId, deleted_at: null }, include: { tasks: true, time_logs: true }, orderBy: { updated_at: "desc" } }).catch(() => []),
+  ]);
+
+  const compatibilityDb = await readDb().catch(() => ({ entities: {} }));
+  const compatibilityItems = buildLocalTimeline(compatibilityDb, accountId);
+  const compatibilityProjectIds = new Set(visible(getRecords(compatibilityDb, "Project")).filter((project) => project.client_account_id === accountId).map((project) => project.id));
+
+  const items = [
+    ...interactions.map((item) => timelineItem({
+      id: item.id,
+      type: "interaction",
+      title: item.subject,
+      description: item.description,
+      occurred_at: item.occurred_at,
+      source: item.source || "crm",
+      related_entity_type: "ClientInteraction",
+      related_entity_id: item.id,
+      metadata: { interaction_type: item.interaction_type },
+    })),
+    ...notes.map((item) => timelineItem({
+      id: item.id,
+      type: "note",
+      title: item.subject || "Account note",
+      description: item.body,
+      occurred_at: item.created_at,
+      source: "crm",
+      related_entity_type: "ClientNote",
+      related_entity_id: item.id,
+    })),
+    ...activities.map((item) => timelineItem({
+      id: item.id,
+      type: item.activity_type || "activity",
+      title: item.subject,
+      description: item.description,
+      occurred_at: item.occurred_at,
+      source: item.source || "crm",
+      related_entity_type: item.related_entity_type || "ClientActivity",
+      related_entity_id: item.related_entity_id || item.id,
+      metadata: item.metadata,
+    })),
+    ...opportunities.map((item) => timelineItem({
+      id: item.id,
+      type: "opportunity",
+      title: item.title,
+      description: item.next_action || item.description,
+      occurred_at: item.last_activity_at || item.updated_at || item.created_at,
+      source: "business_development",
+      related_entity_type: "Opportunity",
+      related_entity_id: item.id,
+      metadata: { status: item.status, probability: item.probability, stage: item.stage?.name },
+    })),
+    ...opportunities.flatMap((opportunity) => (opportunity.activities || []).map((item) => timelineItem({
+      id: item.id,
+      type: item.activity_type || "opportunity_activity",
+      title: item.subject,
+      description: item.description,
+      occurred_at: item.occurred_at,
+      source: "sales_pipeline",
+      related_entity_type: "Opportunity",
+      related_entity_id: opportunity.id,
+    }))),
+    ...proposals.map((item) => timelineItem({
+      id: item.id,
+      type: "proposal",
+      title: `Proposal ${item.status || "draft"}`,
+      description: item.notes || item.next_action,
+      occurred_at: item.submission_date || item.updated_at || item.created_at,
+      source: "business_development",
+      related_entity_type: "Proposal",
+      related_entity_id: item.id,
+      metadata: { status: item.status, proposal_value: toNumber(item.proposal_value) },
+    })),
+    ...deals.map((item) => timelineItem({
+      id: item.id,
+      type: "deal",
+      title: `Deal ${item.status || "open"}`,
+      description: item.lost_reason || "",
+      occurred_at: item.closed_at || item.updated_at || item.created_at,
+      source: "business_development",
+      related_entity_type: "Deal",
+      related_entity_id: item.id,
+      metadata: { status: item.status, value: toNumber(item.value) },
+    })),
+    ...prismaProjects.map((item) => timelineItem({
+      id: item.id,
+      type: "project",
+      title: item.name,
+      description: item.description,
+      occurred_at: item.updated_at || item.created_at,
+      source: "project_management",
+      related_entity_type: "Project",
+      related_entity_id: item.id,
+      metadata: { status: item.status, opportunity_id: item.opportunity_id },
+    })),
+    ...prismaProjects.flatMap((project) => (project.tasks || []).map((item) => timelineItem({
+      id: item.id,
+      type: "task",
+      title: item.title,
+      description: item.description,
+      occurred_at: item.completed_at || item.updated_at || item.created_at,
+      source: "project_management",
+      related_entity_type: "Task",
+      related_entity_id: item.id,
+      metadata: { status: item.status, project_id: project.id, assigned_to: item.assigned_to },
+    }))),
+    ...compatibilityItems.filter((item) => item.related_entity_type !== "Project" || compatibilityProjectIds.has(item.related_entity_id)),
+  ];
+
+  const seen = new Set();
+  return sortTimeline(items).filter((item) => {
+    const key = `${item.related_entity_type}:${item.related_entity_id}:${item.type}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 async function prismaAccount360(accountId) {
@@ -176,8 +457,12 @@ async function prismaAccount360(accountId) {
     interactions: account.interactions.map(publicRecord),
     activities: account.activities.map(publicRecord),
     opportunities: account.opportunities.map(publicOpportunity),
-    projects: account.projects.map(publicRecord),
+    projects: [
+      ...account.projects.map(publicRecord),
+      ...visible(getRecords(await readDb().catch(() => ({ entities: {} })), "Project")).filter((project) => project.client_account_id === accountId),
+    ],
     health: publicRecord(health),
+    timeline: await buildPrismaTimeline(accountId),
   };
 }
 
@@ -274,6 +559,18 @@ export async function getAccount360(accountId) {
   if (shouldUsePostgresPersistence()) return prismaAccount360(accountId);
   const db = await readDb();
   return localAccount360(db, accountId);
+}
+
+export async function getAccountActivityTimeline(accountId) {
+  if (shouldUsePostgresPersistence()) {
+    const account = await getPrismaClient().then((prisma) => prisma.clientAccount.findFirst({ where: { id: accountId, deleted_at: null } }));
+    if (!account) throw new ApiError(404, "not_found", "Client account not found.");
+    return buildPrismaTimeline(accountId);
+  }
+  const db = await readDb();
+  const account = visible(getRecords(db, CRM_ENTITIES.accounts)).find((item) => item.id === accountId);
+  if (!account) throw new ApiError(404, "not_found", "Client account not found.");
+  return buildLocalTimeline(db, accountId);
 }
 
 export async function createAccount(data = {}, actor = {}) {

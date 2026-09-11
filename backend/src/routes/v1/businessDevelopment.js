@@ -6,6 +6,7 @@ import {
   createDeal,
   createLead,
   createOpportunity,
+  createProjectFromWonOpportunity,
   createProposal,
   getBusinessDevelopmentOverview,
   getSalesPipeline,
@@ -113,6 +114,17 @@ router.patch(
     const result = await moveOpportunityStage(req.params.id, req.body.stage_id || req.body.stage_name || req.body.stage, req.user);
     await audit(req, "move_opportunity_stage", "Opportunity", result);
     sendData(res, result);
+  }),
+);
+
+router.post(
+  "/opportunities/:id/create-project",
+  requirePermission("sales.manage"),
+  requirePermission("projects.create"),
+  asyncHandler(async (req, res) => {
+    const result = await createProjectFromWonOpportunity(req.params.id, req.body, req.user);
+    await audit(req, "create_project_from_won_opportunity", "Opportunity", result);
+    sendData(res, result, undefined, 201);
   }),
 );
 

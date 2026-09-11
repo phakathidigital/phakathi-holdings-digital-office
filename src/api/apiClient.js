@@ -296,6 +296,7 @@ export const api = {
         body: JSON.stringify(data),
       }),
       account360: (id) => v1Request(`/crm/accounts/${encodeURIComponent(id)}/account-360`),
+      timeline: (id) => v1Request(`/crm/accounts/${encodeURIComponent(id)}/timeline`),
       addContact: (id, data) => v1Request(`/crm/accounts/${encodeURIComponent(id)}/contacts`, {
         method: "POST",
         body: JSON.stringify(data),
@@ -344,6 +345,10 @@ export const api = {
       move: (id, stageId) => v1Request(`/business-development/opportunities/${encodeURIComponent(id)}/stage`, {
         method: "PATCH",
         body: JSON.stringify({ stage_id: stageId }),
+      }),
+      createProject: (id, data = {}) => v1Request(`/business-development/opportunities/${encodeURIComponent(id)}/create-project`, {
+        method: "POST",
+        body: JSON.stringify(data),
       }),
     },
     proposals: {

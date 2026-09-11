@@ -1,6 +1,6 @@
 import React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, Columns, Plus, Target } from "lucide-react";
+import { ArrowRight, Columns, FolderKanban, Plus, Target } from "lucide-react";
 import { api } from "@/api/apiClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,14 @@ export default function SalesPipeline() {
   const moveOpportunity = useMutation({
     mutationFn: ({ id, stageId }) => api.businessDevelopment.opportunities.move(id, stageId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["business-development"] }),
+  });
+
+  const createProject = useMutation({
+    mutationFn: ({ id, name }) => api.businessDevelopment.opportunities.createProject(id, { name }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["business-development"] });
+      queryClient.invalidateQueries({ queryKey: ["work"] });
+    },
   });
 
   const data = pipeline.data || {};
@@ -123,6 +131,17 @@ export default function SalesPipeline() {
                         onClick={() => moveOpportunity.mutate({ id: opportunity.id, stageId: next })}
                       >
                         Move forward <ArrowRight className="w-4 h-4" />
+                      </Button>
+                    )}
+                    {column.is_won_stage && (
+                      <Button
+                        size="sm"
+                        className="mt-4 w-full justify-between"
+                        disabled={createProject.isPending || opportunity.projects?.length > 0}
+                        onClick={() => createProject.mutate({ id: opportunity.id, name: opportunity.title })}
+                      >
+                        {opportunity.projects?.length > 0 ? "Project already linked" : "Create linked project"}
+                        <FolderKanban className="w-4 h-4" />
                       </Button>
                     )}
                   </div>

@@ -9,6 +9,7 @@ import {
   addOpportunity,
   createAccount,
   getAccount360,
+  getAccountActivityTimeline,
   getCrmOverview,
   listAccounts,
   refreshHealth,
@@ -76,6 +77,14 @@ router.get(
   requirePermission("crm.view"),
   asyncHandler(async (req, res) => {
     sendData(res, await getAccount360(req.params.id));
+  }),
+);
+
+router.get(
+  "/accounts/:id/timeline",
+  requirePermission("crm.view"),
+  asyncHandler(async (req, res) => {
+    sendData(res, await getAccountActivityTimeline(req.params.id));
   }),
 );
 

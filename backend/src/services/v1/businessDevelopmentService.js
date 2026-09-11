@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { getPrismaClient, nowStamped, readDb, shouldUsePostgresPersistence, writeDb } from "../../config/database.js";
 import { ApiError } from "../../utils/apiResponse.js";
+import { createWorkRecord, WORK_ENTITIES } from "./workService.js";
 
 const ENTITIES = {
   accounts: "ClientAccount",
@@ -100,6 +101,16 @@ function publicOpportunity(opportunity = {}) {
     next_follow_up_at: toIso(opportunity.next_follow_up_at),
     created_at: toIso(opportunity.created_at),
     updated_at: toIso(opportunity.updated_at),
+  };
+}
+
+function publicProject(project = {}) {
+  return {
+    ...project,
+    project_value: toNumber(project.project_value),
+    budget: toNumber(project.budget),
+    created_at: toIso(project.created_at),
+    updated_at: toIso(project.updated_at),
   };
 }
 
@@ -211,7 +222,7 @@ export async function getSalesPipeline() {
     const prisma = await getPrismaClient();
     const [stages, opportunities] = await Promise.all([
       prisma.opportunityStage.findMany({ orderBy: { order_index: "asc" } }),
-      prisma.opportunity.findMany({ where: { deleted_at: null }, include: { client_account: true, owner: true, stage: true }, orderBy: { updated_at: "desc" } }),
+      prisma.opportunity.findMany({ where: { deleted_at: null }, include: { client_account: true, owner: true, stage: true, projects: true }, orderBy: { updated_at: "desc" } }),
     ]);
     const publicStages = stages.map(publicStage);
     return {
@@ -226,9 +237,11 @@ export async function getSalesPipeline() {
 
   const db = await readDb();
   const stages = ensureLocalStages(db);
+  const projects = visible(getRecords(db, "Project"));
   const opportunities = visible(getRecords(db, ENTITIES.opportunities)).map((item) => ({
     ...item,
     stage_id: item.stage_id || findLocalStage(db, item.stage_name)?.id || "stage-lead",
+    projects: projects.filter((project) => project.opportunity_id === item.id),
   }));
   return {
     stages,
@@ -320,11 +333,15 @@ export async function updateLead(id, data = {}) {
 export async function listOpportunities() {
   if (shouldUsePostgresPersistence()) {
     const prisma = await getPrismaClient();
-    return (await prisma.opportunity.findMany({ where: { deleted_at: null }, include: { client_account: true, owner: true, stage: true, proposals: true, deals: true }, orderBy: { updated_at: "desc" } })).map(publicOpportunity);
+    return (await prisma.opportunity.findMany({ where: { deleted_at: null }, include: { client_account: true, owner: true, stage: true, proposals: true, deals: true, projects: true }, orderBy: { updated_at: "desc" } })).map(publicOpportunity);
   }
   const db = await readDb();
   ensureLocalStages(db);
-  return sortDesc(visible(getRecords(db, ENTITIES.opportunities))).map(publicOpportunity);
+  const projects = visible(getRecords(db, "Project"));
+  return sortDesc(visible(getRecords(db, ENTITIES.opportunities)).map((item) => ({
+    ...item,
+    projects: projects.filter((project) => project.opportunity_id === item.id),
+  }))).map(publicOpportunity);
 }
 
 export async function createOpportunity(data = {}, actor = {}) {
@@ -606,4 +623,143 @@ export async function updateDeal(id, data = {}) {
   Object.assign(deal, data, { updated_at: new Date().toISOString(), updated_date: new Date().toISOString() });
   await writeDb(db);
   return publicDeal(deal);
+}
+
+async function addClientActivityForProject({ clientAccountId, opportunityId, project, actor }) {
+  if (!clientAccountId) return;
+  if (shouldUsePostgresPersistence()) {
+    const prisma = await getPrismaClient();
+    const user = await findPrismaUser(actor);
+    await prisma.clientActivity.create({
+      data: {
+        client_account_id: clientAccountId,
+        user_id: user?.id,
+        activity_type: "project_created",
+        subject: `Project created from won opportunity: ${project.name}`,
+        description: project.description || "A won opportunity was converted into a delivery project.",
+        occurred_at: new Date(),
+        related_entity_type: "Project",
+        related_entity_id: project.id,
+        source: "business_development",
+        metadata: { opportunity_id: opportunityId },
+      },
+    }).catch(() => null);
+    return;
+  }
+
+  const db = await readDb();
+  const activities = getRecords(db, "ClientActivity");
+  activities.push(nowStamped({
+    id: `activity-project-created-${project.id}`,
+    client_account_id: clientAccountId,
+    user_email: actor?.email,
+    activity_type: "project_created",
+    subject: `Project created from won opportunity: ${project.name}`,
+    description: project.description || "A won opportunity was converted into a delivery project.",
+    occurred_at: new Date().toISOString(),
+    related_entity_type: "Project",
+    related_entity_id: project.id,
+    source: "business_development",
+    metadata: { opportunity_id: opportunityId },
+  }));
+  await writeDb(db);
+}
+
+export async function createProjectFromWonOpportunity(opportunityId, data = {}, actor = {}) {
+  let opportunity;
+  let wonStage;
+
+  if (shouldUsePostgresPersistence()) {
+    const prisma = await getPrismaClient();
+    wonStage = await findPrismaStage("Won");
+    const compatibilityDb = await readDb();
+    const existingCompatibilityProject = visible(getRecords(compatibilityDb, "Project")).find((project) => project.opportunity_id === opportunityId);
+    if (existingCompatibilityProject) {
+      throw new ApiError(409, "project_already_exists", "This opportunity already has a linked project.", {
+        project_id: existingCompatibilityProject.id,
+      });
+    }
+    opportunity = await prisma.opportunity.findFirst({
+      where: { id: opportunityId, deleted_at: null },
+      include: { client_account: true, owner: true, stage: true, projects: true },
+    });
+    if (!opportunity) throw new ApiError(404, "not_found", "Opportunity not found.");
+    if (opportunity.projects?.length) {
+      throw new ApiError(409, "project_already_exists", "This opportunity already has a linked project.", {
+        project_id: opportunity.projects[0].id,
+      });
+    }
+    opportunity = await prisma.opportunity.update({
+      where: { id: opportunityId },
+      data: {
+        stage_id: wonStage?.id || opportunity.stage_id,
+        status: "won",
+        probability: 100,
+        weighted_value: toNumber(opportunity.value),
+        last_activity_at: new Date(),
+      },
+      include: { client_account: true, owner: true, stage: true },
+    });
+  } else {
+    const db = await readDb();
+    wonStage = findLocalStage(db, "Won");
+    opportunity = visible(getRecords(db, ENTITIES.opportunities)).find((item) => item.id === opportunityId);
+    if (!opportunity) throw new ApiError(404, "not_found", "Opportunity not found.");
+    const existingProject = visible(getRecords(db, "Project")).find((project) => project.opportunity_id === opportunityId);
+    if (existingProject) {
+      throw new ApiError(409, "project_already_exists", "This opportunity already has a linked project.", {
+        project_id: existingProject.id,
+      });
+    }
+    Object.assign(opportunity, {
+      stage_id: wonStage?.id || opportunity.stage_id,
+      stage_name: wonStage?.name || "Won",
+      status: "won",
+      probability: 100,
+      weighted_value: toNumber(opportunity.value),
+      last_activity_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      updated_date: new Date().toISOString(),
+    });
+    await writeDb(db);
+  }
+
+  const projectPayload = {
+    id: data.project_id || `project-from-${opportunity.id}`,
+    name: data.name || data.project_name || opportunity.title,
+    description: data.description || opportunity.description || `Delivery project created after winning ${opportunity.title}.`,
+    status: data.status || "planning",
+    priority: data.priority || "high",
+    subsidiary: data.subsidiary || opportunity.subsidiary || "",
+    portfolio_id: data.portfolio_id || "",
+    okr_id: data.okr_id || "",
+    client_account_id: opportunity.client_account_id || "",
+    primary_contact_id: opportunity.primary_contact_id || "",
+    opportunity_id: opportunity.id,
+    project_value: toNumber(data.project_value ?? opportunity.value),
+    budget: toNumber(data.budget ?? opportunity.value),
+    expected_start_date: data.expected_start_date || data.start_date || "",
+    expected_end_date: data.expected_end_date || data.end_date || opportunity.expected_close_date || "",
+    client_status: "delivery_not_started",
+    source: "won_opportunity",
+    metadata: {
+      ...(data.metadata || {}),
+      source: "won_opportunity",
+      opportunity_id: opportunity.id,
+      created_from_sales_pipeline_at: new Date().toISOString(),
+    },
+  };
+
+  const project = await createWorkRecord(WORK_ENTITIES.projects, projectPayload, actor);
+  await addClientActivityForProject({
+    clientAccountId: opportunity.client_account_id,
+    opportunityId: opportunity.id,
+    project,
+    actor,
+  });
+
+  return {
+    opportunity: publicOpportunity(opportunity),
+    project: publicProject(project),
+  };
 }
