@@ -2,7 +2,10 @@ import express from "express";
 import { requireAuth } from "../../middleware/auth.js";
 import { requirePermission } from "../../middleware/permissions.js";
 import { asyncHandler, sendData, sendError } from "../../utils/apiResponse.js";
+import { getPrismaClient, shouldUsePostgresPersistence } from "../../config/database.js";
 import { writeAuditLog } from "../../services/auditLogService.js";
+import { isEmailConfigured } from "../../services/emailService.js";
+import authRoutes from "../auth.js";
 import workRoutes from "./work.js";
 import crmRoutes from "./crm.js";
 import businessDevelopmentRoutes from "./businessDevelopment.js";
@@ -24,6 +27,41 @@ router.get("/health", (_req, res) => {
   });
 });
 
+router.get(
+  "/platform/health",
+  asyncHandler(async (_req, res) => {
+    let database = "not_checked";
+    if (shouldUsePostgresPersistence()) {
+      try {
+        const prisma = await getPrismaClient();
+        await prisma.$queryRaw`SELECT 1`;
+        database = "ok";
+      } catch {
+        database = "error";
+      }
+    } else {
+      database = process.env.PHAKATHI_STORAGE || "local-json";
+    }
+
+    sendData(res, {
+      ok: database !== "error",
+      service: "phakathi-flow-api",
+      version: "v1",
+      storage: {
+        mode: process.env.PHAKATHI_STORAGE || "local-json",
+        database,
+        object_storage: process.env.STORAGE_PROVIDER || "local",
+      },
+      providers: {
+        ai: Boolean(process.env.OPENAI_API_KEY),
+        email: isEmailConfigured(),
+        push: Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY),
+      },
+    }, undefined, database === "error" ? 503 : 200);
+  }),
+);
+
+router.use("/auth", authRoutes);
 router.use(requireAuth);
 router.use("/work", workRoutes);
 router.use("/crm", crmRoutes);

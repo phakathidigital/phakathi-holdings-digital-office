@@ -49,7 +49,7 @@ npm run db:generate
 Apply production migrations:
 
 ```bash
-npm run db:migrate
+npm run db:migrate:deploy
 ```
 
 Seed the production foundation:
@@ -59,6 +59,13 @@ npm run db:seed
 ```
 
 Verify the production foundation:
+
+```bash
+npm run db:check
+npm run test:postgres
+```
+
+The legacy alias still works:
 
 ```bash
 npm run db:smoke
@@ -96,7 +103,7 @@ The Netlify build command is `npm run deploy:build`.
 When `PHAKATHI_STORAGE=postgres`, the build wrapper runs:
 
 1. `npm run db:generate`
-2. `npm run db:migrate`
+2. `npm run db:migrate:deploy`
 3. `npm run db:seed`
 4. `npm run build`
 
@@ -121,6 +128,16 @@ Current Netlify project:
 - Production URL: `https://phakathi-holdings-digital-office.netlify.app`
 
 After adding the secret variables in Netlify, trigger a GitHub deploy from `main`.
+
+## Health checks
+
+Use these endpoints after deployment:
+
+- `GET /api/health`
+- `GET /api/v1/health`
+- `GET /api/v1/platform/health`
+
+The platform endpoint returns sanitized provider status only; it must not expose secrets.
 
 ## Current limitation
 

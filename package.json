@@ -16,11 +16,14 @@
     "push:vapid": "node -e \"import('web-push').then(({default: webPush}) => console.log(webPush.generateVAPIDKeys()))\"",
     "db:generate": "prisma generate --schema backend/prisma/schema.prisma",
     "db:migrate": "prisma migrate deploy --schema backend/prisma/schema.prisma",
+    "db:migrate:deploy": "prisma migrate deploy --schema backend/prisma/schema.prisma",
     "db:migrate:dev": "prisma migrate dev --schema backend/prisma/schema.prisma",
     "db:seed": "node backend/prisma/seed.mjs",
     "db:reset": "prisma migrate reset --schema backend/prisma/schema.prisma",
     "db:import-local": "node backend/prisma/import-local.mjs",
-    "db:smoke": "node scripts/postgres-smoke.mjs"
+    "db:check": "node scripts/db-check.mjs",
+    "db:smoke": "node scripts/postgres-smoke.mjs",
+    "test:postgres": "node scripts/postgres-smoke.mjs"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",

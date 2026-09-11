@@ -65,6 +65,22 @@ async function main() {
     expect(login.refresh_token, "Login did not return a refresh token.");
     expect(!login.user.password_hash, "Login response leaked password hash.");
 
+    const v1Login = await request(baseUrl, "/v1/auth/login-or-register", {
+      method: "POST",
+      body: JSON.stringify({
+        email: `smoke-v1-${unique}@phakathiholdings.local`,
+        full_name: "Smoke V1 Auth User",
+        password: "SmokeTest123!",
+      }),
+    });
+    expect(v1Login.token, "V1 auth login did not return an access token.");
+
+    const forgotPassword = await request(baseUrl, "/v1/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email: `smoke-v1-${unique}@phakathiholdings.local` }),
+    });
+    expect(/password reset/i.test(forgotPassword.message || ""), "Forgot password did not return a safe generic response.");
+
     const refreshed = await request(baseUrl, "/auth/refresh", {
       method: "POST",
       body: JSON.stringify({ refresh_token: login.refresh_token }),
@@ -307,6 +323,9 @@ async function main() {
     const platformReadiness = await request(baseUrl, "/integrations/platform-readiness", { token });
     expect(platformReadiness.mobile?.target && platformReadiness.desktop?.target, "Platform readiness did not include mobile and desktop targets.");
 
+    const platformHealth = await request(baseUrl, "/v1/platform/health");
+    expect(platformHealth.data?.storage?.mode, "Platform health did not return sanitized storage status.");
+
     const analyticsOverview = await request(baseUrl, "/analytics/overview", { token });
     expect(Number(analyticsOverview.summary?.projects) >= 0, "Analytics overview did not return project metrics.");
 
@@ -315,7 +334,7 @@ async function main() {
       body: JSON.stringify({ refresh_token: refreshed.refresh_token }),
     });
 
-    console.log(JSON.stringify({ ok: true, checks: 33 }, null, 2));
+    console.log(JSON.stringify({ ok: true, checks: 36 }, null, 2));
   } finally {
     await new Promise((resolve) => server.close(resolve));
     if (originalDb === null) {

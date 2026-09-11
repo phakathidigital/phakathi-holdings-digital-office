@@ -89,9 +89,21 @@ for (const [route, entityName] of Object.entries(resourceAliases)) {
 }
 
 app.use((err, _req, res, _next) => {
-  console.error(err);
+  console.error(JSON.stringify({
+    severity: "error",
+    module: "api",
+    message: err.message,
+    stack: process.env.NODE_ENV === "production" ? undefined : err.stack,
+    timestamp: new Date().toISOString(),
+  }));
   const status = err.status || (String(err.message || "").startsWith("CORS origin not allowed") ? 403 : 500);
-  res.status(status).json({ message: status === 500 ? "Internal server error" : err.message });
+  res.status(status).json({
+    data: null,
+    error: {
+      code: err.code || (status === 500 ? "internal_error" : "request_error"),
+      message: status === 500 ? "Internal server error" : err.message,
+    },
+  });
 });
 
 export async function prepareApp() {

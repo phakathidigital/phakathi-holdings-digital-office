@@ -81,6 +81,10 @@ export function makeRefreshToken() {
   return crypto.randomBytes(48).toString("base64url");
 }
 
+export function makeOneTimeToken() {
+  return crypto.randomBytes(40).toString("base64url");
+}
+
 export function makeTokenHash(token, secret = getJwtRefreshSecret()) {
   return crypto.createHmac("sha256", secret).update(String(token)).digest("base64url");
 }

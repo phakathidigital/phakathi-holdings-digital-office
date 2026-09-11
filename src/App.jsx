@@ -17,54 +17,53 @@ import { SUBSIDIARIES } from '@/lib/subsidiaries';
 import phakathiLogoFullColor from '@/assets/branding/phakathi-holdings/phakathi-holdings-fullcolor.svg';
 import portfolioCompaniesImage from '@/assets/branding/phakathi-holdings/images/our-portfolio-of-companies.png';
 
-// Pages
-import Dashboard from './pages/Dashboard';
-import Projects from './pages/Projects';
-import ProjectDetails from './pages/ProjectDetails';
-import Profile from './pages/Profile';
-import Settings from './pages/Settings';
-import AIAssistant from './pages/AIAssistant';
-import Analytics from './pages/Analytics';
-import Leave from './pages/Leave';
-import Payslips from './pages/Payslips';
-import MeetingNotes from './pages/MeetingNotes';
-import Noticeboard from './pages/Noticeboard';
-import Kanban from './pages/Kanban';
-import ResourceCalendar from './pages/ResourceCalendar';
-import PerformanceReviews from './pages/PerformanceReviews';
-import PayrollDashboard from './pages/PayrollDashboard';
-import Expenses from './pages/Expenses';
-import Assets from './pages/Assets';
-import Onboarding from './pages/Onboarding';
-import Messaging from './pages/Messaging';
-import MeetingStudio from './pages/MeetingStudio';
-import Calendar from './pages/Calendar';
-import AutoPayroll from './pages/AutoPayroll';
-import OrgChart from './pages/OrgChart';
-import Integrations from './pages/Integrations';
-import Tickets from './pages/Tickets';
-import DocumentRepository from './pages/DocumentRepository';
-import TeamAttendance from './pages/TeamAttendance';
-import Notifications from './pages/Notifications';
-import HRHub from './pages/HRHub';
-import ExecutiveDashboard from './pages/ExecutiveDashboard';
-import CultureHub from './pages/CultureHub';
-import TimeTracking from './pages/TimeTracking';
-import GanttChart from './pages/GanttChart';
-import MyDay from './pages/MyDay';
-import Portfolios from './pages/Portfolios';
-import WorkloadPlanner from './pages/WorkloadPlanner';
-import Roadmaps from './pages/Roadmaps';
-import CompanyFeed from './pages/CompanyFeed';
-import SageIntegration from './pages/SageIntegration';
-import GoalsOKRs from './pages/GoalsOKRs';
-import Account360 from './pages/Account360';
-import ClientIntelligence from './pages/ClientIntelligence';
-import BusinessDevelopment from './pages/BusinessDevelopment';
-import SalesPipeline from './pages/SalesPipeline';
-import Proposals from './pages/Proposals';
-import Deals from './pages/Deals';
-import PlatformReadiness from './pages/PlatformReadiness';
+const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const Projects = React.lazy(() => import('./pages/Projects'));
+const ProjectDetails = React.lazy(() => import('./pages/ProjectDetails'));
+const Profile = React.lazy(() => import('./pages/Profile'));
+const Settings = React.lazy(() => import('./pages/Settings'));
+const AIAssistant = React.lazy(() => import('./pages/AIAssistant'));
+const Analytics = React.lazy(() => import('./pages/Analytics'));
+const Leave = React.lazy(() => import('./pages/Leave'));
+const Payslips = React.lazy(() => import('./pages/Payslips'));
+const MeetingNotes = React.lazy(() => import('./pages/MeetingNotes'));
+const Noticeboard = React.lazy(() => import('./pages/Noticeboard'));
+const Kanban = React.lazy(() => import('./pages/Kanban'));
+const ResourceCalendar = React.lazy(() => import('./pages/ResourceCalendar'));
+const PerformanceReviews = React.lazy(() => import('./pages/PerformanceReviews'));
+const PayrollDashboard = React.lazy(() => import('./pages/PayrollDashboard'));
+const Expenses = React.lazy(() => import('./pages/Expenses'));
+const Assets = React.lazy(() => import('./pages/Assets'));
+const Onboarding = React.lazy(() => import('./pages/Onboarding'));
+const Messaging = React.lazy(() => import('./pages/Messaging'));
+const MeetingStudio = React.lazy(() => import('./pages/MeetingStudio'));
+const Calendar = React.lazy(() => import('./pages/Calendar'));
+const AutoPayroll = React.lazy(() => import('./pages/AutoPayroll'));
+const OrgChart = React.lazy(() => import('./pages/OrgChart'));
+const Integrations = React.lazy(() => import('./pages/Integrations'));
+const Tickets = React.lazy(() => import('./pages/Tickets'));
+const DocumentRepository = React.lazy(() => import('./pages/DocumentRepository'));
+const TeamAttendance = React.lazy(() => import('./pages/TeamAttendance'));
+const Notifications = React.lazy(() => import('./pages/Notifications'));
+const HRHub = React.lazy(() => import('./pages/HRHub'));
+const ExecutiveDashboard = React.lazy(() => import('./pages/ExecutiveDashboard'));
+const CultureHub = React.lazy(() => import('./pages/CultureHub'));
+const TimeTracking = React.lazy(() => import('./pages/TimeTracking'));
+const GanttChart = React.lazy(() => import('./pages/GanttChart'));
+const MyDay = React.lazy(() => import('./pages/MyDay'));
+const Portfolios = React.lazy(() => import('./pages/Portfolios'));
+const WorkloadPlanner = React.lazy(() => import('./pages/WorkloadPlanner'));
+const Roadmaps = React.lazy(() => import('./pages/Roadmaps'));
+const CompanyFeed = React.lazy(() => import('./pages/CompanyFeed'));
+const SageIntegration = React.lazy(() => import('./pages/SageIntegration'));
+const GoalsOKRs = React.lazy(() => import('./pages/GoalsOKRs'));
+const Account360 = React.lazy(() => import('./pages/Account360'));
+const ClientIntelligence = React.lazy(() => import('./pages/ClientIntelligence'));
+const BusinessDevelopment = React.lazy(() => import('./pages/BusinessDevelopment'));
+const SalesPipeline = React.lazy(() => import('./pages/SalesPipeline'));
+const Proposals = React.lazy(() => import('./pages/Proposals'));
+const Deals = React.lazy(() => import('./pages/Deals'));
+const PlatformReadiness = React.lazy(() => import('./pages/PlatformReadiness'));
 
 setupIframeMessaging();
 
@@ -197,57 +196,59 @@ const AuthenticatedApp = () => {
 
   return (
     <Layout>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/Dashboard" element={<Dashboard />} />
-        <Route path="/Projects" element={<Projects />} />
-        <Route path="/ProjectDetails" element={<ProjectDetails />} />
-        <Route path="/Profile" element={<Profile />} />
-        <Route path="/Settings" element={<Settings />} />
-        <Route path="/AIAssistant" element={<AIAssistant />} />
-        <Route path="/Analytics" element={<Analytics />} />
-        <Route path="/Leave" element={<Leave />} />
-        <Route path="/Payslips" element={<Payslips />} />
-        <Route path="/MeetingNotes" element={<MeetingNotes />} />
-        <Route path="/Noticeboard" element={<Noticeboard />} />
-        <Route path="/Kanban" element={<Kanban />} />
-        <Route path="/ResourceCalendar" element={<ResourceCalendar />} />
-        <Route path="/PerformanceReviews" element={<PerformanceReviews />} />
-        <Route path="/GoalsOKRs" element={<GoalsOKRs />} />
-        <Route path="/Account360" element={<Account360 />} />
-        <Route path="/ClientIntelligence" element={<ClientIntelligence />} />
-        <Route path="/BusinessDevelopment" element={<BusinessDevelopment />} />
-        <Route path="/SalesPipeline" element={<SalesPipeline />} />
-        <Route path="/Proposals" element={<Proposals />} />
-        <Route path="/Deals" element={<Deals />} />
-        <Route path="/PlatformReadiness" element={<PlatformReadiness />} />
-        <Route path="/PayrollDashboard" element={<PayrollDashboard />} />
-        <Route path="/Expenses" element={<Expenses />} />
-        <Route path="/Assets" element={<Assets />} />
-        <Route path="/Onboarding" element={<Onboarding />} />
-        <Route path="/Messaging" element={<Messaging />} />
-        <Route path="/MeetingStudio" element={<MeetingStudio />} />
-        <Route path="/Calendar" element={<Calendar />} />
-        <Route path="/AutoPayroll" element={<AutoPayroll />} />
-        <Route path="/OrgChart" element={<OrgChart />} />
-        <Route path="/Integrations" element={<Integrations />} />
-        <Route path="/Tickets" element={<Tickets />} />
-        <Route path="/DocumentRepository" element={<DocumentRepository />} />
-        <Route path="/TeamAttendance" element={<TeamAttendance />} />
-        <Route path="/Notifications" element={<Notifications />} />
-        <Route path="/HRHub" element={<HRHub />} />
-        <Route path="/ExecutiveDashboard" element={<ExecutiveDashboard />} />
-        <Route path="/CultureHub" element={<CultureHub />} />
-        <Route path="/TimeTracking" element={<TimeTracking />} />
-        <Route path="/GanttChart" element={<GanttChart />} />
-        <Route path="/MyDay" element={<MyDay />} />
-        <Route path="/Portfolios" element={<Portfolios />} />
-        <Route path="/WorkloadPlanner" element={<WorkloadPlanner />} />
-        <Route path="/Roadmaps" element={<Roadmaps />} />
-        <Route path="/CompanyFeed" element={<CompanyFeed />} />
-        <Route path="/SageIntegration" element={<SageIntegration />} />
-        <Route path="*" element={<PageNotFound />} />
-      </Routes>
+      <React.Suspense fallback={<div className="p-8 text-sm text-slate-500">Loading workspace…</div>}>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/Dashboard" element={<Dashboard />} />
+          <Route path="/Projects" element={<Projects />} />
+          <Route path="/ProjectDetails" element={<ProjectDetails />} />
+          <Route path="/Profile" element={<Profile />} />
+          <Route path="/Settings" element={<Settings />} />
+          <Route path="/AIAssistant" element={<AIAssistant />} />
+          <Route path="/Analytics" element={<Analytics />} />
+          <Route path="/Leave" element={<Leave />} />
+          <Route path="/Payslips" element={<Payslips />} />
+          <Route path="/MeetingNotes" element={<MeetingNotes />} />
+          <Route path="/Noticeboard" element={<Noticeboard />} />
+          <Route path="/Kanban" element={<Kanban />} />
+          <Route path="/ResourceCalendar" element={<ResourceCalendar />} />
+          <Route path="/PerformanceReviews" element={<PerformanceReviews />} />
+          <Route path="/GoalsOKRs" element={<GoalsOKRs />} />
+          <Route path="/Account360" element={<Account360 />} />
+          <Route path="/ClientIntelligence" element={<ClientIntelligence />} />
+          <Route path="/BusinessDevelopment" element={<BusinessDevelopment />} />
+          <Route path="/SalesPipeline" element={<SalesPipeline />} />
+          <Route path="/Proposals" element={<Proposals />} />
+          <Route path="/Deals" element={<Deals />} />
+          <Route path="/PlatformReadiness" element={<PlatformReadiness />} />
+          <Route path="/PayrollDashboard" element={<PayrollDashboard />} />
+          <Route path="/Expenses" element={<Expenses />} />
+          <Route path="/Assets" element={<Assets />} />
+          <Route path="/Onboarding" element={<Onboarding />} />
+          <Route path="/Messaging" element={<Messaging />} />
+          <Route path="/MeetingStudio" element={<MeetingStudio />} />
+          <Route path="/Calendar" element={<Calendar />} />
+          <Route path="/AutoPayroll" element={<AutoPayroll />} />
+          <Route path="/OrgChart" element={<OrgChart />} />
+          <Route path="/Integrations" element={<Integrations />} />
+          <Route path="/Tickets" element={<Tickets />} />
+          <Route path="/DocumentRepository" element={<DocumentRepository />} />
+          <Route path="/TeamAttendance" element={<TeamAttendance />} />
+          <Route path="/Notifications" element={<Notifications />} />
+          <Route path="/HRHub" element={<HRHub />} />
+          <Route path="/ExecutiveDashboard" element={<ExecutiveDashboard />} />
+          <Route path="/CultureHub" element={<CultureHub />} />
+          <Route path="/TimeTracking" element={<TimeTracking />} />
+          <Route path="/GanttChart" element={<GanttChart />} />
+          <Route path="/MyDay" element={<MyDay />} />
+          <Route path="/Portfolios" element={<Portfolios />} />
+          <Route path="/WorkloadPlanner" element={<WorkloadPlanner />} />
+          <Route path="/Roadmaps" element={<Roadmaps />} />
+          <Route path="/CompanyFeed" element={<CompanyFeed />} />
+          <Route path="/SageIntegration" element={<SageIntegration />} />
+          <Route path="*" element={<PageNotFound />} />
+        </Routes>
+      </React.Suspense>
     </Layout>
   );
 };

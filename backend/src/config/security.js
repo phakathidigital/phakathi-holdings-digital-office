@@ -65,6 +65,13 @@ export function assertProductionConfig() {
   if (!process.env.VAPID_PUBLIC_KEY) missing.push("VAPID_PUBLIC_KEY");
   if (!process.env.VAPID_PRIVATE_KEY) missing.push("VAPID_PRIVATE_KEY");
   if (!getAllowedCorsOrigins().size) missing.push("CORS_ORIGINS");
+  if (!process.env.APP_PUBLIC_URL && !process.env.URL) missing.push("APP_PUBLIC_URL or URL");
+  if (process.env.STORAGE_PROVIDER === "s3") {
+    if (!process.env.STORAGE_BUCKET) missing.push("STORAGE_BUCKET");
+    if (!process.env.STORAGE_REGION) missing.push("STORAGE_REGION");
+    if (!process.env.STORAGE_ACCESS_KEY) missing.push("STORAGE_ACCESS_KEY");
+    if (!process.env.STORAGE_SECRET_KEY) missing.push("STORAGE_SECRET_KEY");
+  }
   if (missing.length) {
     throw new Error(`Production configuration is incomplete: ${missing.join(", ")}`);
   }

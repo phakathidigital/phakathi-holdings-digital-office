@@ -88,6 +88,9 @@ model User {
   roles                    UserRole[]
   sessions                 Session[]
   refresh_tokens           RefreshToken[]
+  password_reset_tokens    PasswordResetToken[]
+  email_verification_tokens EmailVerificationToken[]
+  mfa_credentials          MfaCredential[]
   owned_accounts           ClientAccount[]       @relation("AccountOwner")
   owned_contacts           ClientContact[]       @relation("ContactOwner")
   client_interactions      ClientInteraction[]
@@ -214,6 +217,64 @@ model RefreshToken {
   @@index([user_id])
   @@index([family_id])
   @@map("refresh_tokens")
+}
+
+model PasswordResetToken {
+  id         String    @id @default(uuid())
+  user_id    String
+  token_hash String    @unique
+  expires_at DateTime
+  used_at    DateTime?
+  ip_address String?
+  user_agent String?
+  metadata   Json?
+  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  @@index([user_id])
+  @@index([expires_at])
+  @@map("password_reset_tokens")
+}
+
+model EmailVerificationToken {
+  id         String    @id @default(uuid())
+  user_id    String
+  token_hash String    @unique
+  expires_at DateTime
+  used_at    DateTime?
+  ip_address String?
+  user_agent String?
+  metadata   Json?
+  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  @@index([user_id])
+  @@index([expires_at])
+  @@map("email_verification_tokens")
+}
+
+model MfaCredential {
+  id          String    @id @default(uuid())
+  user_id     String
+  type        String
+  label       String?
+  secret_hash String?
+  public_key  String?
+  counter     Int?
+  enabled     Boolean   @default(false)
+  verified_at DateTime?
+  last_used_at DateTime?
+  metadata    Json?
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+
+  @@index([user_id])
+  @@index([type])
+  @@map("mfa_credentials")
 }
 
 model AuditLog {

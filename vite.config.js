@@ -57,6 +57,21 @@ export default defineConfig(({ mode }) => {
           '.js': 'jsx',
         },
       },
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return undefined;
+            if (id.includes('react') || id.includes('@tanstack')) return 'vendor-react';
+            if (id.includes('recharts') || id.includes('d3-')) return 'vendor-charts';
+            if (id.includes('@radix-ui')) return 'vendor-radix';
+            if (id.includes('lucide-react')) return 'vendor-icons';
+            if (id.includes('@hello-pangea') || id.includes('react-quill') || id.includes('react-markdown')) return 'vendor-rich-ui';
+            return undefined;
+          },
+        },
+      },
     }
   }
 });

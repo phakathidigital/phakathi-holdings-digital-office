@@ -22,7 +22,7 @@ if (shouldPreparePostgres) {
 
   console.log("Preparing PostgreSQL production database: generate Prisma client, migrate, seed.");
   run("npm", ["run", "db:generate"]);
-  run("npm", ["run", "db:migrate"]);
+  run("npm", ["run", "db:migrate:deploy"]);
   run("npm", ["run", "db:seed"]);
 } else {
   console.log(`Skipping PostgreSQL migration because PHAKATHI_STORAGE=${storage}.`);

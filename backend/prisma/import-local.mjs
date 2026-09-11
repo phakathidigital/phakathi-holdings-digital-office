@@ -6,6 +6,12 @@ import { dbPath } from "../src/config/paths.js";
 
 const dryRun = process.argv.includes("--dry-run");
 const prisma = dryRun ? null : new PrismaClient();
+const report = {
+  skipped: [],
+  invalid: [],
+  duplicates: [],
+  relationshipErrors: [],
+};
 
 function toDate(value) {
   if (!value) return undefined;
@@ -15,6 +21,10 @@ function toDate(value) {
 
 async function upsertEntityRecord(entity_name, record) {
   const record_id = String(record.id || crypto.randomUUID());
+  if (!record || typeof record !== "object") {
+    report.invalid.push({ entity: entity_name, reason: "Record is not an object" });
+    return;
+  }
   if (dryRun) return;
   await prisma.entityRecord.upsert({
     where: {
@@ -33,6 +43,71 @@ async function upsertEntityRecord(entity_name, record) {
       deleted_at: null,
     },
   });
+}
+
+function inspectEntities(entities) {
+  for (const [entityName, records] of Object.entries(entities)) {
+    if (!Array.isArray(records)) {
+      report.invalid.push({ entity: entityName, reason: "Entity collection is not an array" });
+      continue;
+    }
+    const seen = new Set();
+    for (const record of records) {
+      if (!record || typeof record !== "object") {
+        report.invalid.push({ entity: entityName, reason: "Record is not an object" });
+        continue;
+      }
+      if (!record.id) {
+        report.skipped.push({ entity: entityName, reason: "Missing id; importer will generate one for EntityRecord compatibility storage" });
+        continue;
+      }
+      if (seen.has(record.id)) {
+        report.duplicates.push({ entity: entityName, id: record.id });
+      }
+      seen.add(record.id);
+    }
+  }
+
+  const ids = Object.fromEntries(
+    Object.entries(entities).map(([name, records]) => [
+      name,
+      new Set(Array.isArray(records) ? records.map((record) => record?.id).filter(Boolean) : []),
+    ]),
+  );
+  const relationshipChecks = [
+    ["Task", "project_id", "Project"],
+    ["Milestone", "project_id", "Project"],
+    ["TimeLog", "task_id", "Task"],
+    ["TimeLog", "project_id", "Project"],
+    ["MeetingStudio", "project_id", "Project"],
+    ["ClientContact", "client_account_id", "ClientAccount"],
+    ["ClientInteraction", "client_account_id", "ClientAccount"],
+    ["ClientNote", "client_account_id", "ClientAccount"],
+    ["Lead", "client_account_id", "ClientAccount"],
+    ["Opportunity", "client_account_id", "ClientAccount"],
+    ["Opportunity", "lead_id", "Lead"],
+    ["Proposal", "client_account_id", "ClientAccount"],
+    ["Proposal", "opportunity_id", "Opportunity"],
+    ["Deal", "client_account_id", "ClientAccount"],
+    ["Deal", "opportunity_id", "Opportunity"],
+    ["Deal", "proposal_id", "Proposal"],
+    ["DealProductService", "deal_id", "Deal"],
+    ["ClientActivity", "client_account_id", "ClientAccount"],
+  ];
+  for (const [entity, field, target] of relationshipChecks) {
+    for (const record of entities[entity] || []) {
+      if (!record?.[field]) continue;
+      if (!ids[target]?.has(record[field])) {
+        report.relationshipErrors.push({
+          entity,
+          id: record.id,
+          field,
+          value: record[field],
+          missingTarget: target,
+        });
+      }
+    }
+  }
 }
 
 async function upsertKnownTables(db) {
@@ -182,6 +257,7 @@ async function main() {
 
   const db = JSON.parse(await fs.readFile(dbPath, "utf8"));
   const entities = db.entities || {};
+  inspectEntities(entities);
   const summary = Object.fromEntries(
     Object.entries(entities).map(([name, records]) => [name, Array.isArray(records) ? records.length : 0])
   );
@@ -214,6 +290,7 @@ async function main() {
     dryRun,
     importedFrom: dbPath,
     entityCounts: summary,
+    report,
   }, null, 2));
 }
 
