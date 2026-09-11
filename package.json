@@ -23,7 +23,8 @@
     "db:import-local": "node backend/prisma/import-local.mjs",
     "db:check": "node scripts/db-check.mjs",
     "db:smoke": "node scripts/postgres-smoke.mjs",
-    "test:postgres": "node scripts/postgres-smoke.mjs"
+    "test:postgres": "node scripts/postgres-smoke.mjs",
+    "prod:env-check": "node scripts/production-env-check.mjs"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",
