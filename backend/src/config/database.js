@@ -498,6 +498,93 @@ function seedJuly2026Workflow(db) {
   });
 }
 
+function seedCrmFoundation(db) {
+  db.entities ||= {};
+  for (const name of ["ClientAccount", "ClientContact", "ClientInteraction", "ClientNote", "ClientActivity", "ClientHealthSnapshot", "Opportunity"]) {
+    db.entities[name] ||= [];
+  }
+
+  const accounts = [
+    {
+      id: "client-account-kaelo-education-growth",
+      name: "Kaelo Education Growth Partners",
+      status: "active",
+      industry: "Education",
+      location: "South Africa",
+      source: "Group ecosystem",
+      category: "Strategic education",
+      tags: ["education", "growth", "group"],
+      estimated_value: 150000,
+      historical_revenue: 0,
+      relationship_status: "healthy",
+      owner_email: "percity.mavimbela@phakathiholdings.local",
+    },
+    {
+      id: "client-account-empoweryst-bbbee-pipeline",
+      name: "Empoweryst BBBEE Client Pipeline",
+      status: "active",
+      industry: "BBBEE Consulting",
+      location: "South Africa",
+      source: "Empoweryst delivery",
+      category: "Consulting",
+      tags: ["empoweryst", "bbbee", "client-delivery"],
+      estimated_value: 220000,
+      historical_revenue: 0,
+      relationship_status: "watch",
+      owner_email: "sarah.ngwenya@phakathiholdings.local",
+    },
+  ];
+
+  for (const account of accounts) upsertById(db.entities.ClientAccount, account);
+
+  const contacts = [
+    ["contact-kaelo-programme-lead", "client-account-kaelo-education-growth", "Education Programme Lead", "Programme Coordinator", "education.lead@example.com"],
+    ["contact-empoweryst-client-admin", "client-account-empoweryst-bbbee-pipeline", "Client Administration Lead", "Client Coordinator", "client.admin@example.com"],
+  ];
+  for (const [id, client_account_id, full_name, position, email] of contacts) {
+    upsertById(db.entities.ClientContact, { id, client_account_id, full_name, position, email, preferred_contact: "email", visibility: "account_team" });
+  }
+
+  upsertById(db.entities.ClientInteraction, {
+    id: "interaction-kaelo-july-discovery",
+    client_account_id: "client-account-kaelo-education-growth",
+    client_contact_id: "contact-kaelo-programme-lead",
+    user_email: "percity.mavimbela@phakathiholdings.local",
+    interaction_type: "strategy_call",
+    subject: "July education growth discovery",
+    description: "Discussed education ecosystem growth pipeline and Monday reporting cadence.",
+    occurred_at: "2026-07-06T10:00:00.000Z",
+    source: "manual",
+  });
+
+  upsertById(db.entities.ClientNote, {
+    id: "note-empoweryst-delivery-risk",
+    client_account_id: "client-account-empoweryst-bbbee-pipeline",
+    client_contact_id: "contact-empoweryst-client-admin",
+    created_by_email: "sarah.ngwenya@phakathiholdings.local",
+    subject: "Delivery register required",
+    body: "Client pipeline health depends on keeping missing documents and consultant follow-ups visible weekly.",
+    visibility: "account_team",
+  });
+
+  upsertById(db.entities.Opportunity, {
+    id: "opportunity-kaelo-education-growth-july",
+    title: "July Education Growth Execution Package",
+    client_account_id: "client-account-kaelo-education-growth",
+    owner_email: "percity.mavimbela@phakathiholdings.local",
+    value: 150000,
+    probability: 35,
+    weighted_value: 52500,
+    expected_close_date: "2026-07-31",
+    source: "Group strategy",
+    industry: "Education",
+    description: "Structured package to move education ecosystem strategy into visible execution.",
+    next_action: "Prepare pipeline dashboard for Group CEO review.",
+    next_follow_up_at: "2026-07-20",
+    status: "open",
+  });
+}
+
 export async function listEntityNames() {
   try {
     const files = await fs.readdir(entitySchemaDir);
@@ -531,6 +618,7 @@ export async function ensureStore() {
     }
     upsertInitialEmployees(db);
     seedJuly2026Workflow(db);
+    seedCrmFoundation(db);
     await writePostgresDb(db);
     return;
   }
@@ -562,6 +650,7 @@ export async function ensureStore() {
     }
     upsertInitialEmployees(db);
     seedJuly2026Workflow(db);
+    seedCrmFoundation(db);
     await store.setJSON(DB_BLOB_KEY, db);
     return;
   }
@@ -584,6 +673,7 @@ export async function ensureStore() {
     const beforeSeed = JSON.stringify({ users: db.entities.User, profiles: db.entities.UserProfile });
     upsertInitialEmployees(db);
     seedJuly2026Workflow(db);
+    seedCrmFoundation(db);
     if (beforeSeed !== JSON.stringify({ users: db.entities.User, profiles: db.entities.UserProfile })) changed = true;
     await writeDb(db);
   } catch {
@@ -603,6 +693,7 @@ export async function ensureStore() {
     }));
     const db = { entities, events: [], emails: [], sms: [] };
     seedJuly2026Workflow(db);
+    seedCrmFoundation(db);
     await writeDb(db);
   }
 }

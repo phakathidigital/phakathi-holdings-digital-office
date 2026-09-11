@@ -24,9 +24,9 @@ export async function getUserPermissionKeys(user = {}) {
   if (user.role === "admin") return new Set(["*"]);
 
   if (!shouldUsePostgresPersistence()) {
-    const keys = ["projects.view", "projects.create", "projects.edit"];
+    const keys = ["projects.view", "projects.create", "projects.edit", "crm.view", "crm.create", "crm.edit"];
     if (hasManagementOverview(user)) {
-      keys.push("reports.view", "employees.view", "projects.edit", "notifications.manage");
+      keys.push("reports.view", "employees.view", "projects.edit", "notifications.manage", "crm.delete", "crm.relationship_private.view", "sales.view", "sales.manage");
     }
     return new Set(keys);
   }

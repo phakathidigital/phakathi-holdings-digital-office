@@ -58,6 +58,7 @@ Implemented backend capabilities:
 - Email/SMS queue placeholders plus OpenAI-backed Meeting Studio transcript analysis with safe deterministic fallback when `OPENAI_API_KEY` is not configured.
 - July 2026 seeded working data for Goals → Portfolio → Projects → Kanban → Meeting Studio workflow.
 - Prisma/PostgreSQL production foundation with migrations, seed data, and safe `.local-data/db.json` import tooling.
+- CRM foundation through `/api/v1/crm`, including Account 360, Client Intelligence, client accounts, contacts, interactions, notes, opportunities, and relationship-health scoring.
 
 Database commands:
 
@@ -222,3 +223,20 @@ The local backend seeds realistic working data:
 - Monday alignment Meeting Studio record for 6 July 2026 with summary, decisions, action items, attendee summaries, and synced Kanban tasks.
 
 The stale Tester project/task seed is removed automatically during backend store initialization.
+
+## CRM foundation
+
+Phase 3/4 introduces the first production CRM layer without changing existing HR, DAM, notification, or project workflows:
+
+- `/api/v1/crm/overview`
+- `/api/v1/crm/client-intelligence`
+- `/api/v1/crm/accounts`
+- `/api/v1/crm/accounts/:id/account-360`
+- account contacts, interactions, notes, opportunities, and health refresh actions
+
+The frontend pages are:
+
+- `/Account360`
+- `/ClientIntelligence`
+
+The CRM layer uses PostgreSQL/Prisma when `PHAKATHI_STORAGE=postgres` and the same authenticated backend API contract during local JSON office testing.

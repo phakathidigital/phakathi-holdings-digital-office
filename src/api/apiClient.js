@@ -282,6 +282,41 @@ export const api = {
       }),
     },
   },
+  crm: {
+    overview: () => v1Request("/crm/overview"),
+    clientIntelligence: () => v1Request("/crm/client-intelligence"),
+    accounts: {
+      list: () => v1Request("/crm/accounts"),
+      create: (data) => v1Request("/crm/accounts", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+      update: (id, data) => v1Request(`/crm/accounts/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+      account360: (id) => v1Request(`/crm/accounts/${encodeURIComponent(id)}/account-360`),
+      addContact: (id, data) => v1Request(`/crm/accounts/${encodeURIComponent(id)}/contacts`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+      addInteraction: (id, data) => v1Request(`/crm/accounts/${encodeURIComponent(id)}/interactions`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+      addNote: (id, data) => v1Request(`/crm/accounts/${encodeURIComponent(id)}/notes`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+      addOpportunity: (id, data) => v1Request(`/crm/accounts/${encodeURIComponent(id)}/opportunities`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+      refreshHealth: (id) => v1Request(`/crm/accounts/${encodeURIComponent(id)}/health/refresh`, {
+        method: "POST",
+      }),
+    },
+  },
   users: {
     inviteUser: (email, role = "user") => request("/auth/invite", {
       method: "POST",

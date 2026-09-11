@@ -37,6 +37,9 @@ const navigationItems = [
   { title: "Gantt Timeline",    url: "/GanttChart",         icon: GanttChartSquare,group: "work" },
   { title: "Time Tracking",     url: "/TimeTracking",       icon: Timer,           group: "work" },
   { title: "Goals & OKRs",      url: "/GoalsOKRs",           icon: Target,          group: "work" },
+  // CLIENTS
+  { title: "Account 360",       url: "/Account360",          icon: Briefcase,       group: "clients" },
+  { title: "Client Intelligence", url: "/ClientIntelligence", icon: Users,          group: "clients" },
   // COLLABORATION
   { title: "Messaging",         url: "/Messaging",          icon: MessageCircle,   group: "collaboration" },
   { title: "Company Feed",      url: "/CompanyFeed",        icon: Rss,             group: "collaboration" },
@@ -72,6 +75,7 @@ const navigationItems = [
 const sidebarGroups = [
   { key: 'home',          label: 'Home',          collapsible: false },
   { key: 'work',          label: 'Work',          collapsible: true },
+  { key: 'clients',       label: 'Clients',       collapsible: true },
   { key: 'collaboration', label: 'Collaboration', collapsible: true },
   { key: 'people',        label: 'People',        collapsible: true },
   { key: 'operations',    label: 'Operations',    collapsible: true },

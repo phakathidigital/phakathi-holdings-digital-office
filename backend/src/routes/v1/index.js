@@ -4,6 +4,7 @@ import { requirePermission } from "../../middleware/permissions.js";
 import { asyncHandler, sendData, sendError } from "../../utils/apiResponse.js";
 import { writeAuditLog } from "../../services/auditLogService.js";
 import workRoutes from "./work.js";
+import crmRoutes from "./crm.js";
 import {
   backfillRelationalUsers,
   listDepartments,
@@ -24,6 +25,7 @@ router.get("/health", (_req, res) => {
 
 router.use(requireAuth);
 router.use("/work", workRoutes);
+router.use("/crm", crmRoutes);
 
 router.get(
   "/me",

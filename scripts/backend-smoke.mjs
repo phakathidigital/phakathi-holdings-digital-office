@@ -174,12 +174,54 @@ async function main() {
     });
     expect(sync.data.created_count === 1, "Meeting task sync did not create a task.");
 
+    const crmAccount = await request(baseUrl, "/v1/crm/accounts", {
+      method: "POST",
+      token,
+      body: JSON.stringify({
+        name: `Smoke Workflow Client ${unique}`,
+        industry: "Education",
+        estimated_value: 25000,
+      }),
+    });
+    expect(crmAccount.data.id, "CRM account was not created.");
+
+    await request(baseUrl, `/v1/crm/accounts/${crmAccount.data.id}/contacts`, {
+      method: "POST",
+      token,
+      body: JSON.stringify({ full_name: "Smoke Client Contact", email: "smoke.client@example.com" }),
+    });
+    await request(baseUrl, `/v1/crm/accounts/${crmAccount.data.id}/interactions`, {
+      method: "POST",
+      token,
+      body: JSON.stringify({ subject: "Smoke CRM interaction", interaction_type: "call" }),
+    });
+    await request(baseUrl, `/v1/crm/accounts/${crmAccount.data.id}/notes`, {
+      method: "POST",
+      token,
+      body: JSON.stringify({ body: "Smoke CRM account note" }),
+    });
+    await request(baseUrl, `/v1/crm/accounts/${crmAccount.data.id}/opportunities`, {
+      method: "POST",
+      token,
+      body: JSON.stringify({ title: "Smoke CRM opportunity", value: 10000, probability: 50 }),
+    });
+    const health = await request(baseUrl, `/v1/crm/accounts/${crmAccount.data.id}/health/refresh`, {
+      method: "POST",
+      token,
+    });
+    expect(Number(health.data.score) > 0, "CRM health refresh failed.");
+    const account360 = await request(baseUrl, `/v1/crm/accounts/${crmAccount.data.id}/account-360`, { token });
+    expect(account360.data.contacts.length === 1, "Account 360 did not include contact.");
+    expect(account360.data.opportunities.length === 1, "Account 360 did not include opportunity.");
+    const intelligence = await request(baseUrl, "/v1/crm/client-intelligence", { token });
+    expect(Number(intelligence.data.summary.accounts) > 0, "Client Intelligence summary is empty.");
+
     await request(baseUrl, "/auth/logout", {
       method: "POST",
       body: JSON.stringify({ refresh_token: refreshed.refresh_token }),
     });
 
-    console.log(JSON.stringify({ ok: true, checks: 11 }, null, 2));
+    console.log(JSON.stringify({ ok: true, checks: 18 }, null, 2));
   } finally {
     await new Promise((resolve) => server.close(resolve));
     if (originalDb === null) {

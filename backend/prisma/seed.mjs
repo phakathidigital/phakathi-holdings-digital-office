@@ -310,6 +310,167 @@ async function main() {
     });
   }
 
+  const percity = await prisma.user.findUnique({ where: { email: "percity.mavimbela@phakathiholdings.local" } });
+  const sarah = await prisma.user.findUnique({ where: { email: "sarah.ngwenya@phakathiholdings.local" } });
+  const leadStage = await prisma.opportunityStage.findUnique({ where: { name: "Lead" } });
+
+  const kaeloAccount = await prisma.clientAccount.upsert({
+    where: { id: "client-account-kaelo-education-growth" },
+    create: {
+      id: "client-account-kaelo-education-growth",
+      name: "Kaelo Education Growth Partners",
+      status: "active",
+      industry: "Education",
+      location: "South Africa",
+      source: "Group ecosystem",
+      category: "Strategic education",
+      tags: ["education", "growth", "group"],
+      estimated_value: 150000,
+      historical_revenue: 0,
+      relationship_status: "healthy",
+      account_owner_id: percity?.id,
+    },
+    update: {
+      name: "Kaelo Education Growth Partners",
+      status: "active",
+      industry: "Education",
+      relationship_status: "healthy",
+      account_owner_id: percity?.id,
+    },
+  });
+
+  const empowerystAccount = await prisma.clientAccount.upsert({
+    where: { id: "client-account-empoweryst-bbbee-pipeline" },
+    create: {
+      id: "client-account-empoweryst-bbbee-pipeline",
+      name: "Empoweryst BBBEE Client Pipeline",
+      status: "active",
+      industry: "BBBEE Consulting",
+      location: "South Africa",
+      source: "Empoweryst delivery",
+      category: "Consulting",
+      tags: ["empoweryst", "bbbee", "client-delivery"],
+      estimated_value: 220000,
+      historical_revenue: 0,
+      relationship_status: "watch",
+      account_owner_id: sarah?.id,
+    },
+    update: {
+      name: "Empoweryst BBBEE Client Pipeline",
+      status: "active",
+      industry: "BBBEE Consulting",
+      relationship_status: "watch",
+      account_owner_id: sarah?.id,
+    },
+  });
+
+  await prisma.clientContact.upsert({
+    where: { id: "contact-kaelo-programme-lead" },
+    create: {
+      id: "contact-kaelo-programme-lead",
+      client_account_id: kaeloAccount.id,
+      owner_user_id: percity?.id,
+      full_name: "Education Programme Lead",
+      position: "Programme Coordinator",
+      email: "education.lead@example.com",
+      preferred_contact: "email",
+    },
+    update: {
+      client_account_id: kaeloAccount.id,
+      full_name: "Education Programme Lead",
+      position: "Programme Coordinator",
+      email: "education.lead@example.com",
+    },
+  });
+
+  await prisma.clientContact.upsert({
+    where: { id: "contact-empoweryst-client-admin" },
+    create: {
+      id: "contact-empoweryst-client-admin",
+      client_account_id: empowerystAccount.id,
+      owner_user_id: sarah?.id,
+      full_name: "Client Administration Lead",
+      position: "Client Coordinator",
+      email: "client.admin@example.com",
+      preferred_contact: "email",
+    },
+    update: {
+      client_account_id: empowerystAccount.id,
+      full_name: "Client Administration Lead",
+      position: "Client Coordinator",
+      email: "client.admin@example.com",
+    },
+  });
+
+  await prisma.clientInteraction.upsert({
+    where: { id: "interaction-kaelo-july-discovery" },
+    create: {
+      id: "interaction-kaelo-july-discovery",
+      client_account_id: kaeloAccount.id,
+      client_contact_id: "contact-kaelo-programme-lead",
+      user_id: percity?.id,
+      interaction_type: "strategy_call",
+      subject: "July education growth discovery",
+      description: "Discussed education ecosystem growth pipeline and Monday reporting cadence.",
+      occurred_at: new Date("2026-07-06T10:00:00.000Z"),
+      source: "manual",
+    },
+    update: {
+      subject: "July education growth discovery",
+      description: "Discussed education ecosystem growth pipeline and Monday reporting cadence.",
+      occurred_at: new Date("2026-07-06T10:00:00.000Z"),
+    },
+  });
+
+  await prisma.clientNote.upsert({
+    where: { id: "note-empoweryst-delivery-risk" },
+    create: {
+      id: "note-empoweryst-delivery-risk",
+      client_account_id: empowerystAccount.id,
+      client_contact_id: "contact-empoweryst-client-admin",
+      created_by_user_id: sarah?.id,
+      subject: "Delivery register required",
+      body: "Client pipeline health depends on keeping missing documents and consultant follow-ups visible weekly.",
+      visibility: "account_team",
+    },
+    update: {
+      subject: "Delivery register required",
+      body: "Client pipeline health depends on keeping missing documents and consultant follow-ups visible weekly.",
+    },
+  });
+
+  await prisma.opportunity.upsert({
+    where: { id: "opportunity-kaelo-education-growth-july" },
+    create: {
+      id: "opportunity-kaelo-education-growth-july",
+      title: "July Education Growth Execution Package",
+      client_account_id: kaeloAccount.id,
+      owner_user_id: percity?.id,
+      stage_id: leadStage?.id,
+      value: 150000,
+      probability: 35,
+      weighted_value: 52500,
+      expected_close_date: new Date("2026-07-31"),
+      source: "Group strategy",
+      industry: "Education",
+      description: "Structured package to move education ecosystem strategy into visible execution.",
+      next_action: "Prepare pipeline dashboard for Group CEO review.",
+      next_follow_up_at: new Date("2026-07-20"),
+      status: "open",
+    },
+    update: {
+      title: "July Education Growth Execution Package",
+      client_account_id: kaeloAccount.id,
+      owner_user_id: percity?.id,
+      stage_id: leadStage?.id,
+      value: 150000,
+      probability: 35,
+      weighted_value: 52500,
+      expected_close_date: new Date("2026-07-31"),
+      status: "open",
+    },
+  });
+
   const previousStorage = process.env.PHAKATHI_STORAGE;
   process.env.PHAKATHI_STORAGE = "postgres";
   await ensureStore();
