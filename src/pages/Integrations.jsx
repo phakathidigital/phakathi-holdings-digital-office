@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
+import { api } from "@/api/apiClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -265,20 +267,26 @@ function IntegrationCard({ integration, connected, onConfigure, onDisconnect }) 
 export default function Integrations() {
   const [category, setCategory] = useState("all");
   const [configuring, setConfiguring] = useState(null);
-  const [connected, setConnected] = useState({}); // { integrationId: true/false }
+  const { data: statusData } = useQuery({
+    queryKey: ["integration-status"],
+    queryFn: api.integrations.status,
+  });
+
+  const integrationStatuses = Object.fromEntries((statusData?.integrations || []).map((item) => [item.id, item]));
+  const connected = Object.fromEntries(Object.entries(integrationStatuses).map(([id, item]) => [id, item.enabled]));
 
   const filtered = INTEGRATIONS.filter(i => category === "all" || i.category === category);
 
   const handleSave = (id, form) => {
-    setConnected(c => ({ ...c, [id]: true }));
-    // In a real app, save credentials securely server-side
+    const safeFields = Object.keys(form || {}).filter(Boolean).join(", ");
+    window.alert(`${id} credentials are not stored in the browser. Add ${safeFields || "the required values"} as secure environment variables on the backend, then redeploy.`);
   };
 
   const handleDisconnect = (id) => {
-    setConnected(c => ({ ...c, [id]: false }));
+    window.alert(`${id} is controlled by backend environment variables. Remove or rotate those secrets in the deployment environment to disconnect it.`);
   };
 
-  const connectedCount = Object.values(connected).filter(Boolean).length;
+  const connectedCount = (statusData?.integrations || []).filter((item) => item.enabled).length;
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
@@ -297,12 +305,28 @@ export default function Integrations() {
         </motion.div>
 
         {/* Info banner */}
-        <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl flex items-start gap-3">
+        <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl flex items-start gap-3">
           <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
-          <p className="text-xs text-amber-700">
-            <strong>Note:</strong> Credentials entered here are stored locally in your session. For production use, set up server-side credential storage via Builder+ backend functions. Export formats (CSV/IIF/XML) are fully functional and ready for manual import into each platform.
+          <p className="text-xs text-blue-700">
+            <strong>Secure configuration:</strong> integration credentials are now backend environment variables, not browser/local-session secrets. This page shows readiness based on deployed configuration and still provides setup/export guidance.
           </p>
         </div>
+
+        {statusData?.ai && (
+          <Card className="border-none shadow-md">
+            <CardContent className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div>
+                <p className="font-semibold text-gray-900">AI status: {statusData.ai.provider}</p>
+                <p className="text-xs text-gray-500">
+                  Meeting Studio summaries, decisions, action items and Kanban extraction are {statusData.ai.status === "configured" ? "OpenAI-backed" : "using the safe local fallback"}.
+                </p>
+              </div>
+              <Badge className={statusData.ai.status === "configured" ? "bg-green-100 text-green-700 border-0" : "bg-amber-100 text-amber-700 border-0"}>
+                {statusData.ai.status}
+              </Badge>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Category tabs */}
         <div className="flex flex-wrap gap-2">

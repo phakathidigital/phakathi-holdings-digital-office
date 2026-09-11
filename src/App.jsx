@@ -64,6 +64,7 @@ import BusinessDevelopment from './pages/BusinessDevelopment';
 import SalesPipeline from './pages/SalesPipeline';
 import Proposals from './pages/Proposals';
 import Deals from './pages/Deals';
+import PlatformReadiness from './pages/PlatformReadiness';
 
 setupIframeMessaging();
 
@@ -219,6 +220,7 @@ const AuthenticatedApp = () => {
         <Route path="/SalesPipeline" element={<SalesPipeline />} />
         <Route path="/Proposals" element={<Proposals />} />
         <Route path="/Deals" element={<Deals />} />
+        <Route path="/PlatformReadiness" element={<PlatformReadiness />} />
         <Route path="/PayrollDashboard" element={<PayrollDashboard />} />
         <Route path="/Expenses" element={<Expenses />} />
         <Route path="/Assets" element={<Assets />} />

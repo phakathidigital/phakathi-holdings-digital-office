@@ -72,6 +72,7 @@ const navigationItems = [
   { title: "Auto Payroll",      url: "/AutoPayroll",        icon: Calculator,      group: "insights" },
   { title: "Sage Integration",  url: "/SageIntegration",    icon: Link2,           group: "insights" },
   { title: "Integrations",      url: "/Integrations",       icon: Plug,            group: "insights" },
+  { title: "Platform Readiness", url: "/PlatformReadiness", icon: Monitor,         group: "insights" },
   // ACCOUNT
   { title: "Profile",           url: "/Profile",            icon: UserIcon,        group: "account" },
   { title: "Settings",          url: "/Settings",           icon: SettingsIcon,    group: "account" },

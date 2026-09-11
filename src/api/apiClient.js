@@ -381,6 +381,9 @@ export const api = {
     }),
   },
   integrations: {
+    status: () => request("/integrations/status"),
+    aiStatus: () => request("/integrations/ai/status"),
+    platformReadiness: () => request("/integrations/platform-readiness"),
     Core: {
       InvokeLLM: (data) => request("/integrations/ai/invoke", {
         method: "POST",
@@ -442,6 +445,7 @@ export const api = {
     }),
   },
   analytics: {
+    overview: () => request("/analytics/overview"),
     track: (event) => request("/analytics/track", {
       method: "POST",
       body: JSON.stringify(event),

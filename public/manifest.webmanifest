@@ -1,0 +1,44 @@
+{
+  "name": "Phakathi Flow",
+  "short_name": "Phakathi Flow",
+  "description": "Integrated digital office, CRM, work management, meetings, notifications, analytics, and operations platform for Phakathi Holdings.",
+  "start_url": "/Dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "any",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/brand/phakathi-holdings-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/brand/phakathi-holdings-fullcolor.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "url": "/Dashboard",
+      "description": "Open the group dashboard"
+    },
+    {
+      "name": "Notifications",
+      "url": "/Notifications",
+      "description": "Open office notifications"
+    },
+    {
+      "name": "Meeting Studio",
+      "url": "/MeetingStudio",
+      "description": "Open Meeting Studio"
+    }
+  ]
+}

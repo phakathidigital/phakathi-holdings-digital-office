@@ -6,6 +6,8 @@ import crypto from "node:crypto";
 import { uploadDir } from "../config/paths.js";
 import { nowStamped, readDb, writeDb } from "../config/database.js";
 import { analyzeMeetingTranscript } from "../services/meetingStudioAi.js";
+import { requireAuth } from "../middleware/auth.js";
+import { getAiCapabilityStatus, getPlatformReadiness, listIntegrationStatuses } from "../services/integrationRegistry.js";
 
 const router = express.Router();
 const PORT = Number(process.env.PORT || 4000);
@@ -20,7 +22,7 @@ async function getUploadStore() {
   return getStore({ name: UPLOAD_BLOB_STORE, consistency: "strong" });
 }
 
-router.post("/upload-file", async (req, res) => {
+router.post("/upload-file", requireAuth, async (req, res) => {
   const extension = path.extname(req.body.name || "") || ".bin";
   const filename = `${Date.now()}-${crypto.randomUUID()}${extension}`;
   const base64 = String(req.body.dataUrl || "").split(",")[1] || "";
@@ -51,6 +53,24 @@ router.get("/uploads/:filename", async (req, res) => {
   if (!data) return res.status(404).json({ message: "File not found" });
   res.setHeader("Content-Type", metadata?.contentType || "application/octet-stream");
   res.send(Buffer.from(data));
+});
+
+router.use(requireAuth);
+
+router.get("/status", (_req, res) => {
+  res.json({
+    integrations: listIntegrationStatuses(),
+    ai: getAiCapabilityStatus(),
+    platform: getPlatformReadiness(),
+  });
+});
+
+router.get("/ai/status", (_req, res) => {
+  res.json(getAiCapabilityStatus());
+});
+
+router.get("/platform-readiness", (_req, res) => {
+  res.json(getPlatformReadiness());
 });
 
 router.post("/send-email", async (req, res) => {

@@ -300,12 +300,22 @@ async function main() {
     const timeline = await request(baseUrl, `/v1/crm/accounts/${crmAccount.data.id}/timeline`, { token });
     expect(timeline.data.some((item) => item.related_entity_type === "Project" && item.related_entity_id === conversion.data.project.id), "Unified client timeline did not include the linked project.");
 
+    const integrationStatus = await request(baseUrl, "/integrations/status", { token });
+    expect(Array.isArray(integrationStatus.integrations), "Integration status did not return a registry.");
+    expect(integrationStatus.ai?.capabilities?.meeting_transcript_processing, "AI capability status is missing Meeting Studio processing.");
+
+    const platformReadiness = await request(baseUrl, "/integrations/platform-readiness", { token });
+    expect(platformReadiness.mobile?.target && platformReadiness.desktop?.target, "Platform readiness did not include mobile and desktop targets.");
+
+    const analyticsOverview = await request(baseUrl, "/analytics/overview", { token });
+    expect(Number(analyticsOverview.summary?.projects) >= 0, "Analytics overview did not return project metrics.");
+
     await request(baseUrl, "/auth/logout", {
       method: "POST",
       body: JSON.stringify({ refresh_token: refreshed.refresh_token }),
     });
 
-    console.log(JSON.stringify({ ok: true, checks: 29 }, null, 2));
+    console.log(JSON.stringify({ ok: true, checks: 33 }, null, 2));
   } finally {
     await new Promise((resolve) => server.close(resolve));
     if (originalDb === null) {
